@@ -302,6 +302,73 @@
         
         // تشغيل الترجمة الأولية
         updateUI();
+
+        // --- داخل وظيفة اللعب (play) ---
+
+async function play(idx, game) {
+    if(game.order[game.turn] !== myKey || pendingWild) return;
+    const hand = game[`hand_${myKey}`];
+    const card = hand[idx];
+    const top = game.discard[game.discard.length-1];
+    
+    if(card.color === top.color || card.value === top.value || card.color === 'black') {
+        if(hand.length === 2 && !hasUno) return alert("UNO!");
+        
+        hand.splice(idx, 1);
+        game.discard.push(card);
+
+        // تحديد اللاعب التالي لتطبيق العقوبة عليه
+        let nextPlayerIndex = (game.turn + 1) % game.order.length;
+        let nextPlayerKey = game.order[nextPlayerIndex];
+
+        // منطق العقوبات (The Penalty Logic)
+        if (card.value === '+2') {
+            // سحب كرتين وتخطي الدور
+            for(let i=0; i<2; i++) game[`hand_${nextPlayerKey}`].push(game.deck.pop());
+            game.turn = (nextPlayerIndex + 1) % game.order.length;
+        } 
+        else if (card.value === 'Skip') {
+            // تخطي الدور فقط
+            game.turn = (nextPlayerIndex + 1) % game.order.length;
+        }
+        else if (card.color === 'black') {
+            pendingWild = true;
+            // إذا كان +4، اللاعب التالي يسحب 4 ويخسر دوره
+            if (card.value === '+4') {
+                for(let i=0; i<4; i++) game[`hand_${nextPlayerKey}`].push(game.deck.pop());
+                // ملاحظة: تخطي الدور سيحدث بعد اختيار اللون في pickColor
+            }
+            document.getElementById('color-modal').style.display = 'flex';
+        }
+        else {
+            // كرت عادي أو ريفيرس (الريفيرس في لاعبين = Skip)
+            game.turn = nextPlayerIndex;
+        }
+
+        await update(ref(db, `rooms/${myRoom}/game`), game);
+    }
+}
+
+// --- داخل وظيفة اختيار اللون (pickColor) ---
+
+window.pickColor = async (color) => {
+    const s = await get(ref(db, `rooms/${myRoom}/game`));
+    const game = s.val();
+    const lastPlayed = game.discard[game.discard.length-1];
+    
+    game.discard[game.discard.length-1].color = color;
+    
+    // إذا كان الكرت +4، نتخطى اللاعب الذي سحب
+    if (lastPlayed.value === '+4') {
+        game.turn = (game.turn + 2) % game.order.length;
+    } else {
+        game.turn = (game.turn + 1) % game.order.length;
+    }
+
+    pendingWild = false;
+    document.getElementById('color-modal').style.display = 'none';
+    await update(ref(db, `rooms/${myRoom}/game`), game);
+};
     </script>
 </body>
 </html>
