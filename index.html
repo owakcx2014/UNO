@@ -38,7 +38,7 @@
         }
 
         .container { text-align: center; width: 90%; max-width: 600px; position: relative; }
-        
+
         .card-decor { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
         .uno-card {
             width: 60px; height: 90px; border-radius: 8px; border: 3px solid white;
@@ -99,6 +99,11 @@
         <div class="room-view">
             <h2 id="room-msg">أنت الآن في الغرفة:</h2>
             <h1 id="display-room-code" style="color: var(--accent); font-size: 4rem;">000000</h1>
+            <p id="wait-msg">بإنتظار اللاعبين الآخرين...</p>
+            <div id="ready-section">
+            <button id="btn-ready" onclick="handleAction(setReady)">أنا جاهز! 👍</button>
+            </div>
+            <p id="ready-count" style="font-size: 0.9rem; color: var(--accent);"></p>
             <p id="wait-msg">بإنتظار اللاعبين الآخرين...</p>
             <button id="btn-leave" onclick="handleAction(leaveRoom)">العودة للرئيسية</button>
         </div>
@@ -204,7 +209,7 @@
         document.getElementById('room-msg').innerText = t.roomMsg;
         document.getElementById('wait-msg').innerText = t.waitMsg;
         document.getElementById('btn-leave').innerText = t.leave;
-        
+
         const list = document.getElementById('rules-list');
         list.innerHTML = "";
         t.rulesList.forEach(rule => {
@@ -263,9 +268,9 @@
 
             if (players) {
                 const playerNames = Object.values(players).map(p => p.name);
-                document.getElementById('wait-msg').innerHTML = 
+                document.getElementById('wait-msg').innerHTML =
                     `<span style="color:var(--accent)">${playerNames.join(' ' + t.vs + ' ')}</span>`;
-                
+
                 if (playerNames.length >= 2) {
                     document.getElementById('room-msg').innerText = t.started;
                 }
