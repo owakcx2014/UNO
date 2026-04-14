@@ -3,94 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أونو أونلاين - النسخة الكاملة</title>
+    <title id="page-title">أونو أونلاين</title>
     <style>
         :root {
             --bg-color: #f0f0f0; --text-color: #333; --accent: #ff4757;
             --btn-bg: #2f3542; --btn-text: white;
         }
-        /* الثيمات */
         .dark-mode { --bg-color: #1a1a1a; --text-color: #f1f1f1; --btn-bg: #374151; }
         .colorful-mode { --bg-color: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f); --text-color: #fff; --btn-bg: rgba(0,0,0,0.3); }
 
         body { background: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', sans-serif; transition: 0.3s; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         .container { text-align: center; width: 95%; max-width: 600px; position: relative; }
         
-        .uno-card { 
-            width: 50px; height: 75px; border-radius: 8px; border: 2px solid white; 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: bold; font-size: 1rem; color: white; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); cursor: pointer; transition: 0.2s;
-        }
-        .uno-card:hover { transform: translateY(-10px); z-index: 10; }
+        /* الديكور */
+        .card-decor { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
+        .decor-card { width: 50px; height: 75px; border-radius: 8px; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .red-d { background: #ff4757; transform: rotate(-15deg); }
+        .black-d { background: #000; transform: rotate(15deg); }
+
+        .uno-card { width: 45px; height: 70px; border-radius: 8px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); cursor: pointer; transition: 0.2s; }
+        .uno-card:hover { transform: translateY(-10px); }
         
         .hidden { display: none !important; }
-        
-        /* الشات */
-        #chat-box { background: rgba(0,0,0,0.1); border-radius: 15px; margin-top: 10px; padding: 10px; }
-        #chat-messages { height: 60px; overflow-y: auto; font-size: 0.85rem; border-bottom: 1px solid rgba(0,0,0,0.1); text-align: right; }
-        
         .exit-btn { position: absolute; top: -45px; left: 10px; background: #e74c3c; padding: 5px 12px; font-size: 0.8rem; border-radius: 15px; color: white; border: none; cursor: pointer; }
-        .settings-btn { position: absolute; top: -45px; right: 10px; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
         
-        .room-view { padding: 20px; border: 3px dashed var(--accent); border-radius: 20px; position: relative; background: rgba(255,255,255,0.05); }
-        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: var(--btn-bg); color: var(--btn-text); cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
+        #chat-box { background: rgba(0,0,0,0.1); border-radius: 15px; margin-top: 10px; padding: 10px; }
+        #chat-messages { height: 50px; overflow-y: auto; font-size: 0.8rem; text-align: right; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 20px; color: #333; width: 80%; max-width: 400px; text-align: right; }
+        
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: var(--btn-bg); color: var(--btn-text); cursor: pointer; }
         input { padding: 10px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body class="light-mode" id="body-tag">
 
     <div class="container" id="main-screen">
-        <button class="settings-btn" onclick="openModal('settings-modal')">⚙️</button>
-        <h1>أونو أونلاين</h1>
-        <input type="text" id="player-name-input" placeholder="اسمك الكريم">
+        <div class="card-decor">
+            <div class="decor-card red-d">7</div>
+            <div class="decor-card black-d">+4</div>
+        </div>
+        <h1 id="main-title">أونو أونلاين</h1>
+        <input type="text" id="player-name-input" placeholder="أدخل اسمك">
         <br>
-        <button onclick="handleAction(createRoom)">إنشاء غرفة</button>
+        <button id="btn-create" onclick="createRoom()">إنشاء غرفة</button>
         <br>
         <input type="text" id="room-id-input" maxlength="6" placeholder="كود الغرفة">
-        <button onclick="handleAction(joinRoom)">دخول</button>
+        <button id="btn-join" onclick="joinRoom()">دخول</button>
+        <br>
+        <button id="btn-rules" onclick="openModal('rules-modal')">قواعد اللعبة</button>
+        <button id="btn-settings" onclick="openModal('settings-modal')">الإعدادات ⚙️</button>
     </div>
 
     <div class="container hidden" id="room-screen">
-        <div class="room-view">
+        <div class="room-view" style="padding: 20px; border: 3px dashed var(--accent); border-radius: 20px; position: relative;">
             <button class="exit-btn" onclick="location.reload()">خروج 🚪</button>
-            <h3 style="margin:5px;">غرفة: <span id="display-room-code" style="color:var(--accent)"></span></h3>
+            <h3 id="room-msg">غرفة: <span id="display-room-code" style="color:var(--accent)"></span></h3>
             
             <div id="waiting-area">
-                <p id="wait-msg">بإنتظار الخصوم ليصبحوا جاهزين...</p>
-                <button id="btn-ready" onclick="handleAction(setReady)">أنا جاهز! 👍</button>
+                <p id="wait-msg">بإنتظار اللاعبين...</p>
+                <button id="btn-ready" onclick="setReady()">أنا جاهز! 👍</button>
                 <p id="ready-count" style="color:var(--accent); font-weight:bold;"></p>
             </div>
 
             <div id="game-board" class="hidden">
-                <p id="current-turn-msg" style="font-weight:bold; color:var(--accent); margin-bottom:10px;"></p>
+                <p id="turn-display" style="font-weight:bold; color:var(--accent);"></p>
                 <div id="top-card" class="uno-card" style="margin: 0 auto; transform: scale(1.2); cursor: default;">?</div>
-                <div id="player-hand" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 20px; padding: 10px;"></div>
-                <button id="btn-draw" onclick="handleAction(drawCard)">سحب كرت +</button>
+                <div id="player-hand" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 20px;"></div>
+                <button id="btn-draw" onclick="drawCard()">سحب كرت +</button>
             </div>
 
             <div id="chat-box">
                 <div id="chat-messages"></div>
-                <div style="display: flex; gap: 5px; margin-top: 5px;">
-                    <input type="text" id="chat-input" placeholder="قل شيئاً..." style="flex:1; margin:0; padding:5px;">
-                    <button onclick="sendChatMessage()" style="padding: 5px 15px; margin:0;">إرسال</button>
-                </div>
+                <input type="text" id="chat-input" placeholder="رسالة..." style="width:60%; margin:0; padding:5px;">
+                <button onclick="sendChatMessage()" style="padding:5px 10px;">إرسال</button>
             </div>
         </div>
     </div>
 
-    <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center;">
-        <div style="background:white; padding:20px; border-radius:20px; color:#333; width:250px;">
-            <h3>الإعدادات</h3>
-            <label>المظهر:</label><br>
-            <select id="theme-select" onchange="updateTheme()" style="padding:10px; width:100%; border-radius:10px; margin-top:10px;">
-                <option value="light">فاتح ☀️</option>
-                <option value="dark">داكن 🌙</option>
-                <option value="colorful">ملون ✨</option>
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="rules-title">قواعد اللعبة</h2>
+            <ul id="rules-list" style="padding-right: 20px;">
+                <li>7 كروت لكل لاعب.</li>
+                <li>يجب مطابقة اللون أو الرقم.</li>
+                <li>لا يمكن البدء بكرت أكشن (+4، تغيير لون).</li>
+                <li>الفائز من ينهي كروته أولاً.</li>
+            </ul>
+            <button onclick="closeModal('rules-modal')" style="width:100%">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="settings-title">الإعدادات</h2>
+            <label>اللغة / Language:</label>
+            <select id="lang-select" onchange="updateLanguage()" style="width:100%; padding:10px; margin-top:5px;">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
             </select>
             <br><br>
-            <button onclick="closeModal('settings-modal')" style="width:100%;">حفظ وإغلاق</button>
+            <label>المظهر / Theme:</label>
+            <select id="theme-select" onchange="updateTheme()" style="width:100%; padding:10px; margin-top:5px;">
+                <option value="light">فاتح</option>
+                <option value="dark">داكن</option>
+                <option value="colorful">ملون</option>
+            </select>
+            <br><br>
+            <button onclick="closeModal('settings-modal')" style="width:100%">حفظ</button>
         </div>
     </div>
 
@@ -111,38 +132,51 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let currentPlayerKey = null;
-        let currentRoomCode = null;
-        let playerName = "";
+        let currentPlayerKey = null, currentRoomCode = null, playerName = "";
 
-        // --- إدارة الغرف ---
+        const trans = {
+            ar: { title: "أونو أونلاين", create: "إنشاء غرفة", join: "دخول", rules: "قواعد اللعبة", settings: "الإعدادات", placeholder: "أدخل اسمك" },
+            en: { title: "UNO Online", create: "Create Room", join: "Join", rules: "Rules", settings: "Settings", placeholder: "Enter Name" }
+        };
+
+        window.updateLanguage = () => {
+            const l = document.getElementById('lang-select').value;
+            document.getElementById('main-title').innerText = trans[l].title;
+            document.getElementById('btn-create').innerText = trans[l].create;
+            document.getElementById('btn-join').innerText = trans[l].join;
+            document.getElementById('btn-rules').innerText = trans[l].rules;
+            document.getElementById('btn-settings').innerText = trans[l].settings;
+            document.getElementById('player-name-input').placeholder = trans[l].placeholder;
+            document.documentElement.dir = (l === 'ar' ? 'rtl' : 'ltr');
+        };
+
         window.createRoom = async function() {
             playerName = document.getElementById('player-name-input').value;
-            if(!playerName) return alert("أدخل اسمك!");
+            if(!playerName) return alert("الاسم!");
             const code = Math.floor(100000 + Math.random() * 900000);
             currentRoomCode = code;
             const pRef = push(ref(db, `rooms/${code}/players`));
             currentPlayerKey = pRef.key;
             await set(ref(db, `rooms/${code}`), { status: "waiting" });
             await set(pRef, { name: playerName, ready: false });
-            setupUI(code);
-        }
+            goRoom(code);
+        };
 
         window.joinRoom = async function() {
             const code = document.getElementById('room-id-input').value;
             playerName = document.getElementById('player-name-input').value;
-            if(!playerName || code.length !== 6) return alert("بيانات ناقصة!");
+            if(!playerName || code.length !== 6) return alert("خطأ!");
             const snap = await get(ref(db, `rooms/${code}`));
             if (snap.exists()) {
                 currentRoomCode = code;
                 const pRef = push(ref(db, `rooms/${code}/players`));
                 currentPlayerKey = pRef.key;
                 await set(pRef, { name: playerName, ready: false });
-                setupUI(code);
-            } else alert("الغرفة غير موجودة!");
-        }
+                goRoom(code);
+            }
+        };
 
-        function setupUI(code) {
+        function goRoom(code) {
             document.getElementById('main-screen').classList.add('hidden');
             document.getElementById('room-screen').classList.remove('hidden');
             document.getElementById('display-room-code').innerText = code;
@@ -150,10 +184,7 @@
             listenToChat(code);
         }
 
-        window.setReady = async function() {
-            await update(ref(db, `rooms/${currentRoomCode}/players/${currentPlayerKey}`), { ready: true });
-            document.getElementById('btn-ready').classList.add('hidden');
-        }
+        window.setReady = async () => update(ref(db, `rooms/${currentRoomCode}/players/${currentPlayerKey}`), { ready: true });
 
         function listenToRoom(code) {
             onValue(ref(db, `rooms/${code}/players`), (snap) => {
@@ -161,38 +192,20 @@
                 const arr = Object.values(players);
                 const readyCount = arr.filter(p => p.ready).length;
                 document.getElementById('ready-count').innerText = `الجاهزون: ${readyCount} / ${arr.length}`;
-                if (arr.length >= 2 && readyCount === arr.length) initGame(code);
+                if (arr.length >= 2 && readyCount === arr.length) startGame(code);
             });
         }
 
-        // --- منطق اللعب المتقدم ---
-        async function initGame(code) {
+        async function startGame(code) {
             const snap = await get(ref(db, `rooms/${code}/players`));
             const keys = Object.keys(snap.val());
-            
-            if (keys[0] === currentPlayerKey) { // المنشئ فقط هو من يوزع الكروت
-                const deck = [];
-                const colors = ['red','blue','green','yellow'];
-                colors.forEach(c => {
+            if (keys[0] === currentPlayerKey) {
+                let deck = [];
+                ['red','blue','green','yellow'].forEach(c => {
                     for(let i=0; i<=9; i++) deck.push({color:c, value: i.toString()});
-                    ['+2', 'Skip', 'Reverse'].forEach(a => deck.push({color:c, value: a}));
                 });
-                for(let i=0; i<4; i++) {
-                    deck.push({color:'black', value:'Wild'});
-                    deck.push({color:'black', value:'+4'});
-                }
                 deck.sort(() => Math.random() - 0.5);
-
-                // قاعدة: لا يمكن البدء ببطاقة مميزة
-                let firstCardIndex = deck.findIndex(card => !isNaN(card.value)); 
-                let firstCard = deck.splice(firstCardIndex, 1)[0];
-
-                let game = { 
-                    discardPile: [firstCard], 
-                    currentTurnIndex: 0, 
-                    playersOrder: keys, 
-                    deck: deck 
-                };
+                let game = { discardPile: [deck.pop()], currentTurnIndex: 0, playersOrder: keys, deck: deck };
                 keys.forEach(k => game[`hand_${k}`] = deck.splice(0, 7));
                 await set(ref(db, `rooms/${code}/game`), game);
             }
@@ -205,84 +218,60 @@
             onValue(ref(db, `rooms/${code}/game`), (snap) => {
                 const data = snap.val(); if (!data) return;
                 const top = data.discardPile[data.discardPile.length - 1];
-                const topEl = document.getElementById('top-card');
-                topEl.innerText = top.value;
-                topEl.style.backgroundColor = getCardColor(top.color);
+                document.getElementById('top-card').innerText = top.value;
+                document.getElementById('top-card').style.backgroundColor = getC(top.color);
                 
                 const hand = data[`hand_${currentPlayerKey}`] || [];
                 const handDiv = document.getElementById('player-hand');
                 handDiv.innerHTML = "";
-                hand.forEach((card, index) => {
-                    const d = document.createElement('div');
-                    d.className = 'uno-card';
-                    d.innerText = card.value;
-                    d.style.backgroundColor = getCardColor(card.color);
-                    d.onclick = () => playCard(index, data);
+                hand.forEach((c, i) => {
+                    const d = document.createElement('div'); d.className='uno-card'; d.innerText=c.value;
+                    d.style.backgroundColor=getC(c.color);
+                    d.onclick = () => playCard(i, data);
                     handDiv.appendChild(d);
                 });
-
-                const turnKey = data.playersOrder[data.currentTurnIndex];
-                document.getElementById('current-turn-msg').innerText = (turnKey === currentPlayerKey) ? "دورك الآن! 🔥" : "انتظر الخصم...";
+                const isMyTurn = data.playersOrder[data.currentTurnIndex] === currentPlayerKey;
+                document.getElementById('turn-display').innerText = isMyTurn ? "دورك! 🔥" : "انتظر الخصم...";
             });
         }
 
-        async function playCard(cardIndex, gameData) {
-            if (gameData.playersOrder[gameData.currentTurnIndex] !== currentPlayerKey) return;
-            const myHand = gameData[`hand_${currentPlayerKey}`];
-            const cardToPlay = myHand[cardIndex];
-            const topCard = gameData.discardPile[gameData.discardPile.length - 1];
-
-            if (cardToPlay.color === topCard.color || cardToPlay.value === topCard.value || cardToPlay.color === 'black') {
-                myHand.splice(cardIndex, 1);
-                gameData.discardPile.push(cardToPlay);
-                const nextTurn = (gameData.currentTurnIndex + 1) % gameData.playersOrder.length;
-                await update(ref(db, `rooms/${currentRoomCode}/game`), {
-                    discardPile: gameData.discardPile,
-                    [`hand_${currentPlayerKey}`]: myHand,
-                    currentTurnIndex: nextTurn
-                });
-            } else alert("الكرت غير مطابق! ❌");
+        async function playCard(idx, data) {
+            if (data.playersOrder[data.currentTurnIndex] !== currentPlayerKey) return;
+            const card = data[`hand_${currentPlayerKey}`][idx];
+            const top = data.discardPile[data.discardPile.length - 1];
+            if (card.color === top.color || card.value === top.value) {
+                data[`hand_${currentPlayerKey}`].splice(idx, 1);
+                data.discardPile.push(card);
+                data.currentTurnIndex = (data.currentTurnIndex + 1) % data.playersOrder.length;
+                await update(ref(db, `rooms/${currentRoomCode}/game`), data);
+            }
         }
 
-        window.drawCard = async function() {
+        window.drawCard = async () => {
             const snap = await get(ref(db, `rooms/${currentRoomCode}/game`));
             const data = snap.val();
-            if (data.playersOrder[data.currentTurnIndex] !== currentPlayerKey) return alert("ليس دورك!");
-            const card = data.deck.pop();
-            const myHand = [...(data[`hand_${currentPlayerKey}`] || []), card];
-            const nextTurn = (data.currentTurnIndex + 1) % data.playersOrder.length;
-            await update(ref(db, `rooms/${currentRoomCode}/game`), {
-                deck: data.deck, [`hand_${currentPlayerKey}`]: myHand, currentTurnIndex: nextTurn
-            });
+            if (data.playersOrder[data.currentTurnIndex] !== currentPlayerKey) return;
+            data[`hand_${currentPlayerKey}`].push(data.deck.pop());
+            data.currentTurnIndex = (data.currentTurnIndex + 1) % data.playersOrder.length;
+            await update(ref(db, `rooms/${currentRoomCode}/game`), data);
         };
 
-        // --- الشات والإضافات ---
-        window.sendChatMessage = async function() {
-            const input = document.getElementById('chat-input');
-            if (!input.value.trim()) return;
-            await push(ref(db, `rooms/${currentRoomCode}/chat`), { name: playerName, msg: input.value });
-            input.value = "";
-        }
+        function getC(c) { return {red:'#ff4757', blue:'#3498db', green:'#2ecc71', yellow:'#f1c40f'}[c]; }
+
+        window.sendChatMessage = async () => {
+            const i = document.getElementById('chat-input');
+            if (i.value) await push(ref(db, `rooms/${currentRoomCode}/chat`), { name: playerName, msg: i.value });
+            i.value = "";
+        };
 
         function listenToChat(code) {
             onValue(ref(db, `rooms/${code}/chat`), (snap) => {
-                const box = document.getElementById('chat-messages');
-                box.innerHTML = "";
-                if (snap.exists()) {
-                    Object.values(snap.val()).forEach(m => {
-                        box.innerHTML += `<div><strong>${m.name}:</strong> ${m.msg}</div>`;
-                    });
-                    box.scrollTop = box.scrollHeight;
-                }
+                const box = document.getElementById('chat-messages'); box.innerHTML = "";
+                if (snap.exists()) Object.values(snap.val()).forEach(m => box.innerHTML += `<div>${m.name}: ${m.msg}</div>`);
+                box.scrollTop = box.scrollHeight;
             });
         }
 
-        function getCardColor(c) {
-            const colors = { red: '#ff4757', blue: '#3498db', green: '#2ecc71', yellow: '#f1c40f', black: '#2f3542' };
-            return colors[c] || '#ccc';
-        }
-
-        window.handleAction = (f) => f();
         window.openModal = (id) => document.getElementById(id).style.display='flex';
         window.closeModal = (id) => document.getElementById(id).style.display='none';
         window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
