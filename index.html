@@ -106,6 +106,17 @@
             <p id="ready-count" style="font-size: 0.9rem; color: var(--accent);"></p>
             <p id="wait-msg">بإنتظار اللاعبين الآخرين...</p>
             <button id="btn-leave" onclick="handleAction(leaveRoom)">العودة للرئيسية</button>
+            <div id="game-board" class="hidden" style="margin-top: 20px;">
+    <div id="discard-pile" style="margin-bottom: 20px;">
+        <p id="current-turn-msg" style="font-weight: bold; color: var(--accent);"></p>
+        <div id="top-card" class="uno-card" style="margin: 0 auto; transform: none;">?</div>
+    </div>
+
+    <div id="player-hand" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; padding: 10px;">
+        </div>
+
+    <button id="btn-draw" onclick="handleAction(drawCard)">سحب كرت +</button>
+</div>
         </div>
     </div>
 
@@ -337,6 +348,101 @@
     window.leaveRoom = () => location.reload();
 
     updateLanguage();
+
+    // 1. تعريف مصفوفة الكروت الشاملة
+const colors = ['red', 'blue', 'green', 'yellow'];
+const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'Skip', 'Reverse', '+2'];
+let myHand = [];
+
+// 2. وظيفة إنشاء "رزمة" كروت عشوائية (Deck)
+function generateDeck() {
+    let deck = [];
+    colors.forEach(color => {
+        numbers.forEach(num => {
+            deck.push({ color, value: num });
+            if (num !== 0) deck.push({ color, value: num }); // كل رقم يتكرر مرتين ماعدا الصفر
+        });
+    });
+    // إضافة كروت الأكشن السوداء
+    for (let i = 0; i < 4; i++) {
+        deck.push({ color: 'black', value: 'Wild' });
+        deck.push({ color: 'black', value: '+4' });
+    }
+    return deck.sort(() => Math.random() - 0.5); // خلط الكروت
+}
+
+// 3. تحديث وظيفة بدء اللعبة الفعلية
+async function startActualGame(code) {
+    const lang = document.getElementById('lang-select').value;
+    document.getElementById('room-msg').innerText = translations[lang].started;
+    document.getElementById('ready-count').style.display = 'none';
+    document.getElementById('game-board').classList.remove('hidden');
+
+    // فقط من أنشأ الغرفة (الأدمن) هو من يوزع الكروت في البداية
+    const snapshot = await get(ref(db, `rooms/${code}/players`));
+    const playersKeys = Object.keys(snapshot.val());
+
+    if (playersKeys[0] === currentPlayerKey) {
+        let deck = generateDeck();
+        let gameData = {
+            deck: deck,
+            discardPile: [deck.pop()],
+            currentTurnIndex: 0,
+            playersOrder: playersKeys
+        };
+
+        // توزيع 7 كروت لكل لاعب في الداتابيز
+        playersKeys.forEach(pKey => {
+            gameData[`hand_${pKey}`] = deck.splice(0, 7);
+        });
+
+        await update(ref(db, `rooms/${code}/game`), gameData);
+    }
+
+    listenToGameUpdates(code);
+}
+
+// 4. مراقبة تحديثات اللعبة (الكروت والدور)
+function listenToGameUpdates(code) {
+    onValue(ref(db, `rooms/${code}/game`), (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        // عرض كرت الساحة
+        const topCard = data.discardPile[data.discardPile.length - 1];
+        const topCardDiv = document.getElementById('top-card');
+        topCardDiv.innerText = topCard.value;
+        topCardDiv.style.backgroundColor = topCard.color === 'black' ? '#000' :
+                          (topCard.color === 'red' ? '#ff4757' :
+                          (topCard.color === 'blue' ? '#3498db' :
+                          (topCard.color === 'green' ? '#2ecc71' : '#f1c40f')));
+
+        // عرض كروت يدي أنا فقط
+        myHand = data[`hand_${currentPlayerKey}`] || [];
+        renderMyHand();
+
+        // تحديد من عليه الدور
+        const turnKey = data.playersOrder[data.currentTurnIndex];
+        document.getElementById('current-turn-msg').innerText =
+            (turnKey === currentPlayerKey) ? "دورك الآن! 🔥" : "انتظر دور المنافس...";
+    });
+}
+
+function renderMyHand() {
+    const handDiv = document.getElementById('player-hand');
+    handDiv.innerHTML = "";
+    myHand.forEach((card, index) => {
+        const c = document.createElement('div');
+        c.className = 'uno-card';
+        c.style.backgroundColor = card.color === 'black' ? '#000' :
+                                 (card.color === 'red' ? '#ff4757' :
+                                 (card.color === 'blue' ? '#3498db' :
+                                 (card.color === 'green' ? '#2ecc71' : '#f1c40f')));
+        c.innerText = card.value;
+        c.onclick = () => playCard(index);
+        handDiv.appendChild(c);
+    });
+}
 </script>
 </body>
 </html>
