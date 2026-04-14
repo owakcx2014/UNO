@@ -143,7 +143,7 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, child, onValue, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, child, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
@@ -159,7 +159,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // نظام الصوت والترجمة (نفس كودك السابق لضمان الثبات)
+    // متغيرات الحالة العالمية
+    let currentPlayerKey = null;
+    let currentRoomCode = null;
+
+    // نظام الصوت
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound() {
         if (!document.getElementById('sound-chk').checked) return;
@@ -182,6 +186,7 @@
             waitMsg: "بإنتظار اللاعبين الآخرين...", leave: "العودة للرئيسية",
             errorName: "يرجى إدخال اسمك أولاً!", errorRoom: "أدخل كود من 6 أرقام!",
             roomNotFound: "الغرفة غير موجودة!", started: "بدأت المعركة!", vs: "ضد",
+            readyBtn: "أنا جاهز! 👍", readyStatus: "الجاهزون: ",
             rulesList: ["يبدأ كل لاعب بـ 7 كروت.", "الكرت الأول يحدد اللون.", "كرت (+2): التالي يسحب 2.", "كرت (عكس): يغير الاتجاه.", "كرت (تخطي): تخطي اللاعب التالي.", "كرت (تغيير اللون): اختيار لون جديد.", "كرت (+4): سحب 4 وتغيير اللون.", "اضغط أونو عند بقاء كرت واحد.", "الفائز هو من ينهي كروته أولاً."]
         },
         en: {
@@ -191,6 +196,7 @@
             waitMsg: "Waiting for others...", leave: "Back to Home",
             errorName: "Please enter your name first!", errorRoom: "Enter 6 digits code!",
             roomNotFound: "Room not found!", started: "Battle Started!", vs: "VS",
+            readyBtn: "I'm Ready! 👍", readyStatus: "Ready: ",
             rulesList: ["7 cards each.", "Match by color/number.", "Draw 2: Next draws 2.", "Reverse: Changes direction.", "Skip: Misses turn.", "Wild: Changes color.", "Wild +4: Draw 4 & change color.", "Say UNO for 1 card.", "First to clear cards wins."]
         }
     };
@@ -209,6 +215,7 @@
         document.getElementById('room-msg').innerText = t.roomMsg;
         document.getElementById('wait-msg').innerText = t.waitMsg;
         document.getElementById('btn-leave').innerText = t.leave;
+        if(document.getElementById('btn-ready')) document.getElementById('btn-ready').innerText = t.readyBtn;
 
         const list = document.getElementById('rules-list');
         list.innerHTML = "";
@@ -220,7 +227,15 @@
         document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
     }
 
-    // --- وظائف Firebase المحسنة ---
+    // وظيفة الجاهزية
+    window.setReady = async function() {
+        if (!currentPlayerKey || !currentRoomCode) return;
+        const playerRef = ref(db, `rooms/${currentRoomCode}/players/${currentPlayerKey}`);
+        await update(playerRef, { ready: true });
+
+        const readyBtn = document.getElementById('btn-ready');
+        if(readyBtn) readyBtn.style.display = 'none';
+    };
 
     window.createRoom = async function() {
         const name = document.getElementById('player-name-input').value;
@@ -228,11 +243,14 @@
         if(!name) { alert(translations[lang].errorName); return; }
 
         const code = Math.floor(100000 + Math.random() * 900000);
+        currentRoomCode = code;
+
         const playerRef = ref(db, `rooms/${code}/players`);
         const newPlayerRef = push(playerRef);
+        currentPlayerKey = newPlayerRef.key;
 
         await set(ref(db, 'rooms/' + code), { status: "waiting", createdAt: Date.now() });
-        await set(newPlayerRef, { name: name });
+        await set(newPlayerRef, { name: name, ready: false });
 
         listenToRoom(code);
         showRoom(code);
@@ -250,8 +268,12 @@
         const snapshot = await get(roomRef);
 
         if (snapshot.exists()) {
+            currentRoomCode = code;
             const playerRef = ref(db, `rooms/${code}/players`);
-            await push(playerRef, { name: name });
+            const newPlayerRef = push(playerRef);
+            currentPlayerKey = newPlayerRef.key;
+
+            await set(newPlayerRef, { name: name, ready: false });
             listenToRoom(code);
             showRoom(code);
         } else {
@@ -267,12 +289,25 @@
             const t = translations[lang];
 
             if (players) {
-                const playerNames = Object.values(players).map(p => p.name);
+                const playersArray = Object.values(players);
+                const playerNames = playersArray.map(p => p.name);
+                const readyCount = playersArray.filter(p => p.ready).length;
+
                 document.getElementById('wait-msg').innerHTML =
                     `<span style="color:var(--accent)">${playerNames.join(' ' + t.vs + ' ')}</span>`;
 
-                if (playerNames.length >= 2) {
+                // تحديث عداد الجاهزية
+                let countDisplay = document.getElementById('ready-count');
+                if(!countDisplay) {
+                    countDisplay = document.createElement('p');
+                    countDisplay.id = 'ready-count';
+                    document.querySelector('.room-view').insertBefore(countDisplay, document.getElementById('btn-leave'));
+                }
+                countDisplay.innerText = t.readyStatus + readyCount + " / " + playersArray.length;
+
+                if (playersArray.length >= 2 && readyCount === playersArray.length) {
                     document.getElementById('room-msg').innerText = t.started;
+                    if(document.getElementById('btn-ready')) document.getElementById('btn-ready').style.display = 'none';
                 }
             }
         });
@@ -283,14 +318,25 @@
     window.updateTheme = () => { document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode'; };
     window.openModal = (id) => document.getElementById(id).style.display = 'flex';
     window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
     window.showRoom = (code) => {
         document.getElementById('main-screen').classList.add('hidden');
         document.getElementById('room-screen').classList.remove('hidden');
         document.getElementById('display-room-code').innerText = code;
+
+        // إضافة زر الجاهزية برمجياً للتأكد من وجوده
+        if(!document.getElementById('btn-ready')) {
+            const readyBtn = document.createElement('button');
+            readyBtn.id = 'btn-ready';
+            readyBtn.innerText = translations[document.getElementById('lang-select').value].readyBtn;
+            readyBtn.onclick = () => handleAction(window.setReady);
+            document.querySelector('.room-view').insertBefore(readyBtn, document.getElementById('wait-msg'));
+        }
     };
-    window.leaveRoom = () => location.reload(); // أسهل طريقة للخروج وتصفير البيانات
+
+    window.leaveRoom = () => location.reload();
 
     updateLanguage();
-    </script>
+</script>
 </body>
 </html>
