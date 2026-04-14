@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">أونو أونلاين</title>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #333;
+            --accent: #ff4757;
+            --btn-bg: #2f3542;
+            --btn-text: white;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #f1f1f1;
+            --btn-bg: #374151;
+        }
+
+        .colorful-mode {
+            --bg-color: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f);
+            --text-color: #fff;
+            --btn-bg: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: 0.3s;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container { text-align: center; width: 90%; max-width: 600px; position: relative; }
+
+        /* --- تصميم الكروت العلوية --- */
+        .card-decor {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .uno-card {
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .red-card { background: #ff4757; transform: rotate(-15deg); }
+        .green-card { background: #000000; transform: rotate(15deg); }
+
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 30px;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        button:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        input {
+            padding: 15px;
+            border-radius: 25px;
+            border: 2px solid var(--accent);
+            text-align: center;
+            font-size: 1.2rem;
+            width: 250px;
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: var(--text-color);
+            border: 3px solid var(--accent);
+        }
+
+        .hidden { display: none; }
+        .room-view { padding: 40px; border: 4px dashed var(--accent); border-radius: 30px; }
+
+        li { margin-bottom: 10px; line-height: 1.5; }
+    </style>
+</head>
+<body class="light-mode" id="body-tag">
+
+    <div class="container" id="main-screen">
+        <div class="card-decor">
+            <div class="uno-card red-card">7</div>
+            <div class="uno-card green-card">+4</div>
+        </div>
+
+        <h1 id="main-title">أونو أونلاين</h1>
+
+        <div id="home-menu">
+            <button id="btn-create" onclick="handleAction(createRoom)">إنشاء غرفة جديدة</button>
+            <br>
+            <input type="text" id="room-id-input" maxlength="6" placeholder="أدخل 6 أرقام">
+            <button id="btn-join" onclick="handleAction(joinRoom)">دخول الغرفة</button>
+            <br>
+            <button id="btn-rules" onclick="handleAction(() => openModal('rules-modal'))">قواعد اللعبة</button>
+            <button id="btn-settings" onclick="handleAction(() => openModal('settings-modal'))">الإعدادات ⚙️</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="room-screen">
+        <div class="room-view">
+            <h2 id="room-msg">أنت الآن في الغرفة:</h2>
+            <h1 id="display-room-code" style="color: var(--accent); font-size: 4rem;">000000</h1>
+            <p id="wait-msg">بإنتظار اللاعبين الآخرين...</p>
+            <button id="btn-leave" onclick="handleAction(leaveRoom)">العودة للرئيسية</button>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="rules-header">قواعد اللعبة كاملة</h2>
+            <ul id="rules-list" style="text-align: initial; padding: 20px;"></ul>
+            <button id="btn-close-rules" onclick="handleAction(() => closeModal('rules-modal'))">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="settings-header">الإعدادات</h2>
+            <div style="text-align: right; padding: 10px;" id="settings-body">
+                <label id="lbl-lang">اللغة:</label>
+                <select id="lang-select" onchange="updateLanguage()">
+                    <option value="ar">العربية</option>
+                    <option value="en">English</option>
+                </select>
+                <br><br>
+                <label id="lbl-theme">المظهر:</label>
+                <select id="theme-select" onchange="updateTheme()">
+                    <option value="light">فاتح</option>
+                    <option value="dark">داكن</option>
+                    <option value="colorful">ملون</option>
+                </select>
+                <br><br>
+                <label id="lbl-sound">الصوت:</label>
+                <input type="checkbox" id="sound-chk" checked>
+            </div>
+            <button id="btn-close-settings" onclick="handleAction(() => closeModal('settings-modal'))">حفظ</button>
+        </div>
+    </div>
+
+    <script type="module">
+    // 1. استيراد مكتبات Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // 2. إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+        apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
+        authDomain: "uno-online-c4bb2.firebaseapp.com",
+        databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
+        projectId: "uno-online-c4bb2",
+        storageBucket: "uno-online-c4bb2.firebasestorage.app",
+        messagingSenderId: "1077724641787",
+        appId: "1:1077724641787:web:302acb78b4ee3f9090735e",
+        measurementId: "G-8CTJC8JKJH"
+    };
+
+    // 3. تشغيل Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- نظام الصوت ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound() {
+        if (!document.getElementById('sound-chk').checked) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(550, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // --- نظام الترجمة ---
+    const translations = {
+        ar: {
+            tabTitle: "أونو أونلاين",
+            mainTitle: "أونو أونلاين",
+            create: "إنشاء غرفة جديدة",
+            join: "دخول الغرفة",
+            rules: "قواعد اللعبة",
+            settings: "الإعدادات ⚙️",
+            placeholder: "أدخل 6 أرقام",
+            rulesHeader: "قواعد اللعبة كاملة",
+            rulesList: [
+                "يبدأ كل لاعب بـ 7 كروت.",
+                "الكرت الأول في الساحة يحدد اللون أو الرقم للبدء.",
+                "كرت (+2): اللاعب التالي يسحب كرتين ويخسر دوره.",
+                "كرت (عكس الاتجاه): يغير اتجاه اللعب.",
+                "كرت (تخطي): اللاعب التالي يخسر دوره.",
+                "كرت (تغيير اللون): يسمح لك باختيار اللون القادم.",
+                "كرت (+4): يغير اللون ويجعل التالي يسحب 4 كروت.",
+                "يجب الضغط على زر 'أونو' عندما يتبقى معك كرت واحد فقط.",
+                "الفائز هو من ينهي كروته أولاً."
+            ],
+            lblLang: "اللغة:",
+            lblTheme: "المظهر:",
+            lblSound: "الصوت:",
+            close: "إغلاق",
+            save: "حفظ",
+            roomMsg: "أنت الآن في الغرفة:",
+            waitMsg: "بإنتظار اللاعبين الآخرين...",
+            leave: "العودة للرئيسية",
+            error: "خطأ: أدخل 6 أرقام",
+            dbError: "خطأ في الاتصال بالقاعدة!",
+            roomNotFound: "الغرفة غير موجودة!",
+            align: "right"
+        },
+        en: {
+            tabTitle: "UNO Online",
+            mainTitle: "UNO Online",
+            create: "Create New Room",
+            join: "Join Room",
+            rules: "Game Rules",
+            settings: "Settings ⚙️",
+            placeholder: "Enter 6 digits",
+            rulesHeader: "Full Game Rules",
+            rulesList: [
+                "Each player starts with 7 cards.",
+                "Match cards by color or number.",
+                "Draw Two (+2): Next player draws 2 and misses turn.",
+                "Reverse: Changes the direction of play.",
+                "Skip: Next player misses their turn.",
+                "Wild Card: Changes the current color.",
+                "Wild Draw Four (+4): Changes color and next player draws 4.",
+                "You must say 'UNO' when you have one card left.",
+                "The first to discard all cards wins."
+            ],
+            lblLang: "Language:",
+            lblTheme: "Theme:",
+            lblSound: "Sound:",
+            close: "Close",
+            save: "Save",
+            roomMsg: "You are in Room:",
+            waitMsg: "Waiting for other players...",
+            leave: "Back to Home",
+            error: "Error: Enter 6 digits",
+            dbError: "Database Connection Error!",
+            roomNotFound: "Room not found!",
+            align: "left"
+        }
+    };
+
+    // --- الوظائف الأساسية (جعلناها Global لتعمل مع HTML) ---
+    window.updateLanguage = function() {
+        const lang = document.getElementById('lang-select').value;
+        const t = translations[lang];
+
+        document.getElementById('page-title').innerText = t.tabTitle;
+        document.getElementById('main-title').innerText = t.mainTitle;
+        document.getElementById('btn-create').innerText = t.create;
+        document.getElementById('btn-join').innerText = t.join;
+        document.getElementById('btn-rules').innerText = t.rules;
+        document.getElementById('btn-settings').innerText = t.settings;
+        document.getElementById('room-id-input').placeholder = t.placeholder;
+
+        document.getElementById('rules-header').innerText = t.rulesHeader;
+        const list = document.getElementById('rules-list');
+        list.innerHTML = "";
+        t.rulesList.forEach(rule => {
+            let li = document.createElement('li');
+            li.innerText = rule;
+            list.appendChild(li);
+        });
+
+        document.getElementById('btn-close-rules').innerText = t.close;
+        document.getElementById('btn-close-settings').innerText = t.save;
+        document.getElementById('lbl-lang').innerText = t.lblLang;
+        document.getElementById('lbl-theme').innerText = t.lblTheme;
+        document.getElementById('lbl-sound').innerText = t.lblSound;
+
+        document.getElementById('room-msg').innerText = t.roomMsg;
+        document.getElementById('wait-msg').innerText = t.waitMsg;
+        document.getElementById('btn-leave').innerText = t.leave;
+
+        document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+        list.style.textAlign = t.align;
+        document.getElementById('settings-body').style.textAlign = t.align;
+    }
+
+    window.updateTheme = function() {
+        const theme = document.getElementById('theme-select').value;
+        document.getElementById('body-tag').className = theme + '-mode';
+    }
+
+    window.openModal = (id) => document.getElementById(id).style.display = 'flex';
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+    window.handleAction = (fn) => {
+        playSound();
+        fn();
+    };
+
+    // --- وظائف الغرف (Firebase) ---
+    window.createRoom = async function() {
+        const code = Math.floor(100000 + Math.random() * 900000);
+        const lang = document.getElementById('lang-select').value;
+        try {
+            await set(ref(db, 'rooms/' + code), {
+                status: "waiting",
+                createdAt: Date.now()
+            });
+            showRoom(code);
+        } catch (e) {
+            alert(translations[lang].dbError);
+        }
+    };
+
+    window.joinRoom = function() {
+        const code = document.getElementById('room-id-input').value;
+        const lang = document.getElementById('lang-select').value;
+
+        if(code.length !== 6 || isNaN(code)) {
+            alert(translations[lang].error);
+            return;
+        }
+
+        const dbRef = ref(db);
+        get(child(dbRef, `rooms/${code}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                showRoom(code);
+            } else {
+                alert(translations[lang].roomNotFound);
+            }
+        }).catch(() => {
+            alert(translations[lang].dbError);
+        });
+    };
+
+    window.showRoom = function(code) {
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('room-screen').classList.remove('hidden');
+        document.getElementById('display-room-code').innerText = code;
+    }
+
+    window.leaveRoom = function() {
+        document.getElementById('main-screen').classList.remove('hidden');
+        document.getElementById('room-screen').classList.add('hidden');
+    }
+
+    // تشغيل اللغة عند البداية
+    updateLanguage();
+</script>
+</body>
+</html>
