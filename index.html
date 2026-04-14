@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أونو أونلاين - المعركة الحقيقية</title>
+    <title>أونو أونلاين - النسخة الكاملة</title>
     <style>
         :root {
             --bg-color: #f0f0f0; --text-color: #333; --accent: #ff4757;
             --btn-bg: #2f3542; --btn-text: white;
         }
+        /* الثيمات */
         .dark-mode { --bg-color: #1a1a1a; --text-color: #f1f1f1; --btn-bg: #374151; }
-        
+        .colorful-mode { --bg-color: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f); --text-color: #fff; --btn-bg: rgba(0,0,0,0.3); }
+
         body { background: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', sans-serif; transition: 0.3s; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         .container { text-align: center; width: 95%; max-width: 600px; position: relative; }
         
@@ -18,8 +20,7 @@
             width: 50px; height: 75px; border-radius: 8px; border: 2px solid white; 
             display: flex; align-items: center; justify-content: center; 
             font-weight: bold; font-size: 1rem; color: white; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); cursor: pointer; 
-            transition: 0.2s; user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); cursor: pointer; transition: 0.2s;
         }
         .uno-card:hover { transform: translateY(-10px); z-index: 10; }
         
@@ -29,16 +30,19 @@
         #chat-box { background: rgba(0,0,0,0.1); border-radius: 15px; margin-top: 10px; padding: 10px; }
         #chat-messages { height: 60px; overflow-y: auto; font-size: 0.85rem; border-bottom: 1px solid rgba(0,0,0,0.1); text-align: right; }
         
-        .exit-btn { position: absolute; top: -45px; left: 10px; background: #e74c3c; padding: 5px 12px; font-size: 0.8rem; }
-        .room-view { padding: 20px; border: 3px dashed var(--accent); border-radius: 20px; position: relative; background: rgba(255,255,255,0.05); }
+        .exit-btn { position: absolute; top: -45px; left: 10px; background: #e74c3c; padding: 5px 12px; font-size: 0.8rem; border-radius: 15px; color: white; border: none; cursor: pointer; }
+        .settings-btn { position: absolute; top: -45px; right: 10px; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
         
-        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: var(--btn-bg); color: var(--btn-text); cursor: pointer; }
+        .room-view { padding: 20px; border: 3px dashed var(--accent); border-radius: 20px; position: relative; background: rgba(255,255,255,0.05); }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: var(--btn-bg); color: var(--btn-text); cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
         input { padding: 10px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body class="light-mode" id="body-tag">
 
     <div class="container" id="main-screen">
+        <button class="settings-btn" onclick="openModal('settings-modal')">⚙️</button>
         <h1>أونو أونلاين</h1>
         <input type="text" id="player-name-input" placeholder="اسمك الكريم">
         <br>
@@ -54,28 +58,39 @@
             <h3 style="margin:5px;">غرفة: <span id="display-room-code" style="color:var(--accent)"></span></h3>
             
             <div id="waiting-area">
-                <p id="wait-msg">بإنتظار الخصوم...</p>
+                <p id="wait-msg">بإنتظار الخصوم ليصبحوا جاهزين...</p>
                 <button id="btn-ready" onclick="handleAction(setReady)">أنا جاهز! 👍</button>
                 <p id="ready-count" style="color:var(--accent); font-weight:bold;"></p>
             </div>
 
             <div id="game-board" class="hidden">
                 <p id="current-turn-msg" style="font-weight:bold; color:var(--accent); margin-bottom:10px;"></p>
-                
-                <div id="discard-pile">
-                    <div id="top-card" class="uno-card" style="margin: 0 auto; transform: scale(1.2); cursor: default;">?</div>
-                </div>
-
+                <div id="top-card" class="uno-card" style="margin: 0 auto; transform: scale(1.2); cursor: default;">?</div>
                 <div id="player-hand" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 20px; padding: 10px;"></div>
-                
                 <button id="btn-draw" onclick="handleAction(drawCard)">سحب كرت +</button>
             </div>
 
             <div id="chat-box">
                 <div id="chat-messages"></div>
-                <input type="text" id="chat-input" placeholder="قل شيئاً..." style="width:60%; margin:0;">
-                <button onclick="sendChatMessage()" style="padding: 5px 10px;">إرسال</button>
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <input type="text" id="chat-input" placeholder="قل شيئاً..." style="flex:1; margin:0; padding:5px;">
+                    <button onclick="sendChatMessage()" style="padding: 5px 15px; margin:0;">إرسال</button>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:20px; color:#333; width:250px;">
+            <h3>الإعدادات</h3>
+            <label>المظهر:</label><br>
+            <select id="theme-select" onchange="updateTheme()" style="padding:10px; width:100%; border-radius:10px; margin-top:10px;">
+                <option value="light">فاتح ☀️</option>
+                <option value="dark">داكن 🌙</option>
+                <option value="colorful">ملون ✨</option>
+            </select>
+            <br><br>
+            <button onclick="closeModal('settings-modal')" style="width:100%;">حفظ وإغلاق</button>
         </div>
     </div>
 
@@ -100,7 +115,7 @@
         let currentRoomCode = null;
         let playerName = "";
 
-        // --- نظام الغرفة والجاهزية ---
+        // --- إدارة الغرف ---
         window.createRoom = async function() {
             playerName = document.getElementById('player-name-input').value;
             if(!playerName) return alert("أدخل اسمك!");
@@ -150,17 +165,14 @@
             });
         }
 
-        // --- منطق اللعبة الرئيسي ---
+        // --- منطق اللعب المتقدم ---
         async function initGame(code) {
             const snap = await get(ref(db, `rooms/${code}/players`));
             const keys = Object.keys(snap.val());
             
-            if (keys[0] === currentPlayerKey) { // الأدمن فقط يوزع
-                let deck = [];
+            if (keys[0] === currentPlayerKey) { // المنشئ فقط هو من يوزع الكروت
+                const deck = [];
                 const colors = ['red','blue','green','yellow'];
-                const actions = ['+2', 'Skip', 'Reverse', 'Wild', '+4'];
-                
-                // إنشاء الكروت
                 colors.forEach(c => {
                     for(let i=0; i<=9; i++) deck.push({color:c, value: i.toString()});
                     ['+2', 'Skip', 'Reverse'].forEach(a => deck.push({color:c, value: a}));
@@ -169,7 +181,6 @@
                     deck.push({color:'black', value:'Wild'});
                     deck.push({color:'black', value:'+4'});
                 }
-                
                 deck.sort(() => Math.random() - 0.5);
 
                 // قاعدة: لا يمكن البدء ببطاقة مميزة
@@ -185,7 +196,6 @@
                 keys.forEach(k => game[`hand_${k}`] = deck.splice(0, 7));
                 await set(ref(db, `rooms/${code}/game`), game);
             }
-            
             document.getElementById('waiting-area').classList.add('hidden');
             document.getElementById('game-board').classList.remove('hidden');
             listenToGame(code);
@@ -195,13 +205,10 @@
             onValue(ref(db, `rooms/${code}/game`), (snap) => {
                 const data = snap.val(); if (!data) return;
                 const top = data.discardPile[data.discardPile.length - 1];
-                
-                // تحديث كرت الساحة
                 const topEl = document.getElementById('top-card');
                 topEl.innerText = top.value;
                 topEl.style.backgroundColor = getCardColor(top.color);
                 
-                // تحديث يدي
                 const hand = data[`hand_${currentPlayerKey}`] || [];
                 const handDiv = document.getElementById('player-hand');
                 handDiv.innerHTML = "";
@@ -219,54 +226,37 @@
             });
         }
 
-        // وظيفة وضع الكرت
         async function playCard(cardIndex, gameData) {
             if (gameData.playersOrder[gameData.currentTurnIndex] !== currentPlayerKey) return;
-
             const myHand = gameData[`hand_${currentPlayerKey}`];
             const cardToPlay = myHand[cardIndex];
             const topCard = gameData.discardPile[gameData.discardPile.length - 1];
 
-            // التحقق من القوانين (نفس اللون أو نفس القيمة أو كرت جوكر)
             if (cardToPlay.color === topCard.color || cardToPlay.value === topCard.value || cardToPlay.color === 'black') {
-                myHand.splice(cardIndex, 1); // حذف الكرت من اليد
-                gameData.discardPile.push(cardToPlay); // وضعه في الساحة
-                
-                // نقل الدور
+                myHand.splice(cardIndex, 1);
+                gameData.discardPile.push(cardToPlay);
                 const nextTurn = (gameData.currentTurnIndex + 1) % gameData.playersOrder.length;
-                
                 await update(ref(db, `rooms/${currentRoomCode}/game`), {
                     discardPile: gameData.discardPile,
                     [`hand_${currentPlayerKey}`]: myHand,
                     currentTurnIndex: nextTurn
                 });
-            } else {
-                alert("هذا الكرت لا يطابق اللون أو الرقم! ❌");
-            }
+            } else alert("الكرت غير مطابق! ❌");
         }
 
         window.drawCard = async function() {
             const snap = await get(ref(db, `rooms/${currentRoomCode}/game`));
             const data = snap.val();
             if (data.playersOrder[data.currentTurnIndex] !== currentPlayerKey) return alert("ليس دورك!");
-            
             const card = data.deck.pop();
             const myHand = [...(data[`hand_${currentPlayerKey}`] || []), card];
             const nextTurn = (data.currentTurnIndex + 1) % data.playersOrder.length;
-
             await update(ref(db, `rooms/${currentRoomCode}/game`), {
-                deck: data.deck,
-                [`hand_${currentPlayerKey}`]: myHand,
-                currentTurnIndex: nextTurn
+                deck: data.deck, [`hand_${currentPlayerKey}`]: myHand, currentTurnIndex: nextTurn
             });
         };
 
-        // المساعدات
-        function getCardColor(c) {
-            const colors = { red: '#ff4757', blue: '#3498db', green: '#2ecc71', yellow: '#f1c40f', black: '#2f3542' };
-            return colors[c] || '#ccc';
-        }
-
+        // --- الشات والإضافات ---
         window.sendChatMessage = async function() {
             const input = document.getElementById('chat-input');
             if (!input.value.trim()) return;
@@ -287,7 +277,15 @@
             });
         }
 
+        function getCardColor(c) {
+            const colors = { red: '#ff4757', blue: '#3498db', green: '#2ecc71', yellow: '#f1c40f', black: '#2f3542' };
+            return colors[c] || '#ccc';
+        }
+
         window.handleAction = (f) => f();
+        window.openModal = (id) => document.getElementById(id).style.display='flex';
+        window.closeModal = (id) => document.getElementById(id).style.display='none';
+        window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
     </script>
 </body>
 </html>
