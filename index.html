@@ -158,15 +158,14 @@
 
         // التحقق من الرابط عند التحميل
         window.onload = () => {
-            const path = window.location.pathname.split('/');
-            const potentialRoom = path[path.length - 1];
-            if (potentialRoom && potentialRoom.length === 6 && !isNaN(potentialRoom)) {
-                document.getElementById('room-input').value = potentialRoom;
-                document.getElementById('main-title').innerText = "انضمام للغرفة: " + potentialRoom;
-            }
-            updateUI();
-        };
-
+    // التحقق من وجود رقم الغرفة بعد علامة #
+    const hash = window.location.hash.substring(1); 
+    if (hash && hash.length === 6 && !isNaN(hash)) {
+        document.getElementById('room-input').value = hash;
+        document.getElementById('main-title').innerText = "انضمام للغرفة: " + hash;
+    }
+    updateUI();
+};
         window.updateUI = () => {
             const l = document.getElementById('lang-select').value;
             document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
@@ -182,32 +181,31 @@
         };
 
         window.enterRoom = async (type) => {
-            myName = document.getElementById('username').value || "Player";
-            myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999) : document.getElementById('room-input').value;
-            if(!myRoom) return;
+    myName = document.getElementById('username').value || "Player";
+    myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999) : document.getElementById('room-input').value;
+    if(!myRoom) return;
 
-            // تحديث الرابط في المتصفح
-            const newURL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, "") + "/" + myRoom;
-            window.history.pushState({path:newURL},'',newURL);
+    // 1. التعديل الأهم: نضع الهاش فقط ونحذف الأسطر التي تسبب 404
+    window.location.hash = myRoom; 
 
-            const roomRef = ref(db, `rooms/${myRoom}/players`);
-            const snap = await get(roomRef);
-            const players = snap.val() || {};
+    const roomRef = ref(db, `rooms/${myRoom}/players`);
+    const snap = await get(roomRef);
+    const players = snap.val() || {};
 
-            Object.values(players).forEach(p => { if(p.name === myName) myName += "#" + Math.floor(Math.random()*99); });
+    Object.values(players).forEach(p => { if(p.name === myName) myName += "#" + Math.floor(Math.random()*99); });
 
-            const pRef = push(roomRef);
-            myKey = pRef.key;
-            isAdmin = Object.keys(players).length === 0;
+    const pRef = push(roomRef);
+    myKey = pRef.key;
+    isAdmin = Object.keys(players).length === 0;
 
-            await set(pRef, { name: myName, ready: false, isAdmin: isAdmin });
-            onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
+    await set(pRef, { name: myName, ready: false, isAdmin: isAdmin });
+    onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
 
-            document.getElementById('main-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('room-display').innerText = `Room: ${myRoom} ${isAdmin ? '(Admin)' : ''}`;
-            listen();
-        };
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('room-display').innerText = `Room: ${myRoom} ${isAdmin ? '(Admin)' : ''}`;
+    listen();
+};
 
         window.copyRoomLink = () => {
             const el = document.createElement('textarea');
