@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Ultimate Pro - Persistent Settings</title>
+    <title>UNO Ultimate Pro - مع أوراقك الخاصة</title>
     <style>
         :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #ff4757; }
         .dark-mode { --bg: #1a1a1a; --txt: #dfe6e9; }
@@ -13,13 +13,15 @@
         .container { text-align: center; width: 95%; max-width: 550px; position: relative; }
 
         .decor-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .card-view { width: 50px; height: 75px; border-radius: 8px; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* استبدال كلاس المربع القديم بكلاس الصورة */
+        .card-view-img { width: 70px; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid white; }
 
         .room-info { background: rgba(0,0,0,0.8); color: gold; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .copy-btn { background: #f1c40f; color: black; border: none; padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
 
-        .uno-card { width: 48px; height: 72px; border-radius: 8px; border: 2px solid white; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: white; cursor: pointer; margin: 2px; transition: 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .uno-card:hover { transform: translateY(-10px); z-index: 10; border-color: gold; }
+        /* تعديل كلاس الكروت لاستيعاب الصور */
+        .uno-card { width: 65px; height: auto; cursor: pointer; transition: 0.2s; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.2)); margin: 2px; }
+        .uno-card:hover { transform: translateY(-15px) scale(1.1); z-index: 10; }
 
         #uno-btn { background: #f1c40f; color: black; border: 4px solid white; border-radius: 15px; width: 100px; height: 50px; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: none; margin: 10px auto; animation: pulse 1s infinite; z-index: 100; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -60,11 +62,11 @@
 
     <div class="container" id="main-screen">
         <div class="decor-box">
-            <div class="card-view" style="background:#ff4757; transform: rotate(-10deg);">7</div>
-            <div class="card-view" style="background:#000; transform: rotate(10deg);">+4</div>
+            <img src="cards/r7.png" class="card-view-img" style="transform: rotate(-10deg);" alt="Uno Card">
+            <img src="cards/+4.png" class="card-view-img" style="transform: rotate(10deg);" alt="Uno Card">
         </div>
         <h1 id="main-title">أونو أونلاين</h1>
-        <input type="text" id="username" placeholder="اسمك" oninput="localStorage.setItem('uno_name', this.value)">
+        <input type="text" id="username" placeholder="اسمك">
         <button onclick="enterRoom('create')" id="btn-create">إنشاء غرفة</button>
         <br>
         <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة">
@@ -82,17 +84,20 @@
         </div>
         <div style="padding: 15px; border: 2px solid var(--accent); border-radius: 20px; background: rgba(255,255,255,0.1);">
             <div id="players-tags"></div>
+
             <div id="waiting-area">
                 <p id="wait-msg">بانتظار الخصوم...</p>
                 <button onclick="setReady()" id="btn-ready">أنا جاهز! 👍</button>
             </div>
+
             <div id="game-board" class="hidden">
                 <p id="turn-display" style="font-weight:bold;"></p>
-                <div id="top-card" class="uno-card" style="margin: 0 auto; transform: scale(1.3); cursor: default;">?</div>
-                <div id="player-hand" style="overflow-x: auto; white-space: nowrap; padding: 15px; min-height:90px;"></div>
+                <img id="top-card" class="uno-card" style="margin: 0 auto 15px; transform: scale(1.3); cursor: default;" src="cards/r0.png">
+                <div id="player-hand" style="overflow-x: auto; white-space: nowrap; padding: 15px; min-height:100px;"></div>
                 <button onclick="drawCardAction()" id="btn-draw" style="background:var(--accent)">سحب كرت +</button>
                 <button id="uno-btn" onclick="sayUno()">UNO!</button>
             </div>
+
             <div style="margin-top:10px">
                 <div id="chat-msgs"></div>
                 <div style="display:flex; gap:5px;">
@@ -137,40 +142,50 @@
         const db = getDatabase(app);
 
         const t = {
-            ar: { main: "أونو أونلاين", user: "اسمك", create: "إنشاء غرفة", join: "دخول", rules: "قواعد اللعبة", quit: "خروج 🚪", wait: "بانتظار الخصوم...", ready: "أنا جاهز! 👍", draw: "سحب كرت +", turn: "دورك! 🔥", waitT: "انتظر...", copy: "نسخ الرابط 🔗", copied: "تم النسخ! ✅", rulesBody: "<b>قواعد أونو الكاملة:</b><br>1. يوزع 7 كروت لكل لاعب.<br>2. <b>+2:</b> يسحب الخصم كرتين.<br>3. <b>+4:</b> يسحب 4 كروت وتختار اللون.<br>4. <b>🔄:</b> يعكس الاتجاه.<br>5. <b>UNO:</b> اضغط الزر قبل لعب كرتك ما قبل الأخير." },
-            en: { main: "UNO ONLINE", user: "Username", create: "Create Room", join: "Join", rules: "Rules", quit: "Quit 🚪", wait: "Waiting...", ready: "Ready! 👍", draw: "Draw Card +", turn: "Your Turn! 🔥", waitT: "Wait...", copy: "Copy Link 🔗", copied: "Copied! ✅", rulesBody: "<b>Full UNO Rules:</b><br>1. 7 cards each.<br>2. <b>+2:</b> Draw 2.<br>3. <b>+4:</b> Draw 4 & pick color.<br>4. <b>🔄:</b> Change direction.<br>5. <b>UNO:</b> Press before playing 2nd last card." }
+            ar: {
+                main: "أونو أونلاين", user: "اسمك", create: "إنشاء غرفة", join: "دخول", rules: "قواعد اللعبة", quit: "خروج 🚪",
+                wait: "بانتظار الخصوم...", ready: "أنا جاهز! 👍", draw: "سحب كرت +", turn: "دورك! 🔥", waitT: "انتظر...",
+                copy: "نسخ الرابط 🔗", copied: "تم النسخ! ✅",
+                rulesBody: "<b>قواعد أونو الكاملة:</b><br>1. يوزع 7 كروت لكل لاعب.<br>2. <b>+2:</b> يسحب الخصم كرتين ويخسر دوره.<br>3. <b>+4:</b> يسحب الخصم 4 كروت ويخسر دوره وتختار اللون.<br>4. <b>🔄:</b> يعكس الاتجاه (أو يتخطى في لاعبين).<br>5. <b>UNO:</b> اضغط الزر قبل لعب كرتك ما قبل الأخير."
+            },
+            en: {
+                main: "UNO ONLINE", user: "Username", create: "Create Room", join: "Join", rules: "Rules", quit: "Quit 🚪",
+                wait: "Waiting...", ready: "Ready! 👍", draw: "Draw Card +", turn: "Your Turn! 🔥", waitT: "Wait...",
+                copy: "Copy Link 🔗", copied: "Copied! ✅",
+                rulesBody: "<b>Full UNO Rules:</b><br>1. 7 cards each.<br>2. <b>+2:</b> Draw 2 & skip turn.<br>3. <b>+4:</b> Draw 4, skip & pick color.<br>4. <b>🔄:</b> Change direction.<br>5. <b>UNO:</b> Press before playing your 2nd to last card."
+            }
         };
 
         let myKey, myRoom, myName, isAdmin = false, hasUno = false, picking = false;
 
+        // دالة تحويل الكرت إلى اسم الملف الصحيح داخل مجلد cards
+        function getCardImgPath(card) {
+            const path = "cards/";
+            // التعامل مع الأوراق المميزة التي ذكرتها
+            if (card.value === '+4') return path + "+4.png";
+            if (card.value === 'Wild') return path + "wild.png";
+            
+            // التعامل مع الأوراق العادية والأكشن (r, g, b, y)
+            let cMap = { 'red': 'r', 'blue': 'b', 'green': 'g', 'yellow': 'y' };
+            let vMap = { 'Skip': 's', '🔄': 'r', '+2': '+2' }; // r لـ Reverse و s لـ Skip
+            
+            let color = cMap[card.color] || card.color;
+            let value = vMap[card.value] || card.value;
+            
+            return `${path}${color}${value}.png`;
+        }
+
         window.onload = () => {
-            // استرجاع الاسم المحفوظ
-            const savedName = localStorage.getItem('uno_name');
-            if (savedName) document.getElementById('username').value = savedName;
-
-            // استرجاع اللغة المحفوظة
-            const savedLang = localStorage.getItem('uno_lang');
-            if (savedLang) document.getElementById('lang-select').value = savedLang;
-
-            // استرجاع الثيم المحفوظ
-            const savedTheme = localStorage.getItem('uno_theme');
-            if (savedTheme) {
-                document.getElementById('theme-select').value = savedTheme;
-                updateTheme(false); // تحديث المظهر بدون حفظ مرة أخرى
-            }
-
-            const hash = window.location.hash.substring(1); 
+            const hash = window.location.hash.substring(1);
             if (hash && hash.length === 6 && !isNaN(hash)) {
                 document.getElementById('room-input').value = hash;
                 document.getElementById('main-title').innerText = "انضمام للغرفة: " + hash;
             }
-            updateUI(false); // تحديث واجهة اللغة
+            updateUI();
         };
 
-        window.updateUI = (save = true) => {
+        window.updateUI = () => {
             const l = document.getElementById('lang-select').value;
-            if (save) localStorage.setItem('uno_lang', l); // حفظ اللغة
-
             document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
             document.getElementById('main-title').innerText = t[l].main;
             document.getElementById('username').placeholder = t[l].user;
@@ -183,22 +198,16 @@
             document.getElementById('btn-copy').innerText = t[l].copy;
         };
 
-        window.updateTheme = (save = true) => {
-            const theme = document.getElementById('theme-select').value;
-            if (save) localStorage.setItem('uno_theme', theme); // حفظ المظهر
-            document.getElementById('body-tag').className = theme + '-mode';
-        };
-
         window.enterRoom = async (type) => {
             myName = document.getElementById('username').value || "Player";
             myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999) : document.getElementById('room-input').value;
             if(!myRoom) return;
 
-            window.location.hash = myRoom; 
-
+            window.location.hash = myRoom;
             const roomRef = ref(db, `rooms/${myRoom}/players`);
             const snap = await get(roomRef);
             const players = snap.val() || {};
+
             Object.values(players).forEach(p => { if(p.name === myName) myName += "#" + Math.floor(Math.random()*99); });
 
             const pRef = push(roomRef);
@@ -214,13 +223,17 @@
             listen();
         };
 
-        // بقية الدوال (نفس الكود السابق لضمان استقرار اللعبة)
         window.copyRoomLink = () => {
             const el = document.createElement('textarea');
             el.value = window.location.href;
-            document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-            const btn = document.getElementById('btn-copy'), l = document.getElementById('lang-select').value;
-            btn.innerText = t[l].copied; setTimeout(() => btn.innerText = t[l].copy, 2000);
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const btn = document.getElementById('btn-copy');
+            const l = document.getElementById('lang-select').value;
+            btn.innerText = t[l].copied;
+            setTimeout(() => btn.innerText = t[l].copy, 2000);
         };
 
         function listen() {
@@ -250,7 +263,10 @@
                 for(let i=0; i<=9; i++) deck.push({color:c, value:i.toString()});
                 ['+2', 'Skip', '🔄'].forEach(v => deck.push({color:c, value:v}));
             });
-            for(let i=0; i<4; i++) { deck.push({color:'black', value:'Wild'}); deck.push({color:'black', value:'+4'}); }
+            for(let i=0; i<4; i++) { 
+                deck.push({color:'black', value:'Wild'}); 
+                deck.push({color:'black', value:'+4'}); 
+            }
             deck.sort(() => Math.random() - 0.5);
             let game = { discard: [deck.find(c => !isNaN(c.value))], turn: 0, order: keys, deck: deck, winner: null };
             keys.forEach(k => game[`hand_${k}`] = deck.splice(0, 7));
@@ -258,22 +274,30 @@
         }
 
         function render(game) {
-            if(game.winner) { alert("الفائز: " + game.winner); location.reload(); return; }
+            if(game.winner) { alert("WINNER: " + game.winner); location.reload(); return; }
             document.getElementById('waiting-area').classList.add('hidden');
             document.getElementById('game-board').classList.remove('hidden');
+            
+            // الكرت العلوي كصورة
             const top = game.discard[game.discard.length-1];
             const topEl = document.getElementById('top-card');
-            topEl.innerText = top.value; topEl.style.background = getC(top.color);
+            topEl.src = getCardImgPath(top);
+
             const hand = game[`hand_${myKey}`] || [];
-            const handDiv = document.getElementById('player-hand'); handDiv.innerHTML = "";
+            const handDiv = document.getElementById('player-hand'); 
+            handDiv.innerHTML = "";
+            
+            // يد اللاعب كصور
             hand.forEach((c, i) => {
-                const d = document.createElement('div'); d.className='uno-card'; d.innerText=c.value;
-                d.style.background=getC(c.color); d.onclick=() => play(i, game);
-                handDiv.appendChild(d);
+                const img = document.createElement('img');
+                img.className = 'uno-card';
+                img.src = getCardImgPath(c);
+                img.onclick = () => play(i, game);
+                handDiv.appendChild(img);
             });
+
             const isTurn = game.order[game.turn] === myKey;
-            const l = document.getElementById('lang-select').value;
-            document.getElementById('turn-display').innerText = isTurn ? t[l].turn : t[l].waitT;
+            document.getElementById('turn-display').innerText = isTurn ? "Your Turn!" : "Wait...";
             document.getElementById('uno-btn').style.display = (hand.length === 2 && isTurn) ? 'block' : 'none';
         }
 
@@ -286,13 +310,20 @@
                 game[`hand_${myKey}`].splice(idx, 1);
                 game.discard.push(card);
                 if(game[`hand_${myKey}`].length === 0) { game.winner = myName; return await update(ref(db, `rooms/${myRoom}/game`), game); }
-                let nIdx = (game.turn + 1) % game.order.length;
-                let vic = game.order[nIdx];
-                if(card.value === '+2') { for(let i=0; i<2; i++) game[`hand_${vic}`].push(game.deck.pop()); game.turn = (nIdx + 1) % game.order.length; }
-                else if(card.value === 'Skip') { game.turn = (nIdx + 1) % game.order.length; }
-                else if(card.value === '🔄') { game.order.reverse(); game.turn = (game.order.indexOf(myKey) + 1) % game.order.length; }
-                else if(card.color === 'black') { if(card.value === '+4') for(let i=0; i<4; i++) game[`hand_${vic}`].push(game.deck.pop()); picking = true; document.getElementById('color-modal').style.display='flex'; }
-                else { game.turn = nIdx; }
+
+                let nextIdx = (game.turn + 1) % game.order.length;
+                let victim = game.order[nextIdx];
+                if(card.value === '+2') {
+                    for(let i=0; i<2; i++) game[`hand_${victim}`].push(game.deck.pop());
+                    game.turn = (nextIdx + 1) % game.order.length;
+                } else if(card.value === 'Skip') {
+                    game.turn = (nextIdx + 1) % game.order.length;
+                } else if(card.value === '🔄') {
+                    game.order.reverse(); game.turn = (game.order.indexOf(myKey) + 1) % game.order.length;
+                } else if(card.color === 'black') {
+                    if(card.value === '+4') for(let i=0; i<4; i++) game[`hand_${victim}`].push(game.deck.pop());
+                    picking = true; document.getElementById('color-modal').style.display='flex';
+                } else { game.turn = nextIdx; }
                 hasUno = false; await update(ref(db, `rooms/${myRoom}/game`), game);
             }
         }
@@ -315,21 +346,22 @@
         };
 
         window.quitGame = async () => {
-            if(isAdmin) { if(confirm("إغلاق الغرفة؟")) await remove(ref(db, `rooms/${myRoom}`)); }
+            if(isAdmin) { if(confirm("أنت الأدمن، إغلاق الغرفة؟")) await remove(ref(db, `rooms/${myRoom}`)); }
             else { await remove(ref(db, `rooms/${myRoom}/players/${myKey}`)); location.reload(); }
         };
 
         window.sayUno = () => { hasUno = true; sendMsg("قُلت UNO! 📢"); };
         window.sendMsg = (txt) => {
             const i = document.getElementById('chat-input');
-            const msg = txt || i.value; if(msg) push(ref(db, `rooms/${myRoom}/chat`), { u: myName, t: msg });
+            const msg = txt || i.value;
+            if(msg) push(ref(db, `rooms/${myRoom}/chat`), { u: myName, t: msg });
             i.value = "";
         };
 
         window.setReady = () => update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true });
         window.openModal = (id) => document.getElementById(id).style.display='flex';
         window.closeModal = (id) => document.getElementById(id).style.display='none';
-        function getC(c) { return {red:'#ff4757', blue:'#3498db', green:'#2ecc71', yellow:'#f1c40f', black:'#000'}[c]; }
+        window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
     </script>
 </body>
 </html>
