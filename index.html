@@ -3,36 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Ultimate Pro - Fixed & Full</title>
+    <title>UNO Ultimate Pro - Direct Link Support</title>
     <style>
         :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #ff4757; }
         .dark-mode { --bg: #1a1a1a; --txt: #dfe6e9; }
         .colorful-mode { --bg: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f); --txt: #fff; }
-        
+
         body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; transition: 0.3s; }
         .container { text-align: center; width: 95%; max-width: 550px; position: relative; }
-        
-        /* البطاقات الديكورية */
+
         .decor-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .card-view { width: 50px; height: 75px; border-radius: 8px; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        .room-info { background: rgba(0,0,0,0.8); color: gold; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-weight: bold; }
-        
-        /* كروت اللعب */
+        .room-info { background: rgba(0,0,0,0.8); color: gold; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .copy-btn { background: #f1c40f; color: black; border: none; padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
+
         .uno-card { width: 48px; height: 72px; border-radius: 8px; border: 2px solid white; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: white; cursor: pointer; margin: 2px; transition: 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .uno-card:hover { transform: translateY(-10px); z-index: 10; border-color: gold; }
-        
-        /* زر أونو المطور للجوال والآيباد */
+
         #uno-btn { background: #f1c40f; color: black; border: 4px solid white; border-radius: 15px; width: 100px; height: 50px; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: none; margin: 10px auto; animation: pulse 1s infinite; z-index: 100; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         .hidden { display: none !important; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; color: #333; width: 85%; max-width: 400px; text-align: center; max-height: 80vh; overflow-y: auto; }
-        
+
         button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: #2f3542; color: white; cursor: pointer; font-weight: bold; }
         input { padding: 12px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; width: 80%; margin-bottom: 10px; }
-        
+
         #chat-msgs { height: 70px; overflow-y: auto; font-size: 0.8rem; border-bottom: 1px solid #ddd; margin-bottom: 5px; text-align: right; background: rgba(0,0,0,0.05); }
         .player-tag { background: #747d8c; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.7rem; margin: 2px; display: inline-block; transition: 0.3s; }
         .active-turn { background: var(--accent) !important; box-shadow: 0 0 10px var(--accent); transform: scale(1.1); }
@@ -78,10 +76,13 @@
     </div>
 
     <div class="container hidden" id="game-screen">
-        <div class="room-info" id="room-display">Code: ---</div>
+        <div class="room-info">
+            <span id="room-display">Code: ---</span>
+            <button class="copy-btn" onclick="copyRoomLink()" id="btn-copy">نسخ الرابط 🔗</button>
+        </div>
         <div style="padding: 15px; border: 2px solid var(--accent); border-radius: 20px; background: rgba(255,255,255,0.1);">
             <div id="players-tags"></div>
-            
+
             <div id="waiting-area">
                 <p id="wait-msg">بانتظار الخصوم...</p>
                 <button onclick="setReady()" id="btn-ready">أنا جاهز! 👍</button>
@@ -94,7 +95,7 @@
                 <button onclick="drawCardAction()" id="btn-draw" style="background:var(--accent)">سحب كرت +</button>
                 <button id="uno-btn" onclick="sayUno()">UNO!</button>
             </div>
-            
+
             <div style="margin-top:10px">
                 <div id="chat-msgs"></div>
                 <div style="display:flex; gap:5px;">
@@ -126,14 +127,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = { 
+        const firebaseConfig = {
             apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
             authDomain: "uno-online-c4bb2.firebaseapp.com",
             databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
             projectId: "uno-online-c4bb2",
             storageBucket: "uno-online-c4bb2.firebasestorage.app",
             messagingSenderId: "1077724641787",
-            appId: "1:1077724641787:web:302acb78b4ee3f9090735e" 
+            appId: "1:1077724641787:web:302acb78b4ee3f9090735e"
         };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -142,16 +143,29 @@
             ar: {
                 main: "أونو أونلاين", user: "اسمك", create: "إنشاء غرفة", join: "دخول", rules: "قواعد اللعبة", quit: "خروج 🚪",
                 wait: "بانتظار الخصوم...", ready: "أنا جاهز! 👍", draw: "سحب كرت +", turn: "دورك! 🔥", waitT: "انتظر...",
+                copy: "نسخ الرابط 🔗", copied: "تم النسخ! ✅",
                 rulesBody: "<b>قواعد أونو الكاملة:</b><br>1. يوزع 7 كروت لكل لاعب.<br>2. <b>+2:</b> يسحب الخصم كرتين ويخسر دوره.<br>3. <b>+4:</b> يسحب الخصم 4 كروت ويخسر دوره وتختار اللون.<br>4. <b>🔄:</b> يعكس الاتجاه (أو يتخطى في لاعبين).<br>5. <b>UNO:</b> اضغط الزر قبل لعب كرتك ما قبل الأخير."
             },
             en: {
                 main: "UNO ONLINE", user: "Username", create: "Create Room", join: "Join", rules: "Rules", quit: "Quit 🚪",
                 wait: "Waiting...", ready: "Ready! 👍", draw: "Draw Card +", turn: "Your Turn! 🔥", waitT: "Wait...",
+                copy: "Copy Link 🔗", copied: "Copied! ✅",
                 rulesBody: "<b>Full UNO Rules:</b><br>1. 7 cards each.<br>2. <b>+2:</b> Draw 2 & skip turn.<br>3. <b>+4:</b> Draw 4, skip & pick color.<br>4. <b>🔄:</b> Change direction.<br>5. <b>UNO:</b> Press before playing your 2nd to last card."
             }
         };
 
         let myKey, myRoom, myName, isAdmin = false, hasUno = false, picking = false;
+
+        // التحقق من الرابط عند التحميل
+        window.onload = () => {
+            const path = window.location.pathname.split('/');
+            const potentialRoom = path[path.length - 1];
+            if (potentialRoom && potentialRoom.length === 6 && !isNaN(potentialRoom)) {
+                document.getElementById('room-input').value = potentialRoom;
+                document.getElementById('main-title').innerText = "انضمام للغرفة: " + potentialRoom;
+            }
+            updateUI();
+        };
 
         window.updateUI = () => {
             const l = document.getElementById('lang-select').value;
@@ -164,6 +178,7 @@
             document.getElementById('rules-title').innerText = t[l].rules;
             document.getElementById('rules-body').innerHTML = t[l].rulesBody;
             document.getElementById('btn-quit').innerText = t[l].quit;
+            document.getElementById('btn-copy').innerText = t[l].copy;
         };
 
         window.enterRoom = async (type) => {
@@ -171,11 +186,14 @@
             myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999) : document.getElementById('room-input').value;
             if(!myRoom) return;
 
+            // تحديث الرابط في المتصفح
+            const newURL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, "") + "/" + myRoom;
+            window.history.pushState({path:newURL},'',newURL);
+
             const roomRef = ref(db, `rooms/${myRoom}/players`);
             const snap = await get(roomRef);
             const players = snap.val() || {};
-            
-            // منع تكرار الأسماء
+
             Object.values(players).forEach(p => { if(p.name === myName) myName += "#" + Math.floor(Math.random()*99); });
 
             const pRef = push(roomRef);
@@ -184,11 +202,24 @@
 
             await set(pRef, { name: myName, ready: false, isAdmin: isAdmin });
             onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
-            
+
             document.getElementById('main-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
             document.getElementById('room-display').innerText = `Room: ${myRoom} ${isAdmin ? '(Admin)' : ''}`;
             listen();
+        };
+
+        window.copyRoomLink = () => {
+            const el = document.createElement('textarea');
+            el.value = window.location.href;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const btn = document.getElementById('btn-copy');
+            const l = document.getElementById('lang-select').value;
+            btn.innerText = t[l].copied;
+            setTimeout(() => btn.innerText = t[l].copy, 2000);
         };
 
         function listen() {
@@ -306,7 +337,6 @@
         window.closeModal = (id) => document.getElementById(id).style.display='none';
         window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
         function getC(c) { return {red:'#ff4757', blue:'#3498db', green:'#2ecc71', yellow:'#f1c40f', black:'#000'}[c]; }
-        updateUI();
     </script>
 </body>
 </html>
