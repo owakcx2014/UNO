@@ -3,63 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Ultimate Pro - Extreme</title>
+    <title>UNO Ultimate Pro - مع أوراقك الخاصة</title>
     <style>
-        /* التنسيق الجمالي الذي أرسلته مع تحسينات بسيطة للاستجابة */
         :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #ff4757; }
         .dark-mode { --bg: #1a1a1a; --txt: #dfe6e9; }
         .colorful-mode { --bg: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f); --txt: #fff; }
 
         body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; transition: 0.3s; }
-        .container { text-align: center; width: 95%; max-width: 550px; position: relative; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 30px; backdrop-filter: blur(5px); }
+        .container { text-align: center; width: 95%; max-width: 550px; position: relative; }
 
+        .decor-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .card-view-img { width: 70px; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid white; }
+
         .room-info { background: rgba(0,0,0,0.8); color: gold; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        
+        .copy-btn { background: #f1c40f; color: black; border: none; padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
+
         .uno-card { width: 65px; height: auto; cursor: pointer; transition: 0.2s; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.2)); margin: 2px; }
         .uno-card:hover { transform: translateY(-15px) scale(1.1); z-index: 10; }
 
-        #uno-btn { background: #f1c40f; color: black; border: 4px solid white; border-radius: 15px; width: 100px; height: 50px; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: none; margin: 10px auto; animation: pulse 1s infinite; }
+        #uno-btn { background: #f1c40f; color: black; border: 4px solid white; border-radius: 15px; width: 100px; height: 50px; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: none; margin: 10px auto; animation: pulse 1s infinite; z-index: 100; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 20px; color: #333; width: 85%; max-width: 400px; text-align: center; }
-
-        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: #2f3542; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { transform: scale(1.05); opacity: 0.9; }
-        input { padding: 12px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; width: 80%; margin-bottom: 10px; outline: none; }
-
-        #chat-msgs { height: 70px; overflow-y: auto; font-size: 0.8rem; border-bottom: 1px solid #ddd; margin-bottom: 5px; text-align: right; background: rgba(0,0,0,0.05); padding: 5px; }
-        .player-tag { background: #747d8c; color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; margin: 3px; display: inline-block; }
-        .active-turn { background: var(--accent) !important; box-shadow: 0 0 15px var(--accent); transform: scale(1.1); font-weight: bold; }
         .hidden { display: none !important; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 20px; color: #333; width: 85%; max-width: 400px; text-align: center; max-height: 80vh; overflow-y: auto; }
+
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 25px; background: #2f3542; color: white; cursor: pointer; font-weight: bold; }
+        input { padding: 12px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; width: 80%; margin-bottom: 10px; }
+
+        #chat-msgs { height: 70px; overflow-y: auto; font-size: 0.8rem; border-bottom: 1px solid #ddd; margin-bottom: 5px; text-align: right; background: rgba(0,0,0,0.05); }
+        .player-tag { background: #747d8c; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.7rem; margin: 2px; display: inline-block; transition: 0.3s; }
+        .active-turn { background: var(--accent) !important; box-shadow: 0 0 10px var(--accent); transform: scale(1.1); }
+
+        /* زر كتم الصوت */
+        #mute-btn {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 999;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body class="light-mode" id="body-tag">
+
+    <!-- زر كتم الصوت -->
+    <button id="mute-btn" onclick="toggleMute()" title="كتم/تفعيل الصوت">🔊</button>
 
     <div id="color-modal" class="modal">
         <div class="modal-content">
             <h3 id="cp-title">اختر اللون الجديد</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div style="height:60px; background:#ff4757; border-radius:10px; cursor:pointer" onclick="pickColor('red')"></div>
-                <div style="height:60px; background:#3498db; border-radius:10px; cursor:pointer" onclick="pickColor('blue')"></div>
-                <div style="height:60px; background:#2ecc71; border-radius:10px; cursor:pointer" onclick="pickColor('green')"></div>
-                <div style="height:60px; background:#f1c40f; border-radius:10px; cursor:pointer" onclick="pickColor('yellow')"></div>
+                <div style="height:50px; background:#ff4757; border-radius:10px; cursor:pointer" onclick="pickColor('red')"></div>
+                <div style="height:50px; background:#3498db; border-radius:10px; cursor:pointer" onclick="pickColor('blue')"></div>
+                <div style="height:50px; background:#2ecc71; border-radius:10px; cursor:pointer" onclick="pickColor('green')"></div>
+                <div style="height:50px; background:#f1c40f; border-radius:10px; cursor:pointer" onclick="pickColor('yellow')"></div>
             </div>
         </div>
     </div>
 
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="rules-title">قواعد اللعبة كاملة</h2>
+            <div id="rules-body" style="text-align: right; font-size: 0.85rem; line-height: 1.6;"></div>
+            <button onclick="closeModal('rules-modal')">إغلاق / Close</button>
+        </div>
+    </div>
+
     <div class="container" id="main-screen">
-        <div class="decor-box" style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-            <img src="cards/r7.png" class="card-view-img" style="transform: rotate(-10deg);">
-            <img src="cards/+4.png" class="card-view-img" style="transform: rotate(10deg);">
+        <div class="decor-box">
+            <img src="cards/r7.png" class="card-view-img" style="transform: rotate(-10deg);" alt="Uno Card">
+            <img src="cards/+4.png" class="card-view-img" style="transform: rotate(10deg);" alt="Uno Card">
         </div>
         <h1 id="main-title">أونو أونلاين</h1>
-        <input type="text" id="username" placeholder="اسمك المستعار">
-        <button onclick="enterRoom('create')" id="btn-create" style="background: var(--accent)">إنشاء غرفة</button>
+        <input type="text" id="username" placeholder="اسمك">
+        <button onclick="enterRoom('create')" id="btn-create">إنشاء غرفة</button>
         <br>
         <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة">
-        <button onclick="enterRoom('join')" id="btn-join">انضمام</button>
+        <button onclick="enterRoom('join')" id="btn-join">دخول</button>
         <div style="margin-top: 20px;">
             <button onclick="openModal('rules-modal')" id="btn-rules">قواعد اللعبة</button>
             <button onclick="openModal('settings-modal')">⚙️</button>
@@ -71,100 +104,287 @@
             <span id="room-display">Code: ---</span>
             <button class="copy-btn" onclick="copyRoomLink()" id="btn-copy">نسخ الرابط 🔗</button>
         </div>
-        
-        <div style="padding: 15px; border: 2px solid var(--accent); border-radius: 20px; background: rgba(255,255,255,0.85); color: #333;">
+        <div style="padding: 15px; border: 2px solid var(--accent); border-radius: 20px; background: rgba(255,255,255,0.1);">
             <div id="players-tags"></div>
 
             <div id="waiting-area">
-                <p id="wait-msg">بانتظار جاهزية الجميع...</p>
-                <button onclick="setReady()" id="btn-ready" style="background:var(--accent)">أنا جاهز! 👍</button>
+                <p id="wait-msg">بانتظار الخصوم...</p>
+                <button onclick="setReady()" id="btn-ready">أنا جاهز! 👍</button>
             </div>
 
             <div id="game-board" class="hidden">
-                <p id="turn-display" style="font-weight:bold; color: var(--accent);"></p>
-                <img id="top-card" class="uno-card" style="margin: 0 auto 15px; transform: scale(1.4); cursor: default;">
-                <div id="player-hand" style="overflow-x: auto; white-space: nowrap; padding: 15px; min-height:110px; border-top: 1px solid #ddd;"></div>
-                <div style="display:flex; gap:10px; justify-content:center;">
-                    <button onclick="drawCardAction()" id="btn-draw" style="background:#2ecc71">سحب كرت +</button>
-                    <button id="uno-btn" onclick="sayUno()">UNO!</button>
-                </div>
+                <p id="turn-display" style="font-weight:bold;"></p>
+                <img id="top-card" class="uno-card" style="margin: 0 auto 15px; transform: scale(1.3); cursor: default;" src="cards/r0.png">
+                <div id="player-hand" style="overflow-x: auto; white-space: nowrap; padding: 15px; min-height:100px;"></div>
+                <button onclick="drawCardAction()" id="btn-draw" style="background:var(--accent)">سحب كرت +</button>
+                <button id="uno-btn" onclick="sayUno()">UNO!</button>
             </div>
 
-            <div style="margin-top:15px">
+            <div style="margin-top:10px">
                 <div id="chat-msgs"></div>
                 <div style="display:flex; gap:5px;">
-                    <input type="text" id="chat-input" style="flex-grow:1; margin:0; padding:8px; border-radius:10px;" placeholder="اكتب هنا...">
-                    <button onclick="sendMsg()" id="btn-send" style="padding:5px 15px;">إرسال</button>
+                    <input type="text" id="chat-input" style="flex-grow:1; margin:0; padding:5px;" placeholder="...">
+                    <button onclick="sendMsg()" id="btn-send">إرسال</button>
                 </div>
             </div>
         </div>
-        <button onclick="quitGame()" id="btn-quit" style="margin-top:15px; background:#c0392b; width:100px;">خروج 🚪</button>
+        <button onclick="quitGame()" id="btn-quit" style="margin-top:15px; background:#c0392b;">خروج 🚪</button>
     </div>
 
+    <div id="settings-modal" class="modal"><div class="modal-content">
+        <h3 id="set-title">الإعدادات</h3>
+        <label>Language:</label>
+        <select id="lang-select" onchange="updateUI()" style="width:100%; padding:10px; margin:10px 0;">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+        </select>
+        <label>Theme:</label>
+        <select id="theme-select" onchange="updateTheme()" style="width:100%; padding:10px; margin:10px 0;">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="colorful">Colorful</option>
+        </select>
+        <button onclick="closeModal('settings-modal')" style="width:100%">OK</button>
+    </div></div>
+
     <script type="module">
-        // منطق الـ Firebase والتحكم (Controller) المطور
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
+            authDomain: "uno-online-c4bb2.firebaseapp.com",
             databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
-            projectId: "uno-online-c4bb2"
+            projectId: "uno-online-c4bb2",
+            storageBucket: "uno-online-c4bb2.firebasestorage.app",
+            messagingSenderId: "1077724641787",
+            appId: "1:1077724641787:web:302acb78b4ee3f9090735e"
         };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let myKey, myRoom, myName, isAdmin = false, hasUno = false, picking = false;
+        // ============================================================
+        //  🔊 نظام الأصوات - Web Audio API (بدون ملفات خارجية)
+        // ============================================================
+        let audioCtx = null;
+        let isMuted = false;
 
-        // وظائف الواجهة والتحكم
-        window.getCardImgPath = (card) => {
+        // تهيئة AudioContext عند أول تفاعل من المستخدم
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        window.toggleMute = () => {
+            isMuted = !isMuted;
+            document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🔊';
+        };
+
+        // دالة مساعدة: تشغيل نغمة بسيطة
+        function playTone(frequency, duration, type = 'sine', volume = 0.4, delay = 0) {
+            if (isMuted || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime + delay);
+            gainNode.gain.setValueAtTime(volume, audioCtx.currentTime + delay);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + duration);
+        }
+
+        // 🃏 صوت لعب كرت - نقرة خفيفة صاعدة
+        function soundPlayCard() {
+            initAudio();
+            playTone(300, 0.06, 'triangle', 0.5);
+            playTone(500, 0.08, 'triangle', 0.4, 0.05);
+            playTone(700, 0.1,  'triangle', 0.3, 0.1);
+        }
+
+        // 🎴 صوت سحب كرت - نقرة هابطة
+        function soundDrawCard() {
+            initAudio();
+            playTone(400, 0.08, 'sawtooth', 0.3);
+            playTone(250, 0.12, 'sawtooth', 0.2, 0.07);
+        }
+
+        // ⚠️ صوت UNO - تنبيه قصير حاد
+        function soundUno() {
+            initAudio();
+            playTone(880, 0.1,  'square', 0.4);
+            playTone(1100, 0.1, 'square', 0.5, 0.1);
+            playTone(880, 0.15, 'square', 0.35, 0.2);
+        }
+
+        // 🔔 صوت دورك - تنبيه لطيف
+        function soundYourTurn() {
+            initAudio();
+            playTone(523, 0.12, 'sine', 0.4);        // C5
+            playTone(659, 0.12, 'sine', 0.4, 0.13);  // E5
+            playTone(784, 0.18, 'sine', 0.4, 0.26);  // G5
+        }
+
+        // 🚫 صوت كرت +2 / +4 - تحذير
+        function soundPenalty() {
+            initAudio();
+            playTone(200, 0.15, 'sawtooth', 0.5);
+            playTone(150, 0.2,  'sawtooth', 0.5, 0.15);
+        }
+
+        // 🔄 صوت عكس الاتجاه
+        function soundReverse() {
+            initAudio();
+            playTone(600, 0.08, 'sine', 0.4);
+            playTone(400, 0.08, 'sine', 0.4, 0.09);
+            playTone(600, 0.08, 'sine', 0.4, 0.18);
+        }
+
+        // 🏆 صوت الفوز - لحن احتفالي
+        function soundWin() {
+            initAudio();
+            const notes = [523, 659, 784, 1047]; // C E G C
+            notes.forEach((freq, i) => {
+                playTone(freq, 0.2, 'sine', 0.5, i * 0.18);
+            });
+            // نجوم إضافية
+            setTimeout(() => {
+                [1047, 1319, 1568].forEach((freq, i) => {
+                    playTone(freq, 0.15, 'triangle', 0.4, i * 0.12);
+                });
+            }, 800);
+        }
+
+        // 🎮 صوت بداية اللعبة
+        function soundGameStart() {
+            initAudio();
+            [330, 392, 494, 523].forEach((freq, i) => {
+                playTone(freq, 0.15, 'sine', 0.45, i * 0.15);
+            });
+        }
+        // ============================================================
+
+        const t = {
+            ar: {
+                main: "أونو أونلاين", user: "اسمك", create: "إنشاء غرفة", join: "دخول", rules: "قواعد اللعبة", quit: "خروج 🚪",
+                wait: "بانتظار الخصوم...", ready: "أنا جاهز! 👍", draw: "سحب كرت +", turn: "دورك! 🔥", waitT: "انتظر...",
+                copy: "نسخ الرابط 🔗", copied: "تم النسخ! ✅",
+                rulesBody: "<b>قواعد أونو الكاملة:</b><br>1. يوزع 7 كروت لكل لاعب.<br>2. <b>+2:</b> يسحب الخصم كرتين ويخسر دوره.<br>3. <b>+4:</b> يسحب الخصم 4 كروت ويخسر دوره وتختار اللون.<br>4. <b>🔄:</b> يعكس الاتجاه (أو يتخطى في لاعبين).<br>5. <b>UNO:</b> اضغط الزر قبل لعب كرتك ما قبل الأخير."
+            },
+            en: {
+                main: "UNO ONLINE", user: "Username", create: "Create Room", join: "Join", rules: "Rules", quit: "Quit 🚪",
+                wait: "Waiting...", ready: "Ready! 👍", draw: "Draw Card +", turn: "Your Turn! 🔥", waitT: "Wait...",
+                copy: "Copy Link 🔗", copied: "Copied! ✅",
+                rulesBody: "<b>Full UNO Rules:</b><br>1. 7 cards each.<br>2. <b>+2:</b> Draw 2 & skip turn.<br>3. <b>+4:</b> Draw 4, skip & pick color.<br>4. <b>🔄:</b> Change direction.<br>5. <b>UNO:</b> Press before playing your 2nd to last card."
+            }
+        };
+
+        let myKey, myRoom, myName, isAdmin = false, hasUno = false, picking = false;
+        let prevTurnKey = null; // لتتبع تغيير الدور وإطلاق صوت "دورك"
+
+        function getCardImgPath(card) {
             const path = "cards/";
             if (card.value === '+4') return path + "+4.png";
             if (card.value === 'Wild') return path + "wild.png";
             let cMap = { 'red': 'r', 'blue': 'b', 'green': 'g', 'yellow': 'y' };
             let vMap = { 'Skip': 's', '🔄': 'r', '+2': '+2' };
-            return `${path}${cMap[card.color] || card.color}${vMap[card.value] || card.value}.png`;
+            let color = cMap[card.color] || card.color;
+            let value = vMap[card.value] || card.value;
+            return `${path}${color}${value}.png`;
+        }
+
+        window.onload = () => {
+            const hash = window.location.hash.substring(1);
+            if (hash && hash.length === 6 && !isNaN(hash)) {
+                document.getElementById('room-input').value = hash;
+                document.getElementById('main-title').innerText = "انضمام للغرفة: " + hash;
+            }
+            updateUI();
+        };
+
+        window.updateUI = () => {
+            const l = document.getElementById('lang-select').value;
+            document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('main-title').innerText = t[l].main;
+            document.getElementById('username').placeholder = t[l].user;
+            document.getElementById('btn-create').innerText = t[l].create;
+            document.getElementById('btn-join').innerText = t[l].join;
+            document.getElementById('btn-rules').innerText = t[l].rules;
+            document.getElementById('rules-title').innerText = t[l].rules;
+            document.getElementById('rules-body').innerHTML = t[l].rulesBody;
+            document.getElementById('btn-quit').innerText = t[l].quit;
+            document.getElementById('btn-copy').innerText = t[l].copy;
         };
 
         window.enterRoom = async (type) => {
-            myName = document.getElementById('username').value || "لاعب " + Math.floor(Math.random()*99);
+            initAudio(); // تهيئة الصوت عند أول تفاعل
+            myName = document.getElementById('username').value || "Player";
             myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999) : document.getElementById('room-input').value;
-            if(!myRoom) return alert("أدخل كود الغرفة!");
+            if(!myRoom) return;
 
+            window.location.hash = myRoom;
             const roomRef = ref(db, `rooms/${myRoom}/players`);
             const snap = await get(roomRef);
-            isAdmin = !snap.exists();
+            const players = snap.val() || {};
+
+            Object.values(players).forEach(p => { if(p.name === myName) myName += "#" + Math.floor(Math.random()*99); });
 
             const pRef = push(roomRef);
             myKey = pRef.key;
+            isAdmin = Object.keys(players).length === 0;
+
             await set(pRef, { name: myName, ready: false, isAdmin: isAdmin });
             onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
 
             document.getElementById('main-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('room-display').innerText = `غرفة: ${myRoom}`;
+            document.getElementById('room-display').innerText = `Room: ${myRoom} ${isAdmin ? '(Admin)' : ''}`;
             listen();
+        };
+
+        window.copyRoomLink = () => {
+            const el = document.createElement('textarea');
+            el.value = window.location.href;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const btn = document.getElementById('btn-copy');
+            const l = document.getElementById('lang-select').value;
+            btn.innerText = t[l].copied;
+            setTimeout(() => btn.innerText = t[l].copy, 2000);
         };
 
         function listen() {
             onValue(ref(db, `rooms/${myRoom}`), (s) => {
-                const data = s.val(); if(!data) return;
+                const data = s.val(); if(!data) return location.reload();
                 const players = data.players || {};
-                
-                // عرض اللاعبين
                 const tags = document.getElementById('players-tags'); tags.innerHTML = "";
                 const turnKey = data.game ? data.game.order[data.game.turn] : null;
+
                 Object.keys(players).forEach(k => {
                     const active = k === turnKey ? 'active-turn' : '';
-                    const count = data.game ? ` (${data.game['hand_'+k].length})` : "";
-                    tags.innerHTML += `<span class="player-tag ${active}">${players[k].name}${count}</span>`;
+                    tags.innerHTML += `<span class="player-tag ${active}">${players[k].name}</span>`;
                 });
 
-                // بدء اللعبة تلقائياً للأدمن
-                if(isAdmin && !data.game && Object.keys(players).length >= 2 && Object.values(players).every(p => p.ready)) {
+                if(Object.values(players).length >= 2 && Object.values(players).every(p => p.ready) && !data.game) {
+                    soundGameStart(); // 🎮 صوت بداية اللعبة
                     initGame(Object.keys(players));
                 }
-                if(data.game) render(data.game);
+
+                if(data.game) {
+                    // كشف تغيير الدور لإطلاق صوت "دورك"
+                    const currentTurnKey = data.game.order[data.game.turn];
+                    if (currentTurnKey !== prevTurnKey) {
+                        if (currentTurnKey === myKey) {
+                            soundYourTurn(); // 🔔 صوت دورك
+                        }
+                        prevTurnKey = currentTurnKey;
+                    }
+                    render(data.game);
+                }
             });
 
             onValue(ref(db, `rooms/${myRoom}/chat`), (s) => {
@@ -175,128 +395,134 @@
         }
 
         async function initGame(keys) {
+            if(!isAdmin) return;
             let deck = [];
             ['red','blue','green','yellow'].forEach(c => {
                 for(let i=0; i<=9; i++) deck.push({color:c, value:i.toString()});
                 ['+2', 'Skip', '🔄'].forEach(v => deck.push({color:c, value:v}));
             });
-            for(let i=0; i<4; i++) { deck.push({color:'black', value:'Wild'}); deck.push({color:'black', value:'+4'}); }
+            for(let i=0; i<4; i++) { 
+                deck.push({color:'black', value:'Wild'}); 
+                deck.push({color:'black', value:'+4'}); 
+            }
             deck.sort(() => Math.random() - 0.5);
-
-            let game = { discard: [deck.find(c => !isNaN(c.value))], turn: 0, order: keys, deck: deck, direction: 1 };
+            let game = { discard: [deck.find(c => !isNaN(c.value))], turn: 0, order: keys, deck: deck, winner: null };
             keys.forEach(k => game[`hand_${k}`] = deck.splice(0, 7));
             await update(ref(db, `rooms/${myRoom}/game`), game);
         }
 
         function render(game) {
+            if(game.winner) {
+                if (game.winner === myName) soundWin(); // 🏆 صوت الفوز
+                alert("WINNER: " + game.winner);
+                location.reload();
+                return;
+            }
             document.getElementById('waiting-area').classList.add('hidden');
             document.getElementById('game-board').classList.remove('hidden');
             
             const top = game.discard[game.discard.length-1];
-            document.getElementById('top-card').src = getCardImgPath(top);
+            const topEl = document.getElementById('top-card');
+            topEl.src = getCardImgPath(top);
 
             const hand = game[`hand_${myKey}`] || [];
-            const handDiv = document.getElementById('player-hand'); handDiv.innerHTML = "";
+            const handDiv = document.getElementById('player-hand'); 
+            handDiv.innerHTML = "";
+            
             hand.forEach((c, i) => {
                 const img = document.createElement('img');
                 img.className = 'uno-card';
                 img.src = getCardImgPath(c);
-                img.onclick = () => playCard(i, game);
+                img.onclick = () => play(i, game);
                 handDiv.appendChild(img);
             });
 
             const isTurn = game.order[game.turn] === myKey;
-            document.getElementById('turn-display').innerText = isTurn ? "دورك الآن! 🔥" : "انتظر دور الخصم...";
+            document.getElementById('turn-display').innerText = isTurn ? "Your Turn!" : "Wait...";
             document.getElementById('uno-btn').style.display = (hand.length === 2 && isTurn) ? 'block' : 'none';
         }
 
-        async function playCard(idx, game) {
+        async function play(idx, game) {
             if(game.order[game.turn] !== myKey || picking) return;
             const card = game[`hand_${myKey}`][idx];
             const top = game.discard[game.discard.length-1];
-
             if(card.color === top.color || card.value === top.value || card.color === 'black') {
-                if(game[`hand_${myKey}`].length === 2 && !hasUno) return alert("اضغط UNO أولاً!");
+                if(game[`hand_${myKey}`].length === 2 && !hasUno) return alert("Press UNO!");
                 
+                soundPlayCard(); // 🃏 صوت لعب كرت
+
                 game[`hand_${myKey}`].splice(idx, 1);
                 game.discard.push(card);
+                if(game[`hand_${myKey}`].length === 0) { game.winner = myName; return await update(ref(db, `rooms/${myRoom}/game`), game); }
 
-                if(game[`hand_${myKey}`].length === 0) {
-                    alert("لقد فزت! 🎉");
-                    return await remove(ref(db, `rooms/${myRoom}`));
-                }
-
-                // منطق الأكشن
-                let step = game.direction || 1;
-                if(card.value === 'Skip') step = 2;
-                if(card.value === '🔄') { 
-                    if(game.order.length === 2) step = 2; // في لاعبين تعمل مثل Skip
-                    else { game.direction *= -1; step = game.direction; }
-                }
-                
-                if(card.color === 'black') {
-                    picking = true;
-                    document.getElementById('color-modal').style.display = 'flex';
-                    // تحديث مؤقت للديسكارد قبل اختيار اللون
-                    await update(ref(db, `rooms/${myRoom}/game`), game);
-                } else {
-                    if(card.value === '+2') {
-                        let nextP = game.order[(game.turn + 1) % game.order.length];
-                        for(let i=0; i<2; i++) game[`hand_${nextP}`].push(game.deck.pop());
-                        step = 2;
+                let nextIdx = (game.turn + 1) % game.order.length;
+                let victim = game.order[nextIdx];
+                if(card.value === '+2') {
+                    soundPenalty(); // 🚫 صوت عقوبة
+                    for(let i=0; i<2; i++) game[`hand_${victim}`].push(game.deck.pop());
+                    game.turn = (nextIdx + 1) % game.order.length;
+                } else if(card.value === 'Skip') {
+                    game.turn = (nextIdx + 1) % game.order.length;
+                } else if(card.value === '🔄') {
+                    soundReverse(); // 🔄 صوت عكس الاتجاه
+                    game.order.reverse(); game.turn = (game.order.indexOf(myKey) + 1) % game.order.length;
+                } else if(card.color === 'black') {
+                    if(card.value === '+4') {
+                        soundPenalty(); // 🚫 صوت عقوبة +4
+                        for(let i=0; i<4; i++) game[`hand_${victim}`].push(game.deck.pop());
                     }
-                    game.turn = (game.turn + step + game.order.length) % game.order.length;
-                    hasUno = false;
-                    await update(ref(db, `rooms/${myRoom}/game`), game);
-                }
+                    picking = true; document.getElementById('color-modal').style.display='flex';
+                } else { game.turn = nextIdx; }
+                hasUno = false; await update(ref(db, `rooms/${myRoom}/game`), game);
             }
         }
 
         window.pickColor = async (color) => {
             const s = await get(ref(db, `rooms/${myRoom}/game`));
-            const game = s.val();
-            const lastCard = game.discard[game.discard.length-1];
-            
+            const game = s.val(); const last = game.discard[game.discard.length-1];
             game.discard[game.discard.length-1].color = color;
-            let step = (lastCard.value === '+4') ? 2 : 1;
-            
-            if(lastCard.value === '+4') {
-                let nextP = game.order[(game.turn + 1) % game.order.length];
-                for(let i=0; i<4; i++) game[`hand_${nextP}`].push(game.deck.pop());
-            }
-
-            game.turn = (game.turn + (step * (game.direction || 1)) + game.order.length) % game.order.length;
-            picking = false;
-            document.getElementById('color-modal').style.display = 'none';
+            game.turn = (last.value === '+4') ? (game.turn + 2) % game.order.length : (game.turn + 1) % game.order.length;
+            picking = false; document.getElementById('color-modal').style.display='none';
             await update(ref(db, `rooms/${myRoom}/game`), game);
         };
 
         window.drawCardAction = async () => {
+            initAudio();
+            soundDrawCard(); // 🎴 صوت سحب كرت
             const s = await get(ref(db, `rooms/${myRoom}/game`));
-            const game = s.val();
-            if(game.order[game.turn] !== myKey) return;
-
+            const game = s.val(); if(game.order[game.turn] !== myKey) return;
             game[`hand_${myKey}`].push(game.deck.pop());
             game.turn = (game.turn + 1) % game.order.length;
-            hasUno = false;
-            await update(ref(db, `rooms/${myRoom}/game`), game);
+            hasUno = false; await update(ref(db, `rooms/${myRoom}/game`), game);
         };
 
-        // باقي الدوال (sayUno, sendMsg, setReady, copyRoomLink) كما هي في كودك...
-        window.setReady = () => update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true });
-        window.sayUno = () => { hasUno = true; window.sendMsg("قُلت UNO! 📢"); };
+        window.quitGame = async () => {
+            if(isAdmin) { if(confirm("أنت الأدمن، إغلاق الغرفة؟")) await remove(ref(db, `rooms/${myRoom}`)); }
+            else { await remove(ref(db, `rooms/${myRoom}/players/${myKey}`)); location.reload(); }
+        };
+
+        window.sayUno = () => {
+            initAudio();
+            soundUno(); // ⚠️ صوت UNO
+            hasUno = true;
+            sendMsg("قُلت UNO! 📢");
+        };
+
         window.sendMsg = (txt) => {
             const i = document.getElementById('chat-input');
             const msg = txt || i.value;
             if(msg) push(ref(db, `rooms/${myRoom}/chat`), { u: myName, t: msg });
             i.value = "";
         };
+
+        window.setReady = () => {
+            initAudio(); // تهيئة الصوت عند الضغط على "جاهز"
+            update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true });
+        };
+
         window.openModal = (id) => document.getElementById(id).style.display='flex';
         window.closeModal = (id) => document.getElementById(id).style.display='none';
-        window.copyRoomLink = () => {
-            navigator.clipboard.writeText(window.location.href).then(() => alert("تم نسخ الرابط!"));
-        };
-        window.quitGame = () => location.reload();
+        window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
     </script>
 </body>
 </html>
