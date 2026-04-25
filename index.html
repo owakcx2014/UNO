@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Ultimate Pro - مع حسابات Firebase</title>
+    <title>UNO Ultimate Pro - نظام الأصدقاء</title>
     <style>
-        :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #ff4757; --surface: #ffffff; --gold: #f1c40f; }
+        :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #ff4757; --surface: #ffffff; --gold: #f1c40f; --online: #2ecc71; --playing: #3498db; --offline: #95a5a6; }
         .dark-mode { --bg: #1a1a1a; --txt: #dfe6e9; --surface: #2d3436; }
         .colorful-mode { --bg: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f); --txt: #fff; --surface: rgba(255,255,255,0.2); }
 
@@ -26,29 +26,26 @@
         .container { 
             background: var(--surface); 
             border-radius: 30px; 
-            padding: 30px; 
+            padding: 25px; 
             box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
             width: 100%; 
             max-width: 500px; 
             text-align: center; 
-        }
-
-        .auth-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .hidden { display: none !important; }
 
         input, button {
-            padding: 15px;
+            padding: 12px 15px;
             border-radius: 15px;
             border: 2px solid var(--accent);
             font-size: 1rem;
             font-family: inherit;
             width: 100%;
             transition: 0.3s;
+            margin: 5px 0;
         }
 
         input {
@@ -63,7 +60,6 @@
             border: none;
             cursor: pointer;
             font-weight: bold;
-            margin: 5px 0;
         }
 
         button.secondary {
@@ -72,18 +68,22 @@
             color: var(--txt);
         }
 
+        button.success {
+            background: #2ecc71;
+        }
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .decor-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .card-view-img { width: 70px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid white; }
+        .card-view-img { width: 60px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid white; }
 
         .room-info { 
             background: rgba(0,0,0,0.8); 
             color: gold; 
-            padding: 15px; 
+            padding: 12px; 
             border-radius: 15px; 
             margin-bottom: 15px; 
             font-weight: bold; 
@@ -94,20 +94,8 @@
             gap: 10px; 
         }
 
-        .copy-btn { 
-            background: #f1c40f; 
-            color: black; 
-            border: none; 
-            padding: 8px 15px; 
-            border-radius: 25px; 
-            font-size: 0.8rem; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: auto;
-        }
-
         .uno-card { 
-            width: 65px; 
+            width: 60px; 
             cursor: pointer; 
             transition: 0.2s; 
             filter: drop-shadow(0 4px 5px rgba(0,0,0,0.2)); 
@@ -120,9 +108,9 @@
             color: black; 
             border: 4px solid white; 
             border-radius: 15px; 
-            padding: 15px; 
+            padding: 12px; 
             font-weight: bold; 
-            font-size: 1.2rem; 
+            font-size: 1.1rem; 
             cursor: pointer; 
             display: none; 
             animation: pulse 1s infinite; 
@@ -155,26 +143,19 @@
             overflow-y: auto; 
         }
 
-        #chat-msgs { 
-            height: 100px; 
-            overflow-y: auto; 
-            font-size: 0.8rem; 
-            border: 1px solid var(--accent); 
-            margin: 10px 0; 
-            text-align: right; 
-            background: rgba(0,0,0,0.05); 
-            padding: 10px; 
-            border-radius: 10px; 
-        }
-
         .player-tag { 
             background: #747d8c; 
             color: white; 
-            padding: 5px 15px; 
+            padding: 5px 12px; 
             border-radius: 20px; 
-            font-size: 0.75rem; 
+            font-size: 0.8rem; 
             margin: 3px; 
             display: inline-block; 
+            cursor: pointer;
+        }
+        .player-tag:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
         }
         .active-turn { 
             background: var(--accent) !important; 
@@ -182,32 +163,69 @@
             transform: scale(1.05); 
         }
 
-        #user-info {
+        #chat-msgs { 
+            height: 80px; 
+            overflow-y: auto; 
+            font-size: 0.8rem; 
+            border: 1px solid var(--accent); 
+            margin: 10px 0; 
+            text-align: right; 
+            background: rgba(0,0,0,0.05); 
+            padding: 8px; 
+            border-radius: 10px; 
+        }
+
+        .friend-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--bg);
+            border-radius: 15px;
+            border-right: 4px solid var(--offline);
+        }
+
+        .friend-item.online {
+            border-right-color: var(--online);
+        }
+
+        .friend-item.playing {
+            border-right-color: var(--playing);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        .status-dot.online { background: var(--online); }
+        .status-dot.playing { background: var(--playing); }
+        .status-dot.offline { background: var(--offline); }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-buttons button {
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .badge {
             background: var(--accent);
             color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            margin-bottom: 20px;
-        }
-
-        #logout-btn {
-            background: white;
-            color: var(--accent);
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            width: auto;
-        }
-
-        .error-msg {
-            color: #ff4757;
-            font-size: 0.85rem;
-            min-height: 20px;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -221,54 +239,76 @@
         </div>
         <h1 style="margin-bottom: 20px;">🎴 UNO Online</h1>
         
-        <div class="auth-container" id="auth-forms">
-            <!-- تسجيل الدخول -->
+        <div id="auth-forms">
             <div id="login-form">
                 <h2>تسجيل الدخول</h2>
                 <input type="email" id="login-email" placeholder="البريد الإلكتروني">
                 <input type="password" id="login-password" placeholder="كلمة المرور">
-                <div class="error-msg" id="login-error"></div>
+                <div class="error-msg" id="login-error" style="color: #ff4757; min-height: 20px;"></div>
                 <button onclick="login()">دخول</button>
                 <button class="secondary" onclick="showRegister()">إنشاء حساب جديد</button>
             </div>
 
-            <!-- إنشاء حساب -->
             <div id="register-form" class="hidden">
                 <h2>إنشاء حساب</h2>
                 <input type="text" id="reg-name" placeholder="اسم المستخدم">
                 <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
                 <input type="password" id="reg-password" placeholder="كلمة المرور (6 أحرف على الأقل)">
-                <div class="error-msg" id="reg-error"></div>
+                <div class="error-msg" id="reg-error" style="color: #ff4757; min-height: 20px;"></div>
                 <button onclick="register()">إنشاء حساب</button>
                 <button class="secondary" onclick="showLogin()">العودة لتسجيل الدخول</button>
             </div>
         </div>
     </div>
 
-    <!-- الشاشة الرئيسية للعبة -->
+    <!-- الشاشة الرئيسية -->
     <div class="container hidden" id="main-screen">
-        <div id="user-info">
+        <div id="user-info" style="display: flex; justify-content: space-between; align-items: center; background: var(--accent); color: white; padding: 10px 20px; border-radius: 25px; margin-bottom: 20px;">
             <span>👤 <span id="display-name"></span></span>
-            <button id="logout-btn" onclick="logout()">تسجيل خروج</button>
+            <button id="logout-btn" onclick="logout()" style="width: auto; background: white; color: var(--accent); padding: 8px 20px;">تسجيل خروج</button>
         </div>
-        <div class="decor-box">
-            <img src="cards/r7.png" class="card-view-img" style="transform: rotate(-10deg);" alt="Uno">
-            <img src="cards/+4.png" class="card-view-img" style="transform: rotate(10deg);" alt="Uno">
+
+        <div class="nav-buttons">
+            <button onclick="showMainMenu()" class="success">🏠 الرئيسية</button>
+            <button onclick="showFriendsList()" class="secondary">👥 الأصدقاء <span id="friends-count" class="badge">0</span></button>
+            <button class="secondary" onclick="openModal('settings-modal')">⚙️</button>
+            <button class="secondary" onclick="openModal('rules-modal')">📖</button>
         </div>
-        <h1 id="main-title">أونو أونلاين</h1>
-        
-        <div style="display: flex; gap: 10px; margin: 15px 0;">
+
+        <!-- قائمة اللعبة -->
+        <div id="main-menu">
+            <div class="decor-box">
+                <img src="cards/r7.png" class="card-view-img" style="transform: rotate(-10deg);" alt="Uno">
+                <img src="cards/+4.png" class="card-view-img" style="transform: rotate(10deg);" alt="Uno">
+            </div>
+            <h1 id="main-title">أونو أونلاين</h1>
+            
             <button onclick="enterRoom('create')" id="btn-create">🎯 إنشاء غرفة</button>
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة">
+                <button onclick="enterRoom('join')" id="btn-join" style="width: auto;">🚪 دخول</button>
+            </div>
         </div>
-        
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة">
-            <button onclick="enterRoom('join')" id="btn-join" style="width: auto;">🚪 دخول</button>
-        </div>
-        
-        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-            <button class="secondary" onclick="openModal('rules-modal')" style="width: auto;">📖 قواعد اللعبة</button>
-            <button class="secondary" onclick="openModal('settings-modal')" style="width: auto;">⚙️</button>
+
+        <!-- قائمة الأصدقاء -->
+        <div id="friends-menu" class="hidden">
+            <h2>👥 الأصدقاء</h2>
+            
+            <div style="display: flex; gap: 10px; margin: 15px 0;">
+                <input type="text" id="friend-search" placeholder="ابحث بالبريد أو الاسم">
+                <button onclick="searchFriend()" style="width: auto;">🔍 بحث</button>
+            </div>
+            <div id="search-results" style="margin: 10px 0;"></div>
+            
+            <div id="friends-list" style="margin: 15px 0; max-height: 400px; overflow-y: auto;">
+                <p>جاري تحميل الأصدقاء...</p>
+            </div>
+            
+            <div id="friend-requests" style="margin: 15px 0;">
+                <h3>📨 طلبات الصداقة</h3>
+                <div id="requests-list"></div>
+            </div>
         </div>
     </div>
 
@@ -276,14 +316,14 @@
     <div class="container hidden" id="game-screen">
         <div class="room-info">
             <span id="room-display">Code: ---</span>
-            <button class="copy-btn" onclick="copyRoomLink()">📋 نسخ الرابط</button>
+            <button class="copy-btn" onclick="copyRoomLink()" style="width: auto; background: #f1c40f; color: black; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer;">📋 نسخ الرابط</button>
         </div>
         
         <div id="players-tags" style="margin: 10px 0; min-height: 30px;"></div>
 
         <div id="waiting-area">
             <p id="wait-msg">⏳ بانتظار الخصوم...</p>
-            <button onclick="setReady()" id="btn-ready" style="background: #2ecc71;">👍 أنا جاهز!</button>
+            <button onclick="setReady()" id="btn-ready" class="success">👍 أنا جاهز!</button>
         </div>
 
         <div id="game-board" class="hidden">
@@ -308,7 +348,19 @@
         <button onclick="quitGame()" id="btn-quit" style="background: #c0392b; margin-top: 15px;">🚪 خروج من الغرفة</button>
     </div>
 
-    <!-- مودال اختيار اللون -->
+    <!-- مودال إضافة صديق -->
+    <div id="add-friend-modal" class="modal">
+        <div class="modal-content">
+            <h3>👋 إضافة صديق</h3>
+            <p id="add-friend-message"></p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button onclick="confirmAddFriend()" class="success">✅ نعم</button>
+                <button onclick="closeModal('add-friend-modal')">❌ لا</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- باقي المودالات -->
     <div id="color-modal" class="modal">
         <div class="modal-content">
             <h3>🎨 اختر اللون الجديد</h3>
@@ -321,7 +373,6 @@
         </div>
     </div>
 
-    <!-- مودال القواعد -->
     <div id="rules-modal" class="modal">
         <div class="modal-content">
             <h2>📖 قواعد اللعبة</h2>
@@ -337,7 +388,6 @@
         </div>
     </div>
 
-    <!-- مودال الإعدادات -->
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <h3>⚙️ الإعدادات</h3>
@@ -356,10 +406,9 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -376,37 +425,414 @@
         const db = getDatabase(app);
         const auth = getAuth(app);
 
-        // ==================== نظام المصادقة ====================
+        // ==================== المتغيرات العامة ====================
         let currentUser = null;
         let myName = '';
+        let pendingFriendRequest = null; // لتخزين طلب الصداقة المؤقت
 
-        // مراقبة حالة المستخدم
-        onAuthStateChanged(auth, (user) => {
+        // ==================== نظام المصادقة ====================
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // المستخدم مسجل الدخول
                 currentUser = user;
                 myName = user.displayName || user.email.split('@')[0];
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('main-screen').classList.remove('hidden');
                 document.getElementById('display-name').textContent = myName;
-                // تخزين في localStorage كنسخة احتياطية
-                localStorage.setItem('uno_user', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    name: myName
-                }));
+                
+                // تحديث حالة المستخدم إلى "نشط"
+                await updateUserStatus('online');
+                
+                // تحميل قائمة الأصدقاء
+                loadFriends();
+                
+                // الاستماع لتحديثات الأصدقاء
+                listenToFriends();
             } else {
-                // المستخدم غير مسجل
+                if (currentUser) {
+                    await updateUserStatus('offline');
+                }
                 currentUser = null;
                 myName = '';
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('main-screen').classList.add('hidden');
                 document.getElementById('game-screen').classList.add('hidden');
-                localStorage.removeItem('uno_user');
             }
         });
 
-        // تسجيل حساب جديد
+        // تحديث حالة المستخدم
+        async function updateUserStatus(status, roomId = null) {
+            if (!currentUser) return;
+            try {
+                await set(ref(db, `users/${currentUser.uid}/status`), {
+                    status: status,
+                    lastSeen: Date.now(),
+                    roomId: roomId || null
+                });
+                
+                // إزالة عند قطع الاتصال
+                if (status !== 'offline') {
+                    onDisconnect(ref(db, `users/${currentUser.uid}/status`)).set({
+                        status: 'offline',
+                        lastSeen: Date.now(),
+                        roomId: null
+                    });
+                }
+            } catch (error) {
+                console.error('Status update error:', error);
+            }
+        }
+
+        // ==================== نظام الأصدقاء ====================
+        
+        // البحث عن صديق
+        window.searchFriend = async () => {
+            const searchTerm = document.getElementById('friend-search').value.trim();
+            const resultsDiv = document.getElementById('search-results');
+            
+            if (!searchTerm) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<p>🔍 جاري البحث...</p>';
+
+            try {
+                // البحث بالبريد الإلكتروني
+                const emailQuery = query(ref(db, 'users'), orderByChild('email'), equalTo(searchTerm));
+                const emailSnap = await get(emailQuery);
+                
+                // البحث بالاسم
+                const nameQuery = query(ref(db, 'users'), orderByChild('name'), equalTo(searchTerm));
+                const nameSnap = await get(nameQuery);
+
+                let foundUsers = [];
+                
+                if (emailSnap.exists()) {
+                    foundUsers.push(...Object.entries(emailSnap.val()));
+                }
+                
+                if (nameSnap.exists()) {
+                    const nameResults = Object.entries(nameSnap.val());
+                    // تجنب التكرار
+                    nameResults.forEach(([uid, data]) => {
+                        if (!foundUsers.find(([id]) => id === uid)) {
+                            foundUsers.push([uid, data]);
+                        }
+                    });
+                }
+
+                if (foundUsers.length === 0) {
+                    resultsDiv.innerHTML = '<p>❌ لم يتم العثور على مستخدمين</p>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = '<h4>نتائج البحث:</h4>';
+                
+                for (const [uid, userData] of foundUsers) {
+                    // لا تظهر نفس المستخدم
+                    if (uid === currentUser.uid) continue;
+                    
+                    // تحقق مما إذا كان صديقاً بالفعل
+                    const friendCheck = await get(ref(db, `friends/${currentUser.uid}/${uid}`));
+                    const isFriend = friendCheck.exists();
+                    
+                    const statusSnap = await get(ref(db, `users/${uid}/status`));
+                    const status = statusSnap.val()?.status || 'offline';
+                    
+                    const statusText = {
+                        'online': '🟢 نشط',
+                        'playing': '🎮 يلعب',
+                        'offline': '⚫ غير نشط'
+                    }[status];
+
+                    resultsDiv.innerHTML += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg); border-radius: 10px; margin: 5px 0;">
+                            <div>
+                                <strong>${userData.name}</strong>
+                                <br><small>${userData.email} - ${statusText}</small>
+                            </div>
+                            ${isFriend ? 
+                                '<span>✅ صديق</span>' : 
+                                `<button onclick="sendFriendRequest('${uid}')" style="width: auto; padding: 5px 15px;">➕ إضافة</button>`
+                            }
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = '<p>❌ حدث خطأ في البحث</p>';
+            }
+        };
+
+        // إرسال طلب صداقة
+        window.sendFriendRequest = async (toUid) => {
+            try {
+                // الحصول على بيانات المستخدم الآخر
+                const userSnap = await get(ref(db, `users/${toUid}`));
+                const userData = userSnap.val();
+                
+                if (!userData) {
+                    alert('المستخدم غير موجود');
+                    return;
+                }
+
+                // التحقق من عدم وجود طلب مسبق
+                const existingRequest = await get(ref(db, `friendRequests/${toUid}/${currentUser.uid}`));
+                if (existingRequest.exists()) {
+                    alert('تم إرسال طلب الصداقة مسبقاً');
+                    return;
+                }
+
+                // إرسال الطلب
+                await set(ref(db, `friendRequests/${toUid}/${currentUser.uid}`), {
+                    uid: currentUser.uid,
+                    name: myName,
+                    email: currentUser.email,
+                    timestamp: Date.now()
+                });
+
+                alert('✅ تم إرسال طلب الصداقة');
+                document.getElementById('friend-search').value = '';
+                document.getElementById('search-results').innerHTML = '';
+            } catch (error) {
+                console.error('Friend request error:', error);
+                alert('❌ حدث خطأ في إرسال الطلب');
+            }
+        };
+
+        // إضافة صديق من اللعبة (عند الضغط على اسم اللاعب)
+        window.addFriendFromGame = (playerName, playerUid) => {
+            if (playerUid === currentUser.uid) {
+                alert('لا يمكنك إضافة نفسك كصديق');
+                return;
+            }
+            
+            pendingFriendRequest = { uid: playerUid, name: playerName };
+            document.getElementById('add-friend-message').innerHTML = 
+                `هل تريد إضافة <b>${playerName}</b> كصديق؟`;
+            document.getElementById('add-friend-modal').style.display = 'flex';
+        };
+
+        // تأكيد إضافة الصديق
+        window.confirmAddFriend = async () => {
+            if (!pendingFriendRequest) return;
+            
+            try {
+                await set(ref(db, `friendRequests/${pendingFriendRequest.uid}/${currentUser.uid}`), {
+                    uid: currentUser.uid,
+                    name: myName,
+                    email: currentUser.email,
+                    timestamp: Date.now()
+                });
+                
+                alert('✅ تم إرسال طلب الصداقة');
+                closeModal('add-friend-modal');
+                pendingFriendRequest = null;
+            } catch (error) {
+                console.error('Confirm friend error:', error);
+                alert('❌ حدث خطأ');
+            }
+        };
+
+        // قبول طلب الصداقة
+        window.acceptFriendRequest = async (fromUid) => {
+            try {
+                // الحصول على بيانات المرسل
+                const requestSnap = await get(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
+                const requestData = requestSnap.val();
+                
+                // إضافة كصديق للطرفين
+                await set(ref(db, `friends/${currentUser.uid}/${fromUid}`), {
+                    uid: fromUid,
+                    name: requestData.name,
+                    email: requestData.email,
+                    addedAt: Date.now()
+                });
+                
+                await set(ref(db, `friends/${fromUid}/${currentUser.uid}`), {
+                    uid: currentUser.uid,
+                    name: myName,
+                    email: currentUser.email,
+                    addedAt: Date.now()
+                });
+                
+                // حذف الطلب
+                await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
+                
+                alert('✅ تم قبول طلب الصداقة');
+                loadFriends();
+            } catch (error) {
+                console.error('Accept friend error:', error);
+            }
+        };
+
+        // رفض طلب الصداقة
+        window.rejectFriendRequest = async (fromUid) => {
+            try {
+                await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
+                alert('تم رفض الطلب');
+                loadFriends();
+            } catch (error) {
+                console.error('Reject friend error:', error);
+            }
+        };
+
+        // تحميل قائمة الأصدقاء
+        async function loadFriends() {
+            if (!currentUser) return;
+            
+            const friendsListDiv = document.getElementById('friends-list');
+            const requestsListDiv = document.getElementById('requests-list');
+            
+            try {
+                // تحميل الأصدقاء
+                const friendsSnap = await get(ref(db, `friends/${currentUser.uid}`));
+                const friends = friendsSnap.val() || {};
+                
+                if (Object.keys(friends).length === 0) {
+                    friendsListDiv.innerHTML = '<p>لا يوجد أصدقاء بعد. ابحث عن أصدقاء جدد!</p>';
+                } else {
+                    friendsListDiv.innerHTML = '';
+                    
+                    for (const [friendUid, friendData] of Object.entries(friends)) {
+                        const statusSnap = await get(ref(db, `users/${friendUid}/status`));
+                        const status = statusSnap.val()?.status || 'offline';
+                        const roomId = statusSnap.val()?.roomId;
+                        
+                        let statusClass = 'offline';
+                        let statusText = '⚫ غير نشط';
+                        let joinButton = '';
+                        
+                        if (status === 'online') {
+                            statusClass = 'online';
+                            statusText = '🟢 نشط';
+                        } else if (status === 'playing') {
+                            statusClass = 'playing';
+                            statusText = '🎮 يلعب';
+                            if (roomId) {
+                                joinButton = `<button onclick="joinFriendRoom('${roomId}')" style="width: auto; padding: 5px 10px; font-size: 0.8rem;">🎮 انضمام</button>`;
+                            }
+                        }
+                        
+                        friendsListDiv.innerHTML += `
+                            <div class="friend-item ${statusClass}">
+                                <div>
+                                    <strong>${friendData.name}</strong>
+                                    <br><small>${statusText}</small>
+                                </div>
+                                <div style="display: flex; gap: 5px; align-items: center;">
+                                    ${joinButton}
+                                    <button onclick="removeFriend('${friendUid}')" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #e74c3c;">❌</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                document.getElementById('friends-count').textContent = Object.keys(friends).length;
+                
+                // تحميل طلبات الصداقة
+                const requestsSnap = await get(ref(db, `friendRequests/${currentUser.uid}`));
+                const requests = requestsSnap.val() || {};
+                
+                if (Object.keys(requests).length === 0) {
+                    requestsListDiv.innerHTML = '<p>لا توجد طلبات صداقة</p>';
+                } else {
+                    requestsListDiv.innerHTML = '';
+                    
+                    for (const [fromUid, requestData] of Object.entries(requests)) {
+                        requestsListDiv.innerHTML += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg); border-radius: 10px; margin: 5px 0;">
+                                <div>
+                                    <strong>${requestData.name}</strong>
+                                    <br><small>${requestData.email}</small>
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button onclick="acceptFriendRequest('${fromUid}')" class="success" style="width: auto; padding: 5px 10px;">✅ قبول</button>
+                                    <button onclick="rejectFriendRequest('${fromUid}')" style="width: auto; padding: 5px 10px; background: #e74c3c;">❌ رفض</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Load friends error:', error);
+            }
+        }
+
+        // الاستماع لتحديثات الأصدقاء في الوقت الفعلي
+        function listenToFriends() {
+            if (!currentUser) return;
+            
+            // الاستماع للأصدقاء
+            onValue(ref(db, `friends/${currentUser.uid}`), () => {
+                loadFriends();
+            });
+            
+            // الاستماع للطلبات
+            onValue(ref(db, `friendRequests/${currentUser.uid}`), () => {
+                loadFriends();
+            });
+        }
+
+        // حذف صديق
+        window.removeFriend = async (friendUid) => {
+            if (!confirm('هل أنت متأكد من حذف هذا الصديق؟')) return;
+            
+            try {
+                await remove(ref(db, `friends/${currentUser.uid}/${friendUid}`));
+                await remove(ref(db, `friends/${friendUid}/${currentUser.uid}`));
+                alert('تم حذف الصديق');
+            } catch (error) {
+                console.error('Remove friend error:', error);
+            }
+        };
+
+        // الانضمام إلى غرفة صديق
+        window.joinFriendRoom = (roomId) => {
+            document.getElementById('room-input').value = roomId;
+            showMainMenu();
+            enterRoom('join');
+        };
+
+        // ==================== التنقل بين القوائم ====================
+        window.showMainMenu = () => {
+            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('friends-menu').classList.add('hidden');
+        };
+
+        window.showFriendsList = () => {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('friends-menu').classList.remove('hidden');
+            if (currentUser) {
+                loadFriends();
+            }
+        };
+
+        // ==================== إضافة حدث الضغط على أسماء اللاعبين ====================
+        function setupPlayerTagsClick(players) {
+            const tagsDiv = document.getElementById('players-tags');
+            tagsDiv.innerHTML = '';
+            
+            Object.entries(players).forEach(([key, player]) => {
+                const span = document.createElement('span');
+                span.className = 'player-tag';
+                if (currentUser && player.uid === currentUser.uid) {
+                    span.textContent = player.name + ' (أنت)';
+                } else {
+                    span.textContent = player.name;
+                    span.style.cursor = 'pointer';
+                    span.onclick = () => {
+                        if (player.uid) {
+                            addFriendFromGame(player.name, player.uid);
+                        }
+                    };
+                }
+                tagsDiv.appendChild(span);
+            });
+        }
+
+        // ==================== نظام المصادقة (نفس السابق) ====================
         window.register = async () => {
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
@@ -427,11 +853,15 @@
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                // تحديث اسم المستخدم
-                await updateProfile(userCredential.user, {
-                    displayName: name
+                await updateProfile(userCredential.user, { displayName: name });
+                
+                // حفظ بيانات المستخدم في قاعدة البيانات
+                await set(ref(db, `users/${userCredential.user.uid}`), {
+                    name: name,
+                    email: email,
+                    createdAt: Date.now()
                 });
-                // سيتم إعادة التوجيه تلقائياً عبر onAuthStateChanged
+                
             } catch (error) {
                 switch (error.code) {
                     case 'auth/email-already-in-use':
@@ -449,7 +879,6 @@
             }
         };
 
-        // تسجيل الدخول
         window.login = async () => {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
@@ -464,7 +893,6 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // سيتم إعادة التوجيه تلقائياً
             } catch (error) {
                 switch (error.code) {
                     case 'auth/invalid-email':
@@ -482,17 +910,15 @@
             }
         };
 
-        // تسجيل الخروج
         window.logout = async () => {
             try {
+                await updateUserStatus('offline');
                 await signOut(auth);
-                // سيتم إعادة التوجيه تلقائياً
             } catch (error) {
                 console.error('Logout error:', error);
             }
         };
 
-        // تبديل النماذج
         window.showRegister = () => {
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('register-form').classList.remove('hidden');
@@ -537,10 +963,6 @@
         function soundReverse() { initAudio(); playTone(600, 0.08, 'sine', 0.4); playTone(400, 0.08, 'sine', 0.4, 0.09); }
         function soundWin() { initAudio(); [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.2, 'sine', 0.5, i * 0.18)); }
         function soundGameStart() { initAudio(); [330, 392, 494, 523].forEach((f, i) => playTone(f, 0.15, 'sine', 0.45, i * 0.15)); }
-
-        window.toggleMute = () => {
-            isMuted = !isMuted;
-        };
 
         // ==================== اللعبة ====================
         const t = {
@@ -611,18 +1033,15 @@
             const snap = await get(roomRef);
             const players = snap.val() || {};
 
-            // تحقق من عدم وجود نفس المستخدم
             let nameExists = false;
-            Object.values(players).forEach(p => {
-                if (p.uid === currentUser.uid) nameExists = true;
+            Object.entries(players).forEach(([key, p]) => {
+                if (p.uid === currentUser.uid) {
+                    nameExists = true;
+                    myKey = key;
+                }
             });
 
-            if (nameExists && type === 'join') {
-                // المستخدم موجود بالفعل، ابحث عن مفتاحه
-                Object.entries(players).forEach(([key, p]) => {
-                    if (p.uid === currentUser.uid) myKey = key;
-                });
-            } else {
+            if (!nameExists) {
                 const pRef = push(roomRef);
                 myKey = pRef.key;
                 isAdmin = Object.keys(players).length === 0;
@@ -636,6 +1055,9 @@
                 
                 onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
             }
+
+            // تحديث حالة المستخدم إلى "يلعب"
+            await updateUserStatus('playing', myRoom);
 
             document.getElementById('main-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
@@ -661,18 +1083,26 @@
                 const data = s.val();
                 if (!data) {
                     alert('تم إغلاق الغرفة');
-                    location.reload();
+                    updateUserStatus('online');
+                    document.getElementById('game-screen').classList.add('hidden');
+                    document.getElementById('main-screen').classList.remove('hidden');
                     return;
                 }
 
                 const players = data.players || {};
-                const tags = document.getElementById('players-tags');
-                tags.innerHTML = "";
+                setupPlayerTagsClick(players);
+                
                 const turnKey = data.game ? data.game.order[data.game.turn] : null;
-
-                Object.keys(players).forEach(k => {
-                    const active = k === turnKey ? 'active-turn' : '';
-                    tags.innerHTML += `<span class="player-tag ${active}">${players[k].name}</span>`;
+                
+                // تحديث العلامات النشطة
+                const tags = document.getElementById('players-tags').children;
+                Array.from(tags).forEach((tag, index) => {
+                    const playerKey = Object.keys(players)[index];
+                    if (playerKey === turnKey) {
+                        tag.classList.add('active-turn');
+                    } else {
+                        tag.classList.remove('active-turn');
+                    }
                 });
 
                 if (Object.values(players).length >= 2 && Object.values(players).every(p => p.ready) && !data.game) {
@@ -731,6 +1161,7 @@
             if (game.winner) {
                 soundWin();
                 alert("🏆 الفائز: " + game.winner);
+                updateUserStatus('online');
                 location.reload();
                 return;
             }
@@ -839,9 +1270,10 @@
                 }
             } else {
                 await remove(ref(db, `rooms/${myRoom}/players/${myKey}`));
-                document.getElementById('game-screen').classList.add('hidden');
-                document.getElementById('main-screen').classList.remove('hidden');
             }
+            await updateUserStatus('online');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
         };
 
         window.sayUno = () => {
@@ -869,7 +1301,6 @@
             document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
         };
 
-        // ربط زر كتم الصوت (يمكن إضافته لاحقاً)
         window.toggleMute = () => {
             isMuted = !isMuted;
         };
