@@ -45,6 +45,21 @@
         #req-badge { display: none; background: #f1c40f; color: #1a1a1a; border-radius: 50%; padding: 1px 6px; font-size: 0.7rem; font-weight: bold; margin-right: 4px; }
         .spin { display: inline-block; animation: spin 1s linear infinite; }
         @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+        /* ===== الدردشة الصوتية ===== */
+        #voice-bar { display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.75); border-radius:20px; padding:8px 14px; margin-bottom:12px; gap:8px; flex-wrap:wrap; }
+        #voice-bar .vb-title { color:#f1c40f; font-size:0.82rem; font-weight:bold; flex-shrink:0; }
+        #voice-players { display:flex; gap:8px; flex-wrap:wrap; flex:1; justify-content:center; }
+        .voice-avatar { display:flex; flex-direction:column; align-items:center; gap:3px; }
+        .voice-circle { width:36px; height:36px; border-radius:50%; background:#2d3436; border:2px solid #636e72; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:bold; color:white; transition:0.2s; }
+        .voice-circle.speaking { border-color:#2ecc71; box-shadow:0 0 10px #2ecc71,0 0 20px rgba(46,204,113,0.4); animation:speaking-pulse 0.8s ease-in-out infinite; }
+        .voice-circle.muted-remote { border-color:#636e72; opacity:0.5; }
+        @keyframes speaking-pulse { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+        .voice-name { font-size:0.6rem; color:rgba(255,255,255,0.6); max-width:42px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #btn-mic { background:#2ecc71; border:none; border-radius:50%; width:40px; height:40px; font-size:1.1rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:0.2s; margin:0; padding:0; }
+        #btn-mic.muted { background:#e74c3c; }
+        #btn-mic:hover { transform:scale(1.1); }
+        #voice-status { font-size:0.7rem; color:rgba(255,255,255,0.45); text-align:center; width:100%; }
     </style>
 </head>
 <body id="body-tag" class="light-mode">
@@ -119,6 +134,12 @@
         <button class="copy-btn" onclick="copyRoomLink()" style="width:auto;background:#f1c40f;color:black;border:none;padding:8px 15px;border-radius:20px;cursor:pointer;">📋 نسخ الرابط</button>
     </div>
     <div id="players-tags" style="margin:10px 0;min-height:30px;"></div>
+    <div id="voice-bar" class="hidden">
+        <span class="vb-title">🎙️ صوت</span>
+        <div id="voice-players"></div>
+        <button id="btn-mic" onclick="toggleMic()" title="تشغيل/إيقاف المايك">🎙️</button>
+        <div id="voice-status"></div>
+    </div>
     <div id="waiting-area">
         <p id="wait-msg">⏳ بانتظار الخصوم...</p>
         <button onclick="setReady()" id="btn-ready" class="success">👍 أنا جاهز!</button>
@@ -194,7 +215,13 @@
             <option value="dark">داكن</option>
             <option value="colorful">ملون</option>
         </select>
-        <button onclick="closeModal('settings-modal')" style="width:100%;">تم</button>
+        <hr style="border:none;border-top:1px solid rgba(0,0,0,0.1);margin:15px 0;">
+        <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;">
+            <span>🎙️ الدردشة الصوتية</span>
+            <input type="checkbox" id="voice-enabled" checked onchange="onVoiceSettingChange()" style="width:auto;margin:0;transform:scale(1.4);">
+        </label>
+        <p style="font-size:0.75rem;color:#95a5a6;text-align:right;margin-top:4px;">عند التفعيل سيطلب المتصفح إذن المايكروفون داخل الغرفة</p>
+        <button onclick="closeModal('settings-modal')" style="width:100%;margin-top:10px;">تم</button>
     </div>
 </div>
 
@@ -454,7 +481,7 @@ window.login = async () => {
     }
 };
 
-window.logout = async () => { await updateUserStatus('offline'); await signOut(auth); };
+window.logout = async () => { stopVoiceChat(); await updateUserStatus('offline'); await signOut(auth); };
 window.showRegister = () => { document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); document.getElementById('login-error').textContent=''; };
 window.showLogin = () => { document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); document.getElementById('reg-error').textContent=''; };
 
@@ -558,10 +585,21 @@ function setupPlayerTags(players,turnKey){
 function listenGame(){
     onValue(ref(db,`rooms/${myRoom}`),(s)=>{
         const data=s.val();
-        if(!data){alert('تم إغلاق الغرفة');updateUserStatus('online');document.getElementById('game-screen').classList.add('hidden');document.getElementById('main-screen').classList.remove('hidden');return;}
+        if(!data){
+            stopVoiceChat();
+            updateUserStatus('online');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            return;
+        }
         const players=data.players||{},turnKey=data.game?data.game.order[data.game.turn]:null;
         setupPlayerTags(players,turnKey);
-        if(Object.values(players).length>=2&&Object.values(players).every(p=>p.ready)&&!data.game){soundGameStart();initGame(Object.keys(players));}
+        if(Object.values(players).length>=2&&Object.values(players).every(p=>p.ready)&&!data.game){
+            soundGameStart();initGame(Object.keys(players));
+            if(voiceActive){ /* already started */ } else { startVoiceChat(players); listenVoiceChannel(); }
+        }
+        // إذا اللعبة شغّالة وما بعد بدأنا الصوت
+        if(data.game && !voiceActive){ startVoiceChat(players); listenVoiceChannel(); }
         if(data.game){const cur=data.game.order[data.game.turn];if(cur!==prevTurnKey){if(cur===myKey)soundYourTurn();prevTurnKey=cur;}render(data.game);}
     });
     onValue(ref(db,`rooms/${myRoom}/chat`),(s)=>{
@@ -607,7 +645,7 @@ function showWinnerScreen(winnerName){
 
 // ===== العودة للشاشة الرئيسية =====
 window.returnToMainScreen = () => {
-    myRoom=null; myKey=null; isAdmin=false; hasUno=false; picking=false; prevTurnKey=null;
+    stopVoiceChat(); myRoom=null; myKey=null; isAdmin=false; hasUno=false; picking=false; prevTurnKey=null;
     window.location.hash='';
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
@@ -695,6 +733,312 @@ window.quitGame=async()=>{
 window.sayUno=()=>{initAudio();soundUno();hasUno=true;sendMsg("⚠️ قُلت UNO!");};
 window.sendMsg=(txt)=>{const i=document.getElementById('chat-input');const msg=txt||i.value;if(msg)push(ref(db,`rooms/${myRoom}/chat`),{u:myName,t:msg});i.value="";};
 window.setReady=()=>{initAudio();update(ref(db,`rooms/${myRoom}/players/${myKey}`),{ready:true});};
+
+// ================================================================
+//  🎙 نظام الدردشة الصوتية - WebRTC + Firebase Signaling
+//  STUN فقط (مجاني، بدون أي إعداد خارجي)
+// ================================================================
+
+const ICE_CONFIG = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302'  },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' }
+    ]
+};
+
+// دالة وهمية للتوافق مع باقي الكود
+async function fetchIceServers() { /* STUN جاهز مسبقاً */ }
+
+let localStream      = null;   // ستريم المايك المحلي
+let peerConnections  = {};     // { uid: RTCPeerConnection }
+let micEnabled       = true;   // حالة المايك
+let voiceActive      = false;  // هل الصوت مفعّل في هذه الجلسة
+let speakDetectors   = {};     // AudioContext لكشف الكلام
+let voiceListenerOff = null;   // دالة إيقاف listener الإشارات
+
+// ===== تفعيل/إيقاف المايك من الزر =====
+window.toggleMic = () => {
+    if (!localStream) return;
+    micEnabled = !micEnabled;
+    localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+    const btn = document.getElementById('btn-mic');
+    btn.textContent = micEnabled ? '🎙️' : '🔇';
+    btn.classList.toggle('muted', !micEnabled);
+    // أخبر الآخرين بحالة المايك عبر Firebase
+    if (myRoom && myKey) {
+        set(ref(db, `rooms/${myRoom}/voice/${myKey}/muted`), !micEnabled);
+    }
+    updateVoiceBar();
+};
+
+// ===== تغيير إعداد الصوت من الإعدادات =====
+window.onVoiceSettingChange = () => {
+    const enabled = document.getElementById('voice-enabled').checked;
+    if (!enabled && voiceActive) stopVoiceChat();
+};
+
+// ===== بدء الدردشة الصوتية (يُستدعى عند دخول الغرفة) =====
+async function startVoiceChat(players) {
+    const voiceEnabled = document.getElementById('voice-enabled');
+    if (voiceEnabled && !voiceEnabled.checked) return;
+    if (voiceActive) return;
+
+    try {
+        // جلب ICE servers من Metered.ca اولا
+        await fetchIceServers();
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        voiceActive = true;
+        micEnabled  = true;
+
+        document.getElementById('voice-bar').classList.remove('hidden');
+        document.getElementById('voice-status').textContent = '🟢 متصل بالصوت';
+
+        // كشف الكلام للمستخدم المحلي
+        setupSpeakDetector(myKey, myName, localStream);
+
+        // تسجيل وجودنا في قناة الصوت
+        await set(ref(db, `rooms/${myRoom}/voice/${myKey}`), {
+            uid: myKey, name: myName, muted: false, joined: Date.now()
+        });
+        onDisconnect(ref(db, `rooms/${myRoom}/voice/${myKey}`)).remove();
+
+        // الاستماع للإشارات (Signaling)
+        listenSignaling(players);
+
+        // بدء الاتصال مع اللاعبين الموجودين
+        const voiceSnap = await get(ref(db, `rooms/${myRoom}/voice`));
+        const voicePlayers = voiceSnap.val() || {};
+        for (const uid of Object.keys(voicePlayers)) {
+            if (uid !== myKey) await createOffer(uid);
+        }
+
+        updateVoiceBar();
+
+    } catch (err) {
+        console.warn('Voice chat error:', err.name, err.message);
+        document.getElementById('voice-status').textContent =
+            err.name === 'NotAllowedError' ? '⚠️ تم رفض إذن المايكروفون' : '⚠️ المايكروفون غير متاح';
+        document.getElementById('voice-bar').classList.remove('hidden');
+    }
+}
+
+// ===== إيقاف الدردشة الصوتية =====
+function stopVoiceChat() {
+    voiceActive = false;
+    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+    Object.values(peerConnections).forEach(pc => pc.close());
+    peerConnections = {};
+    Object.values(speakDetectors).forEach(d => { try{ d.ctx.close(); }catch(e){} });
+    speakDetectors = {};
+    if (voiceListenerOff) { voiceListenerOff(); voiceListenerOff = null; }
+    if (myRoom && myKey) remove(ref(db, `rooms/${myRoom}/voice/${myKey}`)).catch(()=>{});
+    document.getElementById('voice-bar').classList.add('hidden');
+    document.getElementById('voice-players').innerHTML = '';
+}
+
+// ===== الاستماع لإشارات WebRTC عبر Firebase =====
+function listenSignaling(players) {
+    const sigRef = ref(db, `rooms/${myRoom}/signals/${myKey}`);
+    const unsub = onValue(sigRef, async (snap) => {
+        if (!snap.exists()) return;
+        const signals = snap.val();
+        for (const [fromUid, data] of Object.entries(signals)) {
+            if (!data) continue;
+            if (data.type === 'offer') {
+                await handleOffer(fromUid, data);
+            } else if (data.type === 'answer') {
+                await handleAnswer(fromUid, data);
+            } else if (data.type === 'ice') {
+                await handleIce(fromUid, data.candidate);
+            }
+            // حذف الإشارة بعد معالجتها
+            remove(ref(db, `rooms/${myRoom}/signals/${myKey}/${fromUid}`)).catch(()=>{});
+        }
+    });
+    voiceListenerOff = unsub;
+}
+
+// ===== إنشاء RTCPeerConnection جديد =====
+function createPeerConnection(remoteUid) {
+    if (peerConnections[remoteUid]) return peerConnections[remoteUid];
+    const pc = new RTCPeerConnection(ICE_CONFIG);
+    peerConnections[remoteUid] = pc;
+
+    // إضافة تراك الصوت المحلي
+    if (localStream) localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+
+    // إرسال ICE candidates للطرف الآخر عبر Firebase
+    pc.onicecandidate = (e) => {
+        if (e.candidate) {
+            set(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
+                type: 'ice',
+                candidate: e.candidate.toJSON()
+            });
+        }
+    };
+
+    // استقبال الصوت من الطرف الآخر
+    pc.ontrack = (e) => {
+        const stream = e.streams[0];
+        let audio = document.getElementById('audio-' + remoteUid);
+        if (!audio) {
+            audio = document.createElement('audio');
+            audio.id = 'audio-' + remoteUid;
+            audio.autoplay = true;
+            audio.style.display = 'none';
+            document.body.appendChild(audio);
+        }
+        audio.srcObject = stream;
+        setupSpeakDetectorRemote(remoteUid, stream);
+        updateVoiceBar();
+    };
+
+    pc.onconnectionstatechange = () => updateVoiceBar();
+    return pc;
+}
+
+// ===== إرسال Offer =====
+async function createOffer(remoteUid) {
+    const pc = createPeerConnection(remoteUid);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await set(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
+        type: 'offer',
+        sdp: offer.sdp
+    });
+}
+
+// ===== استقبال Offer وإرسال Answer =====
+async function handleOffer(fromUid, data) {
+    const pc = createPeerConnection(fromUid);
+    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await set(ref(db, `rooms/${myRoom}/signals/${fromUid}/${myKey}`), {
+        type: 'answer',
+        sdp: answer.sdp
+    });
+}
+
+// ===== استقبال Answer =====
+async function handleAnswer(fromUid, data) {
+    const pc = peerConnections[fromUid];
+    if (pc && pc.signalingState !== 'stable') {
+        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+    }
+}
+
+// ===== استقبال ICE Candidate =====
+async function handleIce(fromUid, candidateData) {
+    const pc = peerConnections[fromUid];
+    if (pc && candidateData) {
+        try { await pc.addIceCandidate(new RTCIceCandidate(candidateData)); } catch(e) {}
+    }
+}
+
+// ===== كشف الكلام (Speaking Detection) =====
+function setupSpeakDetector(uid, name, stream) {
+    try {
+        const ctx = new AudioContext();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 512;
+        const src = ctx.createMediaStreamSource(stream);
+        src.connect(analyser);
+        const data = new Uint8Array(analyser.fftSize);
+        let speaking = false;
+
+        const check = () => {
+            if (!voiceActive) return;
+            analyser.getByteTimeDomainData(data);
+            let sum = 0;
+            for (let i = 0; i < data.length; i++) sum += Math.abs(data[i] - 128);
+            const avg = sum / data.length;
+            const nowSpeaking = avg > 6 && micEnabled;
+            if (nowSpeaking !== speaking) {
+                speaking = nowSpeaking;
+                updateVoiceCircle(uid, nowSpeaking);
+                // إخبار الآخرين بحالة الكلام (اختياري عبر Firebase)
+                if (myRoom && myKey) set(ref(db, `rooms/${myRoom}/voice/${myKey}/speaking`), nowSpeaking);
+            }
+            requestAnimationFrame(check);
+        };
+        requestAnimationFrame(check);
+        speakDetectors[uid] = { ctx };
+    } catch(e) {}
+}
+
+function setupSpeakDetectorRemote(uid, stream) {
+    try {
+        const ctx = new AudioContext();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 512;
+        const src = ctx.createMediaStreamSource(stream);
+        src.connect(analyser);
+        const data = new Uint8Array(analyser.fftSize);
+        let speaking = false;
+
+        const check = () => {
+            if (!voiceActive) return;
+            analyser.getByteTimeDomainData(data);
+            let sum = 0;
+            for (let i = 0; i < data.length; i++) sum += Math.abs(data[i] - 128);
+            const avg = sum / data.length;
+            const nowSpeaking = avg > 5;
+            if (nowSpeaking !== speaking) { speaking = nowSpeaking; updateVoiceCircle(uid, nowSpeaking); }
+            requestAnimationFrame(check);
+        };
+        requestAnimationFrame(check);
+        speakDetectors[uid] = { ctx };
+    } catch(e) {}
+}
+
+function updateVoiceCircle(uid, isSpeaking) {
+    const circle = document.getElementById('vc-' + uid);
+    if (!circle) return;
+    circle.classList.toggle('speaking', isSpeaking);
+}
+
+// ===== تحديث شريط الصوت =====
+async function updateVoiceBar() {
+    if (!myRoom || !voiceActive) return;
+    const snap = await get(ref(db, `rooms/${myRoom}/voice`));
+    const voicePlayers = snap.val() || {};
+    const playersDiv = document.getElementById('voice-players');
+    playersDiv.innerHTML = '';
+
+    for (const [uid, data] of Object.entries(voicePlayers)) {
+        const isMe = uid === myKey;
+        const isMutedUser = isMe ? !micEnabled : (data.muted || false);
+        const initials = (data.name || '?').substring(0, 2).toUpperCase();
+        const pc = peerConnections[uid];
+        const connected = isMe || (pc && pc.connectionState === 'connected');
+
+        playersDiv.innerHTML += `
+            <div class="voice-avatar">
+                <div class="voice-circle ${isMutedUser ? 'muted-remote' : ''}" id="vc-${uid}" title="${data.name || uid}">
+                    ${isMutedUser ? '🔇' : initials}
+                </div>
+                <span class="voice-name">${isMe ? 'أنت' : (data.name || uid)}</span>
+            </div>`;
+    }
+}
+
+// ===== الاستماع لتغييرات قناة الصوت (دخول/خروج) =====
+function listenVoiceChannel() {
+    onValue(ref(db, `rooms/${myRoom}/voice`), async (snap) => {
+        const voicePlayers = snap.val() || {};
+        await updateVoiceBar();
+        // إذا دخل لاعب جديد، أرسل له offer
+        for (const uid of Object.keys(voicePlayers)) {
+            if (uid !== myKey && !peerConnections[uid] && voiceActive) {
+                await createOffer(uid);
+            }
+        }
+    });
+}
+// ================================================================
 window.openModal=id=>document.getElementById(id).style.display='flex';
 window.closeModal=id=>document.getElementById(id).style.display='none';
 window.updateTheme=()=>document.getElementById('body-tag').className=document.getElementById('theme-select').value+'-mode';
