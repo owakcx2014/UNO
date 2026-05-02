@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Ultimate Pro - نظام الأصدقاء</title>
+    <title>🎴 UNO Ultimate Pro</title>
     <link rel="preconnect" href="https://fonts.cdnfonts.com">
     <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
     <style>
@@ -309,7 +309,7 @@
             }
         }
 
-        /* ===== الدردشة الصوتية المحسّنة ===== */
+        /* ===== الدردشة الصوتية ===== */
         #voice-bar {
             display: flex;
             align-items: center;
@@ -399,6 +399,7 @@
             transition: 0.2s;
             margin: 0;
             padding: 0;
+            color: white;
         }
         #btn-mic.muted {
             background: #e74c3c;
@@ -408,18 +409,10 @@
         }
         #voice-status {
             font-size: 0.7rem;
-            color: rgba(255, 255, 255, 0.45);
+            color: rgba(255, 255, 255, 0.7);
             text-align: center;
             width: 100%;
             font-weight: 500;
-        }
-        #voice-debug {
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.35);
-            text-align: center;
-            width: 100%;
-            margin-top: 2px;
-            font-weight: 400;
         }
     </style>
 </head>
@@ -500,7 +493,6 @@
             <div id="voice-players"></div>
             <button id="btn-mic" onclick="toggleMic()" title="تشغيل/إيقاف المايك">🎙️</button>
             <div id="voice-status"></div>
-            <div id="voice-debug"></div>
         </div>
         <div id="waiting-area">
             <p id="wait-msg">⏳ بانتظار الخصوم...</p>
@@ -589,10 +581,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from
-            "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from
-            "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
@@ -641,22 +631,19 @@
             }
         }
 
-        // ===== البحث: جلب كل المستخدمين وفلترة محلياً =====
+        // ===== البحث =====
         window.searchFriend = async () => {
             const term = document.getElementById('friend-search').value.trim().toLowerCase();
             const resultsDiv = document.getElementById('search-results');
             if (!term || term.length < 2) {
-                resultsDiv.innerHTML =
-                    '<p style="font-size:0.85rem;color:var(--offline);">أدخل حرفين على الأقل</p>';
+                resultsDiv.innerHTML = '<p style="font-size:0.85rem;color:var(--offline);">أدخل حرفين على الأقل</p>';
                 return;
             }
             resultsDiv.innerHTML = '<p><span class="spin">⏳</span> جاري البحث...</p>';
             try {
                 const snap = await get(ref(db, 'users'));
-                if (!snap.exists()) { resultsDiv.innerHTML =
-                        '<p style="color:var(--offline);">لا توجد نتائج</p>'; return; }
+                if (!snap.exists()) { resultsDiv.innerHTML = '<p style="color:var(--offline);">لا توجد نتائج</p>'; return; }
                 const allUsers = snap.val();
-
                 const myFriendsSnap = await get(ref(db, `friends/${currentUser.uid}`));
                 const myFriends = myFriendsSnap.val() || {};
                 const sentSnap = await get(ref(db, `sentRequests/${currentUser.uid}`));
@@ -664,21 +651,17 @@
 
                 const results = Object.entries(allUsers).filter(([uid, data]) => {
                     if (uid === currentUser.uid) return false;
-                    return (data.name || '').toLowerCase().includes(term) || (data.email || '')
-                        .toLowerCase().includes(term);
+                    return (data.name || '').toLowerCase().includes(term) || (data.email || '').toLowerCase().includes(term);
                 });
 
-                if (results.length === 0) { resultsDiv.innerHTML =
-                        '<p style="color:var(--offline);font-size:0.85rem;">❌ لا توجد نتائج</p>'; return; }
+                if (results.length === 0) { resultsDiv.innerHTML = '<p style="color:var(--offline);font-size:0.85rem;">❌ لا توجد نتائج</p>'; return; }
                 resultsDiv.innerHTML = '';
 
                 for (const [uid, data] of results) {
                     const isFriend = !!myFriends[uid],
                         sentReq = !!sentRequests[uid];
                     const status = (data.status && data.status.status) || 'offline';
-                    const statusText = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [
-                        status
-                    ] || '⚫ غير نشط';
+                    const statusText = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [status] || '⚫ غير نشط';
                     let actionBtn = isFriend ?
                         '<span style="color:#2ecc71;font-size:0.85rem;">✅ صديق</span>' :
                         sentReq ?
@@ -722,8 +705,7 @@
         window.addFriendFromGame = (playerName, playerUid) => {
             if (!currentUser || playerUid === currentUser.uid) return;
             pendingFriendTarget = { uid: playerUid, name: playerName };
-            document.getElementById('add-friend-message').innerHTML =
-                `هل تريد إضافة <b>${playerName}</b> كصديق؟`;
+            document.getElementById('add-friend-message').innerHTML = `هل تريد إضافة <b>${playerName}</b> كصديق؟`;
             document.getElementById('add-friend-modal').style.display = 'flex';
         };
 
@@ -741,10 +723,8 @@
                 const req = reqSnap.val();
                 const mySnap = await get(ref(db, `users/${currentUser.uid}`));
                 const myData = mySnap.val() || {};
-                await set(ref(db, `friends/${currentUser.uid}/${fromUid}`), { uid: fromUid, name: req.name,
-                    email: req.email, addedAt: Date.now() });
-                await set(ref(db, `friends/${fromUid}/${currentUser.uid}`), { uid: currentUser.uid, name: myData
-                        .name || myName, email: currentUser.email, addedAt: Date.now() });
+                await set(ref(db, `friends/${currentUser.uid}/${fromUid}`), { uid: fromUid, name: req.name, email: req.email, addedAt: Date.now() });
+                await set(ref(db, `friends/${fromUid}/${currentUser.uid}`), { uid: currentUser.uid, name: myData.name || myName, email: currentUser.email, addedAt: Date.now() });
                 await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
                 await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
                 alert('✅ تمت إضافة الصديق!');
@@ -789,8 +769,7 @@
         async function renderFriendsList(friends) {
             const div = document.getElementById('friends-list');
             if (Object.keys(friends).length === 0) {
-                div.innerHTML =
-                    '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا يوجد أصدقاء بعد. ابحث عن أصدقاء جدد!</p>';
+                div.innerHTML = '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا يوجد أصدقاء بعد. ابحث عن أصدقاء جدد!</p>';
                 return;
             }
             div.innerHTML = '';
@@ -803,8 +782,7 @@
                     status = st.status || 'offline';
                     roomId = st.roomId || null;
                 } catch (e) {}
-                const statusText = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [status] ||
-                    '⚫ غير نشط';
+                const statusText = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [status] || '⚫ غير نشط';
                 const joinBtn = (status === 'playing' && roomId) ?
                     `<button onclick="joinFriendRoom('${roomId}')" style="width:auto;padding:5px 10px;font-size:0.8rem;margin:0;background:#3498db;">🎮 انضمام</button>` :
                     '';
@@ -822,8 +800,7 @@
         function renderRequestsList(requests) {
             const div = document.getElementById('requests-list');
             if (Object.keys(requests).length === 0) {
-                div.innerHTML =
-                    '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا توجد طلبات</p>';
+                div.innerHTML = '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا توجد طلبات</p>';
                 return;
             }
             div.innerHTML = '';
@@ -858,11 +835,9 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(cred.user, { displayName: name });
-                await set(ref(db, `users/${cred.user.uid}`), { name, email, nameLower: name.toLowerCase(),
-                    emailLower: email.toLowerCase(), createdAt: Date.now() });
+                await set(ref(db, `users/${cred.user.uid}`), { name, email, nameLower: name.toLowerCase(), emailLower: email.toLowerCase(), createdAt: Date.now() });
             } catch (e) {
-                const msgs = { 'auth/email-already-in-use': 'البريد الإلكتروني مستخدم بالفعل',
-                    'auth/invalid-email': 'بريد إلكتروني غير صالح', 'auth/weak-password': 'كلمة المرور ضعيفة' };
+                const msgs = { 'auth/email-already-in-use': 'البريد الإلكتروني مستخدم بالفعل', 'auth/invalid-email': 'بريد إلكتروني غير صالح', 'auth/weak-password': 'كلمة المرور ضعيفة' };
                 err.textContent = msgs[e.code] || 'حدث خطأ: ' + e.message;
             }
         };
@@ -874,9 +849,7 @@
             err.textContent = '';
             if (!email || !password) { err.textContent = 'يرجى إدخال البريد وكلمة المرور'; return; }
             try { await signInWithEmailAndPassword(auth, email, password); } catch (e) {
-                const msgs = { 'auth/invalid-email': 'بريد إلكتروني غير صالح',
-                    'auth/user-not-found': 'المستخدم غير موجود', 'auth/wrong-password': 'كلمة المرور خاطئة',
-                    'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة' };
+                const msgs = { 'auth/invalid-email': 'بريد إلكتروني غير صالح', 'auth/user-not-found': 'المستخدم غير موجود', 'auth/wrong-password': 'كلمة المرور خاطئة', 'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة' };
                 err.textContent = msgs[e.code] || 'خطأ: ' + e.message;
             }
         };
@@ -891,56 +864,62 @@
             document.getElementById('login-form').classList.remove('hidden');
             document.getElementById('reg-error').textContent = ''; };
 
-        // ===== الصوت (مؤثرات) =====
-        let audioCtx = null,
-            isMuted = false;
-        const initAudio = () => { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); };
+        // ===== مؤثرات صوتية =====
+        let audioCtx = null;
+
+        function initAudioCtx() {
+            if (!audioCtx) {
+                audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
 
         function playTone(freq, dur, type = 'sine', vol = 0.3, delay = 0) {
-            if (isMuted || !audioCtx) return;
-            const o = audioCtx.createOscillator(),
-                g = audioCtx.createGain();
-            o.connect(g);
-            g.connect(audioCtx.destination);
-            o.type = type;
-            o.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
-            g.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + dur);
-            o.start(audioCtx.currentTime + delay);
-            o.stop(audioCtx.currentTime + delay + dur);
+            if (!audioCtx) return;
+            try {
+                const o = audioCtx.createOscillator(),
+                    g = audioCtx.createGain();
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.type = type;
+                o.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+                g.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + dur);
+                o.start(audioCtx.currentTime + delay);
+                o.stop(audioCtx.currentTime + delay + dur);
+            } catch (e) {}
         }
-        const soundPlayCard = () => { initAudio();
+
+        const soundPlayCard = () => { initAudioCtx();
             playTone(300, .06, 'triangle', .5);
             playTone(500, .08, 'triangle', .4, .05); };
-        const soundDrawCard = () => { initAudio();
+        const soundDrawCard = () => { initAudioCtx();
             playTone(400, .08, 'sawtooth', .3);
             playTone(250, .12, 'sawtooth', .2, .07); };
-        const soundUno = () => { initAudio();
+        const soundUno = () => { initAudioCtx();
             playTone(880, .1, 'square', .4);
             playTone(1100, .1, 'square', .5, .1); };
-        const soundYourTurn = () => { initAudio();
+        const soundYourTurn = () => { initAudioCtx();
             playTone(523, .12, 'sine', .4);
             playTone(659, .12, 'sine', .4, .13);
             playTone(784, .18, 'sine', .4, .26); };
-        const soundPenalty = () => { initAudio();
+        const soundPenalty = () => { initAudioCtx();
             playTone(200, .15, 'sawtooth', .5);
             playTone(150, .2, 'sawtooth', .5, .15); };
-        const soundReverse = () => { initAudio();
+        const soundReverse = () => { initAudioCtx();
             playTone(600, .08, 'sine', .4);
             playTone(400, .08, 'sine', .4, .09); };
-        const soundWin = () => { initAudio();
+        const soundWin = () => { initAudioCtx();
             [523, 659, 784, 1047].forEach((f, i) => playTone(f, .2, 'sine', .5, i * .18)); };
-        const soundGameStart = () => { initAudio();
+        const soundGameStart = () => { initAudioCtx();
             [330, 392, 494, 523].forEach((f, i) => playTone(f, .15, 'sine', .45, i * .15)); };
 
         // ===== اللعبة =====
         const t = {
-            ar: { main: "أونو أونلاين", create: "إنشاء غرفة", join: "دخول", quit: "خروج", wait: "بانتظار الخصوم...",
-                ready: "أنا جاهز!", draw: "سحب كرت", turn: "دورك! 🔥", waitT: "انتظر...", copy: "نسخ الرابط",
-                copied: "تم النسخ! ✅" },
-            en: { main: "UNO ONLINE", create: "Create Room", join: "Join", quit: "Quit", wait: "Waiting...",
-                ready: "Ready!", draw: "Draw Card", turn: "Your Turn! 🔥", waitT: "Wait...", copy: "Copy Link",
-                copied: "Copied! ✅" }
+            ar: { main: "أونو أونلاين", create: "إنشاء غرفة", join: "دخول", quit: "خروج", wait: "بانتظار الخصوم...", ready: "أنا جاهز!", draw: "سحب كرت", turn: "دورك! 🔥", waitT: "انتظر...", copy: "نسخ الرابط", copied: "تم النسخ! ✅" },
+            en: { main: "UNO ONLINE", create: "Create Room", join: "Join", quit: "Quit", wait: "Waiting...", ready: "Ready!", draw: "Draw Card", turn: "Your Turn! 🔥", waitT: "Wait...", copy: "Copy Link", copied: "Copied! ✅" }
         };
 
         let myKey, myRoom, isAdmin = false,
@@ -973,10 +952,8 @@
 
         window.enterRoom = async (type) => {
             if (!currentUser) { alert('يجب تسجيل الدخول أولاً'); return; }
-            initAudio();
             myName = currentUser.displayName || currentUser.email.split('@')[0];
-            myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999).toString() : document
-                .getElementById('room-input').value;
+            myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999).toString() : document.getElementById('room-input').value;
             if (!myRoom || myRoom.length !== 6) { alert('أدخل كود غرفة صحيح (6 أرقام)'); return; }
             window.location.hash = myRoom;
             const roomRef = ref(db, `rooms/${myRoom}/players`);
@@ -995,10 +972,9 @@
             await updateUserStatus('playing', myRoom);
             document.getElementById('main-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('room-display').innerText =
-                `🏠 Room: ${myRoom} ${isAdmin?'(Admin)':''}`;
-            // بدء الدردشة الصوتية فور دخول الغرفة
-            initVoiceForRoom(players);
+            document.getElementById('room-display').innerText = `🏠 Room: ${myRoom} ${isAdmin?'(Admin)':''}`;
+            // بدء الدردشة الصوتية
+            startVoiceChat(players);
             listenGame();
         };
 
@@ -1043,14 +1019,9 @@
                 const players = data.players || {},
                     turnKey = data.game ? data.game.order[data.game.turn] : null;
                 setupPlayerTags(players, turnKey);
-                if (Object.values(players).length >= 2 && Object.values(players).every(p => p
-                    .ready) && !data.game) {
+                if (Object.values(players).length >= 2 && Object.values(players).every(p => p.ready) && !data.game) {
                     soundGameStart();
                     initGame(Object.keys(players));
-                }
-                // تحديث قائمة الصوت عند تغير اللاعبين
-                if (voiceActive && data.players) {
-                    updateVoiceBarFromPlayers(data.players);
                 }
                 if (data.game) {
                     const cur = data.game.order[data.game.turn];
@@ -1062,8 +1033,7 @@
             onValue(ref(db, `rooms/${myRoom}/chat`), (s) => {
                 const msgs = document.getElementById('chat-msgs');
                 msgs.innerHTML = "";
-                if (s.exists()) Object.values(s.val()).forEach(m => msgs.innerHTML +=
-                    `<div><b>${m.u}:</b> ${m.t}</div>`);
+                if (s.exists()) Object.values(s.val()).forEach(m => msgs.innerHTML += `<div><b>${m.u}:</b> ${m.t}</div>`);
                 msgs.scrollTop = msgs.scrollHeight;
             });
         }
@@ -1071,8 +1041,7 @@
         async function initGame(keys) {
             if (!isAdmin) return;
             let deck = [];
-            ['red', 'blue', 'green', 'yellow'].forEach(c => { for (let i = 0; i <= 9; i++) deck.push({ color: c,
-                    value: i.toString() });
+            ['red', 'blue', 'green', 'yellow'].forEach(c => { for (let i = 0; i <= 9; i++) deck.push({ color: c, value: i.toString() });
                 ['+2', 'Skip', '🔄'].forEach(v => deck.push({ color: c, value: v })); });
             for (let i = 0; i < 4; i++) { deck.push({ color: 'black', value: 'Wild' });
                 deck.push({ color: 'black', value: '+4' }); }
@@ -1131,8 +1100,7 @@
             if (game.winner) {
                 soundWin();
                 if (game.winner === myName) {
-                    setTimeout(async () => { try { await remove(ref(db, `rooms/${myRoom}`)); } catch (
-                        e) {} }, 3500);
+                    setTimeout(async () => { try { await remove(ref(db, `rooms/${myRoom}`)); } catch (e) {} }, 3500);
                 }
                 showWinnerScreen(game.winner);
                 return;
@@ -1151,8 +1119,7 @@
             const isTurn = game.order[game.turn] === myKey,
                 l = document.getElementById('lang-select').value;
             document.getElementById('turn-display').innerText = isTurn ? t[l].turn : t[l].waitT;
-            document.getElementById('uno-btn').style.display = (hand.length === 2 && isTurn) ? 'block' :
-            'none';
+            document.getElementById('uno-btn').style.display = (hand.length === 2 && isTurn) ? 'block' : 'none';
         }
 
         async function play(idx, game) {
@@ -1168,15 +1135,10 @@
                     await update(ref(db, `rooms/${myRoom}/game`), game); return; }
                 let nextIdx = (game.turn + 1) % game.order.length,
                     victim = game.order[nextIdx];
-                if (card.value === '+2') { soundPenalty(); for (let i = 0; i < 2; i++) game[`hand_${victim}`]
-                        .push(game.deck.pop());
-                    game.turn = (nextIdx + 1) % game.order.length; } else if (card.value === 'Skip') { game
-                        .turn = (nextIdx + 1) % game.order.length; } else if (card.value === '🔄') {
-                    soundReverse();
+                if (card.value === '+2') { soundPenalty(); for (let i = 0; i < 2; i++) game[`hand_${victim}`].push(game.deck.pop());
+                    game.turn = (nextIdx + 1) % game.order.length; } else if (card.value === 'Skip') { game.turn = (nextIdx + 1) % game.order.length; } else if (card.value === '🔄') { soundReverse();
                     game.order.reverse();
-                    game.turn = (game.order.indexOf(myKey) + 1) % game.order.length; } else if (card.color ===
-                    'black') { if (card.value === '+4') { soundPenalty(); for (let i = 0; i < 4; i++) game[
-                            `hand_${victim}`].push(game.deck.pop()); }
+                    game.turn = (game.order.indexOf(myKey) + 1) % game.order.length; } else if (card.color === 'black') { if (card.value === '+4') { soundPenalty(); for (let i = 0; i < 4; i++) game[`hand_${victim}`].push(game.deck.pop()); }
                     picking = true;
                     document.getElementById('color-modal').style.display = 'flex'; } else { game.turn = nextIdx; }
                 hasUno = false;
@@ -1189,15 +1151,13 @@
             const game = s.val();
             const last = game.discard[game.discard.length - 1];
             game.discard[game.discard.length - 1].color = color;
-            game.turn = (last.value === '+4') ? (game.turn + 2) % game.order.length : (game.turn + 1) % game.order
-                .length;
+            game.turn = (last.value === '+4') ? (game.turn + 2) % game.order.length : (game.turn + 1) % game.order.length;
             picking = false;
             document.getElementById('color-modal').style.display = 'none';
             await update(ref(db, `rooms/${myRoom}/game`), game);
         };
 
         window.drawCardAction = async () => {
-            initAudio();
             soundDrawCard();
             const s = await get(ref(db, `rooms/${myRoom}/game`));
             const game = s.val();
@@ -1222,551 +1182,327 @@
             }
         };
 
-        window.sayUno = () => { initAudio();
-            soundUno();
+        window.sayUno = () => { soundUno();
             hasUno = true;
             sendMsg("⚠️ قُلت UNO!"); };
         window.sendMsg = (txt) => { const i = document.getElementById('chat-input');
             const msg = txt || i.value; if (msg) push(ref(db, `rooms/${myRoom}/chat`), { u: myName, t: msg });
             i.value = ""; };
-        window.setReady = () => { initAudio();
-            update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true }); };
+        window.setReady = () => { update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true }); };
 
         // ================================================================
-        //  🎙 نظام الدردشة الصوتية المحسّن - WebRTC + Firebase Signaling
-        //  مع TURN servers احتياطية وإدارة أفضل للاتصالات
+        //  🎙 نظام الدردشة الصوتية - نسخة مُبسطة وفعالة
         // ================================================================
 
-        const ICE_CONFIG = {
+        const ICE_SERVERS = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-            ],
-            iceCandidatePoolSize: 2,
-            iceTransportPolicy: 'all',
-            bundlePolicy: 'max-bundle',
-            rtcpMuxPolicy: 'require',
+            ]
         };
 
-        // ===== متغيرات الصوت =====
         let localStream = null;
         let peerConnections = {};
         let micEnabled = true;
         let voiceActive = false;
-        let speakDetectors = {};
-        let voiceListenerOff = null;
-        let signalListeners = {};
-        let pendingOffers = {};
-        let voiceInitAttempted = false;
-        let reconnectTimers = {};
 
-        // ===== تفعيل/إيقاف المايك =====
+        // ===== كتم/تفعيل المايك =====
         window.toggleMic = () => {
             if (!localStream) return;
             micEnabled = !micEnabled;
-            localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+            localStream.getAudioTracks().forEach(track => {
+                track.enabled = micEnabled;
+            });
             const btn = document.getElementById('btn-mic');
-            btn.textContent = micEnabled ? '🎙️' : '🔇';
-            btn.classList.toggle('muted', !micEnabled);
-            if (myRoom && myKey) {
-                set(ref(db, `rooms/${myRoom}/voice/${myKey}/muted`), !micEnabled).catch(() => {});
+            if (micEnabled) {
+                btn.classList.remove('muted');
+                btn.textContent = '🎙️';
+            } else {
+                btn.classList.add('muted');
+                btn.textContent = '🔇';
             }
-            updateVoiceBarFromRoom();
+            // تحديث الحالة في Firebase
+            if (myRoom && myKey) {
+                set(ref(db, `rooms/${myRoom}/voice/${myKey}/muted`), !micEnabled);
+            }
         };
 
-        // ===== تغيير إعداد الصوت =====
+        // ===== إعداد الصوت =====
         window.onVoiceSettingChange = () => {
             const enabled = document.getElementById('voice-enabled').checked;
-            if (!enabled && voiceActive) stopVoiceChat();
-            if (enabled && myRoom && !voiceActive && myKey) {
-                const playersRef = ref(db, `rooms/${myRoom}/players`);
-                get(playersRef).then(snap => {
-                    if (snap.exists()) initVoiceForRoom(snap.val());
-                }).catch(() => {});
+            if (!enabled && voiceActive) {
+                stopVoiceChat();
             }
         };
 
-        // ===== بدء الدردشة الصوتية للغرفة =====
-        async function initVoiceForRoom(players) {
+        // ===== بدء الدردشة الصوتية =====
+        async function startVoiceChat(players) {
             const voiceEnabled = document.getElementById('voice-enabled');
-            if (voiceEnabled && !voiceEnabled.checked) return;
-            if (voiceActive) return;
-            if (voiceInitAttempted) return;
-            voiceInitAttempted = true;
+            if (!voiceEnabled || !voiceEnabled.checked) {
+                console.log('Voice disabled in settings');
+                return;
+            }
+            if (voiceActive) {
+                console.log('Voice already active');
+                return;
+            }
 
-            document.getElementById('voice-bar').classList.remove('hidden');
-            document.getElementById('voice-status').textContent = '⏳ جاري تهيئة الصوت...';
-            document.getElementById('voice-debug').textContent = '';
+            const voiceBar = document.getElementById('voice-bar');
+            const voiceStatus = document.getElementById('voice-status');
+            voiceBar.classList.remove('hidden');
+            voiceStatus.textContent = '⏳ جاري طلب المايكروفون...';
 
             try {
+                // طلب المايكروفون
+                console.log('Requesting microphone...');
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         echoCancellation: true,
                         noiseSuppression: true,
                         autoGainControl: true,
-                        channelCount: 1,
-                        sampleRate: 16000,
                     },
                     video: false,
                 });
+
+                console.log('Microphone obtained!', stream.getAudioTracks());
                 localStream = stream;
                 voiceActive = true;
                 micEnabled = true;
-                voiceInitAttempted = false;
-                document.getElementById('voice-status').textContent = '🟢 متصل بالصوت';
-                document.getElementById('voice-debug').textContent = '';
+                voiceStatus.textContent = '🟢 متصل بالصوت';
                 document.getElementById('btn-mic').classList.remove('muted');
                 document.getElementById('btn-mic').textContent = '🎙️';
 
-                setupSpeakDetector(myKey, myName, stream);
+                // تسجيل في Firebase
                 await set(ref(db, `rooms/${myRoom}/voice/${myKey}`), {
                     uid: myKey,
                     name: myName,
                     muted: false,
-                    speaking: false,
                     joined: Date.now(),
                 });
-                onDisconnect(ref(db, `rooms/${myRoom}/voice/${myKey}`)).remove().catch(() => {});
+                onDisconnect(ref(db, `rooms/${myRoom}/voice/${myKey}`)).remove();
 
-                listenSignaling();
+                // الاستماع لتغييرات قناة الصوت
                 listenVoiceChannel();
 
+                // الاتصال بجميع اللاعبين الموجودين
                 const voiceSnap = await get(ref(db, `rooms/${myRoom}/voice`));
                 const voicePlayers = voiceSnap.val() || {};
+                console.log('Voice players:', Object.keys(voicePlayers));
+
                 for (const uid of Object.keys(voicePlayers)) {
                     if (uid !== myKey) {
-                        setTimeout(() => createAndSendOffer(uid), 300 * Object.keys(voicePlayers).indexOf(uid));
+                        console.log('Creating connection to:', uid);
+                        await createPeerConnection(uid);
+                        await createOffer(uid);
                     }
                 }
-                updateVoiceBarFromRoom();
+
+                updateVoiceBar();
+
             } catch (err) {
-                voiceInitAttempted = false;
-                console.warn('Voice chat init error:', err.name, err.message);
-                const debugEl = document.getElementById('voice-debug');
-                debugEl.textContent = 'تفاصيل: ' + (err.message || err.name);
-                if (err.name === 'NotAllowedError') {
-                    document.getElementById('voice-status').textContent = '⚠️ تم رفض إذن المايكروفون';
-                } else if (err.name === 'NotFoundError') {
-                    document.getElementById('voice-status').textContent = '⚠️ لم يتم العثور على مايكروفون';
-                } else {
-                    document.getElementById('voice-status').textContent = '⚠️ خطأ: ' + (err.message || err.name);
-                }
-                document.getElementById('voice-bar').classList.remove('hidden');
+                console.error('Voice error:', err.name, err.message);
+                voiceStatus.textContent = '❌ خطأ: ' + (err.name === 'NotAllowedError' ? 'تم رفض المايكروفون' : err.message);
+                voiceBar.classList.remove('hidden');
             }
         }
 
         // ===== إيقاف الدردشة الصوتية =====
         function stopVoiceChat() {
+            console.log('Stopping voice chat...');
             voiceActive = false;
-            voiceInitAttempted = false;
+
             if (localStream) {
                 localStream.getTracks().forEach(t => t.stop());
                 localStream = null;
             }
+
             Object.values(peerConnections).forEach(pc => {
                 try { pc.close(); } catch (e) {}
             });
             peerConnections = {};
-            Object.values(speakDetectors).forEach(d => { try { d.ctx.close(); } catch (e) {} });
-            speakDetectors = {};
-            Object.values(signalListeners).forEach(unsub => { try { unsub(); } catch (e) {} });
-            signalListeners = {};
-            if (voiceListenerOff) { try { voiceListenerOff(); } catch (e) {}
-                voiceListenerOff = null; }
-            Object.values(reconnectTimers).forEach(t => clearTimeout(t));
-            reconnectTimers = {};
-            pendingOffers = {};
+
             if (myRoom && myKey) {
                 remove(ref(db, `rooms/${myRoom}/voice/${myKey}`)).catch(() => {});
-                remove(ref(db, `rooms/${myRoom}/signals/${myKey}`)).catch(() => {});
             }
+
             document.getElementById('voice-bar').classList.add('hidden');
             document.getElementById('voice-players').innerHTML = '';
             document.getElementById('voice-status').textContent = '';
-            document.getElementById('voice-debug').textContent = '';
-            const btn = document.getElementById('btn-mic');
-            btn.classList.remove('muted');
-            btn.textContent = '🎙️';
+            document.getElementById('btn-mic').classList.remove('muted');
+            document.getElementById('btn-mic').textContent = '🎙️';
         }
 
-        // ===== إنشاء RTCPeerConnection =====
+        // ===== إنشاء اتصال Peer =====
         function createPeerConnection(remoteUid) {
+            // إغلاق الاتصال القديم إن وجد
             if (peerConnections[remoteUid]) {
-                if (peerConnections[remoteUid].connectionState === 'failed' ||
-                    peerConnections[remoteUid].connectionState === 'disconnected' ||
-                    peerConnections[remoteUid].connectionState === 'closed') {
-                    try { peerConnections[remoteUid].close(); } catch (e) {}
-                    delete peerConnections[remoteUid];
-                } else {
-                    return peerConnections[remoteUid];
-                }
+                try { peerConnections[remoteUid].close(); } catch (e) {}
             }
 
-            const pc = new RTCPeerConnection(ICE_CONFIG);
+            console.log('Creating RTCPeerConnection for:', remoteUid);
+            const pc = new RTCPeerConnection(ICE_SERVERS);
             peerConnections[remoteUid] = pc;
 
+            // إضافة المسار الصوتي المحلي
             if (localStream) {
-                localStream.getTracks().forEach(t => {
-                    try { pc.addTrack(t, localStream); } catch (e) {}
+                localStream.getTracks().forEach(track => {
+                    console.log('Adding track to peer:', track.kind);
+                    pc.addTrack(track, localStream);
                 });
             }
 
-            pc.onicecandidate = (e) => {
-                if (e.candidate && myRoom && myKey) {
-                    const candidateData = {
+            // إرسال ICE candidates
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    console.log('Sending ICE candidate to:', remoteUid);
+                    push(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
                         type: 'ice',
-                        candidate: e.candidate.toJSON(),
-                        timestamp: Date.now(),
-                    };
-                    push(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), candidateData).catch(
-                    () => {});
+                        candidate: event.candidate.toJSON(),
+                    });
                 }
             };
 
-            pc.ontrack = (e) => {
-                if (e.streams && e.streams[0]) {
-                    const stream = e.streams[0];
-                    let audio = document.getElementById('audio-' + remoteUid);
-                    if (!audio) {
-                        audio = document.createElement('audio');
-                        audio.id = 'audio-' + remoteUid;
-                        audio.autoplay = true;
-                        audio.playsinline = true;
-                        audio.style.display = 'none';
-                        document.body.appendChild(audio);
-                    }
-                    if (audio.srcObject !== stream) {
-                        audio.srcObject = stream;
-                    }
-                    setupSpeakDetectorRemote(remoteUid, stream);
+            // استقبال الصوت من الطرف الآخر
+            pc.ontrack = (event) => {
+                console.log('Received track from:', remoteUid, event.streams);
+                if (event.streams && event.streams[0]) {
+                    const audio = new Audio();
+                    audio.autoplay = true;
+                    audio.srcObject = event.streams[0];
+                    audio.play().catch(e => console.log('Audio play error:', e));
+                    updateVoiceBar();
                 }
             };
 
             pc.onconnectionstatechange = () => {
-                const state = pc.connectionState;
-                updateVoiceBarFromRoom();
-                if (state === 'failed' || state === 'disconnected') {
-                    document.getElementById('voice-debug').textContent =
-                        `⚠️ انقطع الاتصال بـ ${remoteUid} - جاري إعادة المحاولة...`;
-                    scheduleReconnect(remoteUid);
-                }
-                if (state === 'connected') {
-                    document.getElementById('voice-debug').textContent = '';
-                    clearTimeout(reconnectTimers[remoteUid]);
-                    delete reconnectTimers[remoteUid];
-                }
-            };
-
-            pc.oniceconnectionstatechange = () => {
-                if (pc.iceConnectionState === 'failed') {
-                    scheduleReconnect(remoteUid);
-                }
+                console.log(`Connection state with ${remoteUid}:`, pc.connectionState);
+                updateVoiceBar();
             };
 
             return pc;
         }
 
-        function scheduleReconnect(remoteUid) {
-            if (reconnectTimers[remoteUid]) return;
-            reconnectTimers[remoteUid] = setTimeout(async () => {
-                delete reconnectTimers[remoteUid];
-                if (!voiceActive || !myRoom) return;
-                if (peerConnections[remoteUid]) {
-                    try { peerConnections[remoteUid].close(); } catch (e) {}
-                    delete peerConnections[remoteUid];
-                }
-                document.getElementById('voice-debug').textContent =
-                `🔄 إعادة الاتصال بـ ${remoteUid}...`;
-                await createAndSendOffer(remoteUid);
-            }, 3000);
-        }
+        // ===== إنشاء Offer =====
+        async function createOffer(remoteUid) {
+            const pc = peerConnections[remoteUid];
+            if (!pc) {
+                console.log('No peer connection for:', remoteUid);
+                return;
+            }
 
-        // ===== إرسال Offer =====
-        async function createAndSendOffer(remoteUid) {
-            if (!voiceActive || !myRoom || !myKey) return;
             try {
-                const pc = createPeerConnection(remoteUid);
-                if (pc.signalingState !== 'stable' && pc.signalingState !== 'have-local-offer') {
-                    return;
-                }
+                console.log('Creating offer for:', remoteUid);
                 const offer = await pc.createOffer({
                     offerToReceiveAudio: true,
-                    voiceActivityDetection: true,
                 });
                 await pc.setLocalDescription(offer);
+                console.log('Sending offer to Firebase...');
                 await set(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
                     type: 'offer',
-                    sdp: offer.sdp,
-                    timestamp: Date.now(),
-                });
-                pendingOffers[remoteUid] = Date.now();
-            } catch (err) {
-                console.warn('Error creating offer for', remoteUid, ':', err.message);
-                scheduleReconnect(remoteUid);
-            }
-        }
-
-        // ===== استقبال Offer =====
-        async function handleOffer(fromUid, data) {
-            if (!voiceActive || !myRoom) return;
-            try {
-                const pc = createPeerConnection(fromUid);
-                if (pc.signalingState !== 'stable') {
-                    return;
-                }
-                await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
-                const answer = await pc.createAnswer({
-                    offerToReceiveAudio: true,
-                    voiceActivityDetection: true,
-                });
-                await pc.setLocalDescription(answer);
-                await set(ref(db, `rooms/${myRoom}/signals/${fromUid}/${myKey}`), {
-                    type: 'answer',
-                    sdp: answer.sdp,
-                    timestamp: Date.now(),
+                    sdp: pc.localDescription.sdp,
                 });
             } catch (err) {
-                console.warn('Error handling offer from', fromUid, ':', err.message);
-            }
-        }
-
-        // ===== استقبال Answer =====
-        async function handleAnswer(fromUid, data) {
-            const pc = peerConnections[fromUid];
-            if (pc && (pc.signalingState === 'have-local-offer' || pc.signalingState ===
-                'have-remote-offer')) {
-                try {
-                    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
-                    delete pendingOffers[fromUid];
-                } catch (err) {
-                    console.warn('Error handling answer from', fromUid, ':', err.message);
-                }
-            }
-        }
-
-        // ===== استقبال ICE Candidate =====
-        async function handleIce(fromUid, candidateData) {
-            const pc = peerConnections[fromUid];
-            if (pc && candidateData && candidateData.candidate) {
-                try {
-                    const candidate = new RTCIceCandidate(candidateData);
-                    await pc.addIceCandidate(candidate);
-                } catch (err) {
-                    console.warn('Error adding ICE candidate from', fromUid, ':', err.message);
-                }
+                console.error('Error creating offer:', err);
             }
         }
 
         // ===== الاستماع للإشارات =====
-        function listenSignaling() {
+        function listenVoiceChannel() {
             if (!myRoom || !myKey) return;
-            Object.values(signalListeners).forEach(unsub => { try { unsub(); } catch (e) {} });
-            signalListeners = {};
 
-            const sigRef = ref(db, `rooms/${myRoom}/signals/${myKey}`);
-            const unsub = onValue(sigRef, async (snap) => {
+            // الاستماع للإشارات الموجهة لي
+            const signalsRef = ref(db, `rooms/${myRoom}/signals/${myKey}`);
+            onValue(signalsRef, async (snap) => {
                 if (!snap.exists() || !voiceActive) return;
                 const signals = snap.val();
-                const processed = new Set();
+                console.log('Received signals:', Object.keys(signals));
+
                 for (const [fromUid, data] of Object.entries(signals)) {
-                    if (!data || processed.has(fromUid + '_' + (data.timestamp || ''))) continue;
-                    processed.add(fromUid + '_' + (data.timestamp || ''));
+                    if (!data || fromUid === myKey) continue;
+
                     try {
                         if (data.type === 'offer') {
-                            await handleOffer(fromUid, data);
+                            console.log('Handling offer from:', fromUid);
+                            await createPeerConnection(fromUid);
+                            const pc = peerConnections[fromUid];
+                            await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
+                            const answer = await pc.createAnswer({ offerToReceiveAudio: true });
+                            await pc.setLocalDescription(answer);
+                            await set(ref(db, `rooms/${myRoom}/signals/${fromUid}/${myKey}`), {
+                                type: 'answer',
+                                sdp: pc.localDescription.sdp,
+                            });
                         } else if (data.type === 'answer') {
-                            await handleAnswer(fromUid, data);
+                            console.log('Handling answer from:', fromUid);
+                            const pc = peerConnections[fromUid];
+                            if (pc && pc.signalingState !== 'stable') {
+                                await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+                            }
                         } else if (data.type === 'ice') {
-                            await handleIce(fromUid, data.candidate);
+                            console.log('Handling ICE from:', fromUid);
+                            const pc = peerConnections[fromUid];
+                            if (pc && data.candidate) {
+                                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                            }
                         }
-                    } catch (e) {
-                        console.warn('Signal processing error:', e.message);
-                    }
-                    // تنظيف الإشارة القديمة
-                    if (data.timestamp && Date.now() - data.timestamp > 30000) {
-                        remove(ref(db, `rooms/${myRoom}/signals/${myKey}/${fromUid}`)).catch(() => {});
+                    } catch (err) {
+                        console.error('Error handling signal from', fromUid, ':', err);
                     }
                 }
             });
-            signalListeners['main'] = unsub;
-        }
 
-        // ===== الاستماع لقناة الصوت =====
-        function listenVoiceChannel() {
-            if (!myRoom) return;
-            if (voiceListenerOff) { try { voiceListenerOff(); } catch (e) {} }
+            // الاستماع لقائمة المتحدثين
             const voiceRef = ref(db, `rooms/${myRoom}/voice`);
-            voiceListenerOff = onValue(voiceRef, async (snap) => {
+            onValue(voiceRef, (snap) => {
                 if (!voiceActive) return;
                 const voicePlayers = snap.val() || {};
-                updateVoiceBarFromPlayers(voicePlayers);
+                console.log('Voice channel update:', Object.keys(voicePlayers).length, 'players');
+                updateVoiceBar();
+
+                // الاتصال باللاعبين الجدد
                 for (const uid of Object.keys(voicePlayers)) {
-                    if (uid !== myKey && !peerConnections[uid] && voiceActive) {
-                        setTimeout(() => createAndSendOffer(uid), 200);
+                    if (uid !== myKey && !peerConnections[uid]) {
+                        console.log('New player detected, creating connection:', uid);
+                        createPeerConnection(uid).then(() => createOffer(uid));
                     }
                 }
             });
         }
 
         // ===== تحديث شريط الصوت =====
-        async function updateVoiceBarFromRoom() {
-            if (!myRoom || !voiceActive) return;
-            const snap = await get(ref(db, `rooms/${myRoom}/voice`));
-            const players = snap.val() || {};
-            updateVoiceBarFromPlayers(players);
-        }
+        function updateVoiceBar() {
+            if (!myRoom) return;
+            get(ref(db, `rooms/${myRoom}/voice`)).then(snap => {
+                const players = snap.val() || {};
+                const playersDiv = document.getElementById('voice-players');
+                playersDiv.innerHTML = '';
 
-        function updateVoiceBarFromPlayers(voicePlayers) {
-            const playersDiv = document.getElementById('voice-players');
-            playersDiv.innerHTML = '';
-            for (const [uid, data] of Object.entries(voicePlayers)) {
-                const isMe = uid === myKey;
-                const isMutedUser = isMe ? !micEnabled : (data.muted || false);
-                const initials = (data.name || '؟').substring(0, 2).toUpperCase();
-                const pc = peerConnections[uid];
-                const connected = isMe || (pc && pc.connectionState === 'connected');
-                playersDiv.innerHTML += `
-            <div class="voice-avatar">
-                <div class="voice-circle ${isMutedUser?'muted-remote':''}" id="vc-${uid}" title="${data.name||uid}">
-                    ${isMutedUser?'🔇':initials}
-                </div>
-                <span class="voice-name">${isMe?'أنت':(data.name||uid)}</span>
-            </div>`;
-            }
-            // تحديث عدد المتحدثين
-            const count = Object.keys(voicePlayers).length;
-            document.getElementById('voice-status').textContent =
-                count > 0 ? `🟢 ${count} متحدث` : '🟢 متصل بالصوت';
-        }
+                for (const [uid, data] of Object.entries(players)) {
+                    const isMe = uid === myKey;
+                    const isMuted = isMe ? !micEnabled : data.muted;
+                    const pc = peerConnections[uid];
+                    const connected = isMe || (pc && pc.connectionState === 'connected');
+                    const initials = (data.name || '?').substring(0, 2).toUpperCase();
 
-        // ===== كشف الكلام =====
-        function setupSpeakDetector(uid, name, stream) {
-            try {
-                if (speakDetectors[uid]) { try { speakDetectors[uid].ctx.close(); } catch (e) {} }
-                const ctx = new AudioContext();
-                const analyser = ctx.createAnalyser();
-                analyser.fftSize = 256;
-                analyser.smoothingTimeConstant = 0.3;
-                const src = ctx.createMediaStreamSource(stream);
-                src.connect(analyser);
-                const data = new Uint8Array(analyser.fftSize);
-                let speaking = false;
-                let silenceFrames = 0;
-                const check = () => {
-                    if (!voiceActive || !speakDetectors[uid]) return;
-                    analyser.getByteFrequencyData(data);
-                    let sum = 0;
-                    for (let i = 0; i < data.length; i++) sum += data[i];
-                    const avg = sum / data.length;
-                    const nowSpeaking = avg > 15 && micEnabled;
-                    if (nowSpeaking !== speaking) {
-                        if (nowSpeaking) {
-                            speaking = true;
-                            silenceFrames = 0;
-                            updateVoiceCircle(uid, true);
-                        } else {
-                            silenceFrames++;
-                            if (silenceFrames > 8) {
-                                speaking = false;
-                                silenceFrames = 0;
-                                updateVoiceCircle(uid, false);
-                            }
-                        }
-                    } else if (speaking && !nowSpeaking) {
-                        silenceFrames++;
-                        if (silenceFrames > 8) {
-                            speaking = false;
-                            silenceFrames = 0;
-                            updateVoiceCircle(uid, false);
-                        }
-                    } else if (!speaking) {
-                        silenceFrames = 0;
-                    }
-                    if (myRoom && myKey && uid === myKey) {
-                        set(ref(db, `rooms/${myRoom}/voice/${myKey}/speaking`), speaking).catch(() => {});
-                    }
-                    if (speakDetectors[uid]) {
-                        requestAnimationFrame(check);
-                    }
-                };
-                requestAnimationFrame(check);
-                speakDetectors[uid] = { ctx, analyser };
-            } catch (e) {
-                console.warn('Speak detector setup error:', e.message);
-            }
-        }
+                    playersDiv.innerHTML += `
+                <div class="voice-avatar">
+                    <div class="voice-circle ${isMuted ? 'muted-remote' : ''}" title="${data.name || uid} ${connected ? 'متصل' : 'جاري الاتصال...'}">
+                        ${isMuted ? '🔇' : initials}
+                    </div>
+                    <span class="voice-name">${isMe ? 'أنت' : (data.name || uid)}</span>
+                </div>`;
+                }
 
-        function setupSpeakDetectorRemote(uid, stream) {
-            try {
-                if (speakDetectors[uid]) { try { speakDetectors[uid].ctx.close(); } catch (e) {} }
-                const ctx = new AudioContext();
-                const analyser = ctx.createAnalyser();
-                analyser.fftSize = 256;
-                analyser.smoothingTimeConstant = 0.3;
-                const src = ctx.createMediaStreamSource(stream);
-                src.connect(analyser);
-                const data = new Uint8Array(analyser.fftSize);
-                let speaking = false;
-                let silenceFrames = 0;
-                const check = () => {
-                    if (!voiceActive || !speakDetectors[uid]) return;
-                    analyser.getByteFrequencyData(data);
-                    let sum = 0;
-                    for (let i = 0; i < data.length; i++) sum += data[i];
-                    const avg = sum / data.length;
-                    const nowSpeaking = avg > 12;
-                    if (nowSpeaking !== speaking) {
-                        if (nowSpeaking) {
-                            speaking = true;
-                            silenceFrames = 0;
-                            updateVoiceCircle(uid, true);
-                        } else {
-                            silenceFrames++;
-                            if (silenceFrames > 6) {
-                                speaking = false;
-                                silenceFrames = 0;
-                                updateVoiceCircle(uid, false);
-                            }
-                        }
-                    } else if (speaking && !nowSpeaking) {
-                        silenceFrames++;
-                        if (silenceFrames > 6) {
-                            speaking = false;
-                            silenceFrames = 0;
-                            updateVoiceCircle(uid, false);
-                        }
-                    } else if (!speaking) {
-                        silenceFrames = 0;
-                    }
-                    if (speakDetectors[uid]) {
-                        requestAnimationFrame(check);
-                    }
-                };
-                requestAnimationFrame(check);
-                speakDetectors[uid] = { ctx, analyser };
-            } catch (e) {
-                console.warn('Remote speak detector setup error:', e.message);
-            }
-        }
-
-        function updateVoiceCircle(uid, isSpeaking) {
-            const circle = document.getElementById('vc-' + uid);
-            if (!circle) return;
-            if (isSpeaking) {
-                circle.classList.add('speaking');
-            } else {
-                circle.classList.remove('speaking');
-            }
+                const count = Object.keys(players).length;
+                document.getElementById('voice-status').textContent = count > 0 ? `🟢 ${count} متحدث` : '🟢 متصل بالصوت';
+            }).catch(() => {});
         }
 
         // ================================================================
         window.openModal = id => document.getElementById(id).style.display = 'flex';
         window.closeModal = id => document.getElementById(id).style.display = 'none';
-        window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById(
-            'theme-select').value + '-mode';
+        window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById('theme-select').value + '-mode';
     </script>
 </body>
 </html>
