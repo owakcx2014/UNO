@@ -4,313 +4,687 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UNO Ultimate Pro - نظام الأصدقاء</title>
+    <link rel="preconnect" href="https://fonts.cdnfonts.com">
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
     <style>
-        :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #ff4757; --surface: #ffffff; --online: #2ecc71; --playing: #3498db; --offline: #95a5a6; }
-        .dark-mode { --bg: #1a1a1a; --txt: #dfe6e9; --surface: #2d3436; }
-        .colorful-mode { --bg: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f); --txt: #fff; --surface: rgba(255,255,255,0.2); }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; transition: 0.3s; padding: 20px; }
-        .container { background: var(--surface); border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 500px; text-align: center; max-height: 90vh; overflow-y: auto; }
-        .hidden { display: none !important; }
-        input, button { padding: 12px 15px; border-radius: 15px; border: 2px solid var(--accent); font-size: 1rem; font-family: inherit; width: 100%; transition: 0.3s; margin: 5px 0; }
-        input { background: var(--bg); color: var(--txt); text-align: center; }
-        button { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; }
-        button.secondary { background: transparent; border: 2px solid var(--accent); color: var(--txt); }
-        button.success { background: #2ecc71; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .decor-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .card-view-img { width: 60px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid white; }
-        .room-info { background: rgba(0,0,0,0.8); color: gold; padding: 12px; border-radius: 15px; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .uno-card { width: 60px; cursor: pointer; transition: 0.2s; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.2)); margin: 2px; }
-        .uno-card:hover { transform: translateY(-15px) scale(1.1); z-index: 10; }
-        #uno-btn { background: #f1c40f; color: black; border: 4px solid white; border-radius: 15px; padding: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: none; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--surface); padding: 25px; border-radius: 20px; color: var(--txt); width: 90%; max-width: 400px; text-align: center; max-height: 80vh; overflow-y: auto; }
-        .player-tag { background: #747d8c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; margin: 3px; display: inline-block; cursor: pointer; }
-        .player-tag:hover { opacity: 0.8; transform: scale(1.05); }
-        .active-turn { background: var(--accent) !important; box-shadow: 0 0 15px var(--accent); transform: scale(1.05); }
-        #chat-msgs { height: 80px; overflow-y: auto; font-size: 0.8rem; border: 1px solid var(--accent); margin: 10px 0; text-align: right; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 10px; }
-        .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin: 8px 0; background: var(--bg); border-radius: 15px; border-right: 4px solid var(--offline); text-align: right; }
-        .friend-item.online { border-right-color: var(--online); }
-        .friend-item.playing { border-right-color: var(--playing); }
-        .nav-buttons { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; justify-content: center; }
-        .nav-buttons button { width: auto; padding: 10px 20px; }
-        .badge { background: var(--accent); color: white; border-radius: 50%; padding: 2px 8px; font-size: 0.7rem; margin-right: 5px; }
-        .search-result-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg); border-radius: 12px; margin: 6px 0; text-align: right; border: 1px solid rgba(0,0,0,0.07); }
-        .search-result-item button { width: auto; padding: 6px 14px; font-size: 0.82rem; margin: 0; }
-        .request-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg); border-radius: 12px; margin: 6px 0; text-align: right; border-right: 4px solid #f1c40f; }
-        .request-item .btns { display: flex; gap: 5px; }
-        .request-item button { width: auto; padding: 6px 12px; font-size: 0.82rem; margin: 0; }
-        #req-badge { display: none; background: #f1c40f; color: #1a1a1a; border-radius: 50%; padding: 1px 6px; font-size: 0.7rem; font-weight: bold; margin-right: 4px; }
-        .spin { display: inline-block; animation: spin 1s linear infinite; }
-        @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        :root {
+            --bg: #f8f9fa;
+            --txt: #2d3436;
+            --accent: #ff4757;
+            --surface: #ffffff;
+            --online: #2ecc71;
+            --playing: #3498db;
+            --offline: #95a5a6;
+            --font-primary: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+        .dark-mode {
+            --bg: #1a1a1a;
+            --txt: #dfe6e9;
+            --surface: #2d3436;
+        }
+        .colorful-mode {
+            --bg: linear-gradient(45deg, #ff4757, #2ecc71, #3498db, #f1c40f);
+            --txt: #fff;
+            --surface: rgba(255, 255, 255, 0.2);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: var(--font-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.01em;
+        }
+        .container {
+            background: var(--surface);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .hidden {
+            display: none !important;
+        }
+        input,
+        button {
+            padding: 12px 15px;
+            border-radius: 15px;
+            border: 2px solid var(--accent);
+            font-size: 1rem;
+            font-family: var(--font-primary);
+            width: 100%;
+            transition: 0.3s;
+            margin: 5px 0;
+            letter-spacing: -0.01em;
+        }
+        input {
+            background: var(--bg);
+            color: var(--txt);
+            text-align: center;
+        }
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        button.secondary {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--txt);
+            font-weight: 500;
+        }
+        button.success {
+            background: #2ecc71;
+            font-weight: 600;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .decor-box {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card-view-img {
+            width: 60px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid white;
+        }
+        .room-info {
+            background: rgba(0, 0, 0, 0.8);
+            color: gold;
+            padding: 12px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            letter-spacing: -0.01em;
+        }
+        .uno-card {
+            width: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.2));
+            margin: 2px;
+        }
+        .uno-card:hover {
+            transform: translateY(-15px) scale(1.1);
+            z-index: 10;
+        }
+        #uno-btn {
+            background: #f1c40f;
+            color: black;
+            border: 4px solid white;
+            border-radius: 15px;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: none;
+            animation: pulse 1s infinite;
+            letter-spacing: -0.02em;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 20px;
+            color: var(--txt);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .player-tag {
+            background: #747d8c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 3px;
+            display: inline-block;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .player-tag:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        .active-turn {
+            background: var(--accent) !important;
+            box-shadow: 0 0 15px var(--accent);
+            transform: scale(1.05);
+        }
+        #chat-msgs {
+            height: 80px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            border: 1px solid var(--accent);
+            margin: 10px 0;
+            text-align: right;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 10px;
+        }
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--bg);
+            border-radius: 15px;
+            border-right: 4px solid var(--offline);
+            text-align: right;
+        }
+        .friend-item.online {
+            border-right-color: var(--online);
+        }
+        .friend-item.playing {
+            border-right-color: var(--playing);
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-buttons button {
+            width: auto;
+            padding: 10px 20px;
+        }
+        .badge {
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            margin-right: 5px;
+            font-weight: 600;
+        }
+        .search-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin: 6px 0;
+            text-align: right;
+            border: 1px solid rgba(0, 0, 0, 0.07);
+        }
+        .search-result-item button {
+            width: auto;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            margin: 0;
+        }
+        .request-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin: 6px 0;
+            text-align: right;
+            border-right: 4px solid #f1c40f;
+        }
+        .request-item .btns {
+            display: flex;
+            gap: 5px;
+        }
+        .request-item button {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 0.82rem;
+            margin: 0;
+        }
+        #req-badge {
+            display: none;
+            background: #f1c40f;
+            color: #1a1a1a;
+            border-radius: 50%;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+        .spin {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from {
+                transform: rotate(0);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-        /* ===== الدردشة الصوتية ===== */
-        #voice-bar { display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.75); border-radius:20px; padding:8px 14px; margin-bottom:12px; gap:8px; flex-wrap:wrap; }
-        #voice-bar .vb-title { color:#f1c40f; font-size:0.82rem; font-weight:bold; flex-shrink:0; }
-        #voice-players { display:flex; gap:8px; flex-wrap:wrap; flex:1; justify-content:center; }
-        .voice-avatar { display:flex; flex-direction:column; align-items:center; gap:3px; }
-        .voice-circle { width:36px; height:36px; border-radius:50%; background:#2d3436; border:2px solid #636e72; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:bold; color:white; transition:0.2s; }
-        .voice-circle.speaking { border-color:#2ecc71; box-shadow:0 0 10px #2ecc71,0 0 20px rgba(46,204,113,0.4); animation:speaking-pulse 0.8s ease-in-out infinite; }
-        .voice-circle.muted-remote { border-color:#636e72; opacity:0.5; }
-        @keyframes speaking-pulse { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
-        .voice-name { font-size:0.6rem; color:rgba(255,255,255,0.6); max-width:42px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        #btn-mic { background:#2ecc71; border:none; border-radius:50%; width:40px; height:40px; font-size:1.1rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:0.2s; margin:0; padding:0; }
-        #btn-mic.muted { background:#e74c3c; }
-        #btn-mic:hover { transform:scale(1.1); }
-        #voice-status { font-size:0.7rem; color:rgba(255,255,255,0.45); text-align:center; width:100%; }
+        /* ===== الدردشة الصوتية المحسّنة ===== */
+        #voice-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 8px 14px;
+            margin-bottom: 12px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        #voice-bar .vb-title {
+            color: #f1c40f;
+            font-size: 0.82rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            letter-spacing: -0.01em;
+        }
+        #voice-players {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+            justify-content: center;
+        }
+        .voice-avatar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        .voice-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #2d3436;
+            border: 2px solid #636e72;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: white;
+            transition: 0.2s;
+        }
+        .voice-circle.speaking {
+            border-color: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71, 0 0 20px rgba(46, 204, 113, 0.4);
+            animation: speaking-pulse 0.8s ease-in-out infinite;
+        }
+        .voice-circle.muted-remote {
+            border-color: #636e72;
+            opacity: 0.5;
+        }
+        @keyframes speaking-pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.12);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .voice-name {
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 42px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        #btn-mic {
+            background: #2ecc71;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            margin: 0;
+            padding: 0;
+        }
+        #btn-mic.muted {
+            background: #e74c3c;
+        }
+        #btn-mic:hover {
+            transform: scale(1.1);
+        }
+        #voice-status {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.45);
+            text-align: center;
+            width: 100%;
+            font-weight: 500;
+        }
+        #voice-debug {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.35);
+            text-align: center;
+            width: 100%;
+            margin-top: 2px;
+            font-weight: 400;
+        }
     </style>
 </head>
 <body id="body-tag" class="light-mode">
 
-<div class="container" id="auth-screen">
-    <div class="decor-box">
-        <img src="cards/r7.png" class="card-view-img" style="transform:rotate(-10deg);" alt="Uno">
-        <img src="cards/+4.png" class="card-view-img" style="transform:rotate(10deg);" alt="Uno">
-    </div>
-    <h1 style="margin-bottom:20px;">🎴 UNO Online</h1>
-    <div id="login-form">
-        <h2 style="margin-bottom:15px;">تسجيل الدخول</h2>
-        <input type="email" id="login-email" placeholder="البريد الإلكتروني">
-        <input type="password" id="login-password" placeholder="كلمة المرور">
-        <div id="login-error" style="color:#ff4757;min-height:20px;font-size:0.85rem;margin:5px 0;"></div>
-        <button onclick="login()">دخول</button>
-        <button class="secondary" onclick="showRegister()">إنشاء حساب جديد</button>
-    </div>
-    <div id="register-form" class="hidden">
-        <h2 style="margin-bottom:15px;">إنشاء حساب</h2>
-        <input type="text" id="reg-name" placeholder="اسم المستخدم">
-        <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
-        <input type="password" id="reg-password" placeholder="كلمة المرور (6 أحرف+)">
-        <div id="reg-error" style="color:#ff4757;min-height:20px;font-size:0.85rem;margin:5px 0;"></div>
-        <button onclick="register()">إنشاء حساب</button>
-        <button class="secondary" onclick="showLogin()">العودة لتسجيل الدخول</button>
-    </div>
-</div>
-
-<div class="container hidden" id="main-screen">
-    <div id="user-info" style="display:flex;justify-content:space-between;align-items:center;background:var(--accent);color:white;padding:10px 20px;border-radius:25px;margin-bottom:20px;">
-        <span>👤 <span id="display-name"></span></span>
-        <button onclick="logout()" style="width:auto;background:white;color:var(--accent);padding:8px 20px;">تسجيل خروج</button>
-    </div>
-    <div class="nav-buttons">
-        <button onclick="showMainMenu()" class="success">🏠 الرئيسية</button>
-        <button onclick="showFriendsList()" class="secondary">👥 الأصدقاء <span id="req-badge">0</span><span id="friends-count" class="badge">0</span></button>
-        <button class="secondary" onclick="openModal('settings-modal')">⚙️</button>
-        <button class="secondary" onclick="openModal('rules-modal')">📖</button>
-    </div>
-
-    <div id="main-menu">
+    <div class="container" id="auth-screen">
         <div class="decor-box">
             <img src="cards/r7.png" class="card-view-img" style="transform:rotate(-10deg);" alt="Uno">
             <img src="cards/+4.png" class="card-view-img" style="transform:rotate(10deg);" alt="Uno">
         </div>
-        <h1 id="main-title">أونو أونلاين</h1>
-        <button onclick="enterRoom('create')" id="btn-create">🎯 إنشاء غرفة</button>
-        <div style="display:flex;gap:10px;">
-            <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة">
-            <button onclick="enterRoom('join')" id="btn-join" style="width:auto;">🚪 دخول</button>
+        <h1 style="margin-bottom:20px;font-weight:700;letter-spacing:-0.02em;">🎴 UNO Online</h1>
+        <div id="login-form">
+            <h2 style="margin-bottom:15px;font-weight:600;">تسجيل الدخول</h2>
+            <input type="email" id="login-email" placeholder="البريد الإلكتروني" autocomplete="email">
+            <input type="password" id="login-password" placeholder="كلمة المرور" autocomplete="current-password">
+            <div id="login-error" style="color:#ff4757;min-height:20px;font-size:0.85rem;margin:5px 0;"></div>
+            <button onclick="login()">دخول</button>
+            <button class="secondary" onclick="showRegister()">إنشاء حساب جديد</button>
+        </div>
+        <div id="register-form" class="hidden">
+            <h2 style="margin-bottom:15px;font-weight:600;">إنشاء حساب</h2>
+            <input type="text" id="reg-name" placeholder="اسم المستخدم" autocomplete="name">
+            <input type="email" id="reg-email" placeholder="البريد الإلكتروني" autocomplete="email">
+            <input type="password" id="reg-password" placeholder="كلمة المرور (6 أحرف+)" autocomplete="new-password">
+            <div id="reg-error" style="color:#ff4757;min-height:20px;font-size:0.85rem;margin:5px 0;"></div>
+            <button onclick="register()">إنشاء حساب</button>
+            <button class="secondary" onclick="showLogin()">العودة لتسجيل الدخول</button>
         </div>
     </div>
 
-    <div id="friends-menu" class="hidden">
-        <h2 style="margin-bottom:15px;">👥 الأصدقاء</h2>
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-            <input type="text" id="friend-search" placeholder="ابحث بالاسم أو البريد...">
-            <button onclick="searchFriend()" style="width:auto;padding:0 15px;">🔍</button>
+    <div class="container hidden" id="main-screen">
+        <div id="user-info" style="display:flex;justify-content:space-between;align-items:center;background:var(--accent);color:white;padding:10px 20px;border-radius:25px;margin-bottom:20px;">
+            <span style="font-weight:600;">👤 <span id="display-name"></span></span>
+            <button onclick="logout()" style="width:auto;background:white;color:var(--accent);padding:8px 20px;font-weight:600;">تسجيل خروج</button>
         </div>
-        <div id="search-results" style="margin-bottom:10px;"></div>
-        <h3 style="text-align:right;margin:10px 0 5px;">قائمة الأصدقاء</h3>
-        <div id="friends-list"><p style="color:var(--offline);font-size:0.85rem;">جاري التحميل...</p></div>
-        <h3 style="text-align:right;margin:15px 0 5px;">📨 طلبات الصداقة</h3>
-        <div id="requests-list"><p style="color:var(--offline);font-size:0.85rem;">لا توجد طلبات</p></div>
-    </div>
-</div>
+        <div class="nav-buttons">
+            <button onclick="showMainMenu()" class="success">🏠 الرئيسية</button>
+            <button onclick="showFriendsList()" class="secondary">👥 الأصدقاء <span id="req-badge">0</span><span id="friends-count" class="badge">0</span></button>
+            <button class="secondary" onclick="openModal('settings-modal')">⚙️</button>
+            <button class="secondary" onclick="openModal('rules-modal')">📖</button>
+        </div>
 
-<div class="container hidden" id="game-screen">
-    <div class="room-info">
-        <span id="room-display">Code: ---</span>
-        <button class="copy-btn" onclick="copyRoomLink()" style="width:auto;background:#f1c40f;color:black;border:none;padding:8px 15px;border-radius:20px;cursor:pointer;">📋 نسخ الرابط</button>
-    </div>
-    <div id="players-tags" style="margin:10px 0;min-height:30px;"></div>
-    <div id="voice-bar" class="hidden">
-        <span class="vb-title">🎙️ صوت</span>
-        <div id="voice-players"></div>
-        <button id="btn-mic" onclick="toggleMic()" title="تشغيل/إيقاف المايك">🎙️</button>
-        <div id="voice-status"></div>
-    </div>
-    <div id="waiting-area">
-        <p id="wait-msg">⏳ بانتظار الخصوم...</p>
-        <button onclick="setReady()" id="btn-ready" class="success">👍 أنا جاهز!</button>
-    </div>
-    <div id="game-board" class="hidden">
-        <p id="turn-display" style="font-weight:bold;font-size:1.2rem;margin:15px 0;"></p>
-        <img id="top-card" class="uno-card" style="margin:10px auto;cursor:default;" src="cards/r0.png">
-        <div id="player-hand" style="overflow-x:auto;white-space:nowrap;padding:20px;min-height:120px;background:rgba(0,0,0,0.05);border-radius:15px;margin:15px 0;"></div>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <button onclick="drawCardAction()" id="btn-draw">🃏 سحب كرت</button>
-            <button id="uno-btn" onclick="sayUno()">⚠️ UNO!</button>
+        <div id="main-menu">
+            <div class="decor-box">
+                <img src="cards/r7.png" class="card-view-img" style="transform:rotate(-10deg);" alt="Uno">
+                <img src="cards/+4.png" class="card-view-img" style="transform:rotate(10deg);" alt="Uno">
+            </div>
+            <h1 id="main-title" style="font-weight:700;letter-spacing:-0.02em;">أونو أونلاين</h1>
+            <button onclick="enterRoom('create')" id="btn-create">🎯 إنشاء غرفة</button>
+            <div style="display:flex;gap:10px;">
+                <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة">
+                <button onclick="enterRoom('join')" id="btn-join" style="width:auto;">🚪 دخول</button>
+            </div>
         </div>
-    </div>
-    <div style="margin-top:15px;">
-        <div id="chat-msgs"></div>
-        <div style="display:flex;gap:5px;">
-            <input type="text" id="chat-input" placeholder="💬 رسالة...">
-            <button onclick="sendMsg()" id="btn-send" style="width:auto;">📤</button>
+
+        <div id="friends-menu" class="hidden">
+            <h2 style="margin-bottom:15px;font-weight:600;">👥 الأصدقاء</h2>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <input type="text" id="friend-search" placeholder="ابحث بالاسم أو البريد...">
+                <button onclick="searchFriend()" style="width:auto;padding:0 15px;">🔍</button>
+            </div>
+            <div id="search-results" style="margin-bottom:10px;"></div>
+            <h3 style="text-align:right;margin:10px 0 5px;font-weight:600;">قائمة الأصدقاء</h3>
+            <div id="friends-list"><p style="color:var(--offline);font-size:0.85rem;">جاري التحميل...</p></div>
+            <h3 style="text-align:right;margin:15px 0 5px;font-weight:600;">📨 طلبات الصداقة</h3>
+            <div id="requests-list"><p style="color:var(--offline);font-size:0.85rem;">لا توجد طلبات</p></div>
         </div>
     </div>
-    <button onclick="quitGame()" id="btn-quit" style="background:#c0392b;margin-top:15px;">🚪 خروج من الغرفة</button>
-</div>
 
-<div id="add-friend-modal" class="modal">
-    <div class="modal-content">
-        <h3>👋 إضافة صديق</h3>
-        <p id="add-friend-message" style="margin:15px 0;"></p>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
-            <button onclick="confirmAddFriend()" class="success" style="width:auto;">✅ نعم</button>
-            <button onclick="closeModal('add-friend-modal')" style="width:auto;background:#e74c3c;">❌ لا</button>
+    <div class="container hidden" id="game-screen">
+        <div class="room-info">
+            <span id="room-display">Code: ---</span>
+            <button class="copy-btn" onclick="copyRoomLink()" style="width:auto;background:#f1c40f;color:black;border:none;padding:8px 15px;border-radius:20px;cursor:pointer;font-weight:600;">📋 نسخ الرابط</button>
+        </div>
+        <div id="players-tags" style="margin:10px 0;min-height:30px;"></div>
+        <div id="voice-bar" class="hidden">
+            <span class="vb-title">🎙️ صوت</span>
+            <div id="voice-players"></div>
+            <button id="btn-mic" onclick="toggleMic()" title="تشغيل/إيقاف المايك">🎙️</button>
+            <div id="voice-status"></div>
+            <div id="voice-debug"></div>
+        </div>
+        <div id="waiting-area">
+            <p id="wait-msg">⏳ بانتظار الخصوم...</p>
+            <button onclick="setReady()" id="btn-ready" class="success">👍 أنا جاهز!</button>
+        </div>
+        <div id="game-board" class="hidden">
+            <p id="turn-display" style="font-weight:600;font-size:1.2rem;margin:15px 0;"></p>
+            <img id="top-card" class="uno-card" style="margin:10px auto;cursor:default;" src="cards/r0.png">
+            <div id="player-hand" style="overflow-x:auto;white-space:nowrap;padding:20px;min-height:120px;background:rgba(0,0,0,0.05);border-radius:15px;margin:15px 0;"></div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button onclick="drawCardAction()" id="btn-draw">🃏 سحب كرت</button>
+                <button id="uno-btn" onclick="sayUno()">⚠️ UNO!</button>
+            </div>
+        </div>
+        <div style="margin-top:15px;">
+            <div id="chat-msgs"></div>
+            <div style="display:flex;gap:5px;">
+                <input type="text" id="chat-input" placeholder="💬 رسالة...">
+                <button onclick="sendMsg()" id="btn-send" style="width:auto;">📤</button>
+            </div>
+        </div>
+        <button onclick="quitGame()" id="btn-quit" style="background:#c0392b;margin-top:15px;font-weight:600;">🚪 خروج من الغرفة</button>
+    </div>
+
+    <div id="add-friend-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="font-weight:600;">👋 إضافة صديق</h3>
+            <p id="add-friend-message" style="margin:15px 0;"></p>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
+                <button onclick="confirmAddFriend()" class="success" style="width:auto;">✅ نعم</button>
+                <button onclick="closeModal('add-friend-modal')" style="width:auto;background:#e74c3c;">❌ لا</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="color-modal" class="modal">
-    <div class="modal-content">
-        <h3>🎨 اختر اللون الجديد</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px;">
-            <div style="height:80px;background:#ff4757;border-radius:15px;cursor:pointer;" onclick="pickColor('red')"></div>
-            <div style="height:80px;background:#3498db;border-radius:15px;cursor:pointer;" onclick="pickColor('blue')"></div>
-            <div style="height:80px;background:#2ecc71;border-radius:15px;cursor:pointer;" onclick="pickColor('green')"></div>
-            <div style="height:80px;background:#f1c40f;border-radius:15px;cursor:pointer;" onclick="pickColor('yellow')"></div>
+    <div id="color-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="font-weight:600;">🎨 اختر اللون الجديد</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px;">
+                <div style="height:80px;background:#ff4757;border-radius:15px;cursor:pointer;" onclick="pickColor('red')"></div>
+                <div style="height:80px;background:#3498db;border-radius:15px;cursor:pointer;" onclick="pickColor('blue')"></div>
+                <div style="height:80px;background:#2ecc71;border-radius:15px;cursor:pointer;" onclick="pickColor('green')"></div>
+                <div style="height:80px;background:#f1c40f;border-radius:15px;cursor:pointer;" onclick="pickColor('yellow')"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="rules-modal" class="modal">
-    <div class="modal-content">
-        <h2>📖 قواعد اللعبة</h2>
-        <div style="text-align:right;line-height:1.8;margin:20px 0;">
-            <p><b>1.</b> كل لاعب يبدأ بـ 7 كروت</p>
-            <p><b>2. +2:</b> الخصم يسحب كرتين ويخسر دوره</p>
-            <p><b>3. +4:</b> الخصم يسحب 4 كروت ويخسر دوره وتختار اللون</p>
-            <p><b>4. 🔄:</b> يعكس اتجاه اللعب</p>
-            <p><b>5. 🚫:</b> يتخطى دور الخصم</p>
-            <p><b>6.</b> اضغط <b>UNO!</b> قبل لعب كرتك قبل الأخير</p>
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="font-weight:700;">📖 قواعد اللعبة</h2>
+            <div style="text-align:right;line-height:1.8;margin:20px 0;">
+                <p><b>1.</b> كل لاعب يبدأ بـ 7 كروت</p>
+                <p><b>2. +2:</b> الخصم يسحب كرتين ويخسر دوره</p>
+                <p><b>3. +4:</b> الخصم يسحب 4 كروت ويخسر دوره وتختار اللون</p>
+                <p><b>4. 🔄:</b> يعكس اتجاه اللعب</p>
+                <p><b>5. 🚫:</b> يتخطى دور الخصم</p>
+                <p><b>6.</b> اضغط <b>UNO!</b> قبل لعب كرتك قبل الأخير</p>
+            </div>
+            <button onclick="closeModal('rules-modal')">حسناً</button>
         </div>
-        <button onclick="closeModal('rules-modal')">حسناً</button>
     </div>
-</div>
 
-<div id="settings-modal" class="modal">
-    <div class="modal-content">
-        <h3>⚙️ الإعدادات</h3>
-        <label>اللغة / Language:</label>
-        <select id="lang-select" onchange="updateUI()" style="width:100%;padding:12px;margin:10px 0;border-radius:10px;">
-            <option value="ar">العربية</option>
-            <option value="en">English</option>
-        </select>
-        <label>المظهر:</label>
-        <select id="theme-select" onchange="updateTheme()" style="width:100%;padding:12px;margin:10px 0;border-radius:10px;">
-            <option value="light">فاتح</option>
-            <option value="dark">داكن</option>
-            <option value="colorful">ملون</option>
-        </select>
-        <hr style="border:none;border-top:1px solid rgba(0,0,0,0.1);margin:15px 0;">
-        <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;">
-            <span>🎙️ الدردشة الصوتية</span>
-            <input type="checkbox" id="voice-enabled" checked onchange="onVoiceSettingChange()" style="width:auto;margin:0;transform:scale(1.4);">
-        </label>
-        <p style="font-size:0.75rem;color:#95a5a6;text-align:right;margin-top:4px;">عند التفعيل سيطلب المتصفح إذن المايكروفون داخل الغرفة</p>
-        <button onclick="closeModal('settings-modal')" style="width:100%;margin-top:10px;">تم</button>
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="font-weight:600;">⚙️ الإعدادات</h3>
+            <label>اللغة / Language:</label>
+            <select id="lang-select" onchange="updateUI()" style="width:100%;padding:12px;margin:10px 0;border-radius:10px;font-family:var(--font-primary);">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+            </select>
+            <label>المظهر:</label>
+            <select id="theme-select" onchange="updateTheme()" style="width:100%;padding:12px;margin:10px 0;border-radius:10px;font-family:var(--font-primary);">
+                <option value="light">فاتح</option>
+                <option value="dark">داكن</option>
+                <option value="colorful">ملون</option>
+            </select>
+            <hr style="border:none;border-top:1px solid rgba(0,0,0,0.1);margin:15px 0;">
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;">
+                <span>🎙️ الدردشة الصوتية</span>
+                <input type="checkbox" id="voice-enabled" checked onchange="onVoiceSettingChange()" style="width:auto;margin:0;transform:scale(1.4);">
+            </label>
+            <p style="font-size:0.75rem;color:#95a5a6;text-align:right;margin-top:4px;">عند التفعيل سيطلب المتصفح إذن المايكروفون داخل الغرفة</p>
+            <button onclick="closeModal('settings-modal')" style="width:100%;margin-top:10px;">تم</button>
+        </div>
     </div>
-</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove } from
+            "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from
+            "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
-    authDomain: "uno-online-c4bb2.firebaseapp.com",
-    databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
-    projectId: "uno-online-c4bb2",
-    storageBucket: "uno-online-c4bb2.firebasestorage.app",
-    messagingSenderId: "1077724641787",
-    appId: "1:1077724641787:web:302acb78b4ee3f9090735e"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
+            authDomain: "uno-online-c4bb2.firebaseapp.com",
+            databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
+            projectId: "uno-online-c4bb2",
+            storageBucket: "uno-online-c4bb2.firebasestorage.app",
+            messagingSenderId: "1077724641787",
+            appId: "1:1077724641787:web:302acb78b4ee3f9090735e"
+        };
 
-const app  = initializeApp(firebaseConfig);
-const db   = getDatabase(app);
-const auth = getAuth(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
 
-let currentUser = null, myName = '', pendingFriendTarget = null;
+        let currentUser = null,
+            myName = '',
+            pendingFriendTarget = null;
 
-// ===== المصادقة =====
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        currentUser = user;
-        myName = user.displayName || user.email.split('@')[0];
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('main-screen').classList.remove('hidden');
-        document.getElementById('display-name').textContent = myName;
-        await updateUserStatus('online');
-        listenRealtime();
-    } else {
-        if (currentUser) await updateUserStatus('offline');
-        currentUser = null; myName = '';
-        document.getElementById('auth-screen').classList.remove('hidden');
-        document.getElementById('main-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.add('hidden');
-    }
-});
-
-async function updateUserStatus(status, roomId = null) {
-    if (!currentUser) return;
-    const r = ref(db, `users/${currentUser.uid}/status`);
-    await set(r, { status, lastSeen: Date.now(), roomId: roomId || null });
-    if (status !== 'offline') {
-        onDisconnect(r).set({ status: 'offline', lastSeen: Date.now(), roomId: null });
-    }
-}
-
-// ===== البحث: جلب كل المستخدمين وفلترة محلياً =====
-window.searchFriend = async () => {
-    const term = document.getElementById('friend-search').value.trim().toLowerCase();
-    const resultsDiv = document.getElementById('search-results');
-    if (!term || term.length < 2) {
-        resultsDiv.innerHTML = '<p style="font-size:0.85rem;color:var(--offline);">أدخل حرفين على الأقل</p>';
-        return;
-    }
-    resultsDiv.innerHTML = '<p><span class="spin">⏳</span> جاري البحث...</p>';
-    try {
-        const snap = await get(ref(db, 'users'));
-        if (!snap.exists()) { resultsDiv.innerHTML = '<p style="color:var(--offline);">لا توجد نتائج</p>'; return; }
-        const allUsers = snap.val();
-
-        const myFriendsSnap = await get(ref(db, `friends/${currentUser.uid}`));
-        const myFriends = myFriendsSnap.val() || {};
-        const sentSnap = await get(ref(db, `sentRequests/${currentUser.uid}`));
-        const sentRequests = sentSnap.val() || {};
-
-        const results = Object.entries(allUsers).filter(([uid, data]) => {
-            if (uid === currentUser.uid) return false;
-            return (data.name||'').toLowerCase().includes(term) || (data.email||'').toLowerCase().includes(term);
+        // ===== المصادقة =====
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                myName = user.displayName || user.email.split('@')[0];
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-screen').classList.remove('hidden');
+                document.getElementById('display-name').textContent = myName;
+                await updateUserStatus('online');
+                listenRealtime();
+            } else {
+                if (currentUser) await updateUserStatus('offline');
+                currentUser = null;
+                myName = '';
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('main-screen').classList.add('hidden');
+                document.getElementById('game-screen').classList.add('hidden');
+            }
         });
 
-        if (results.length === 0) { resultsDiv.innerHTML = '<p style="color:var(--offline);font-size:0.85rem;">❌ لا توجد نتائج</p>'; return; }
-        resultsDiv.innerHTML = '';
+        async function updateUserStatus(status, roomId = null) {
+            if (!currentUser) return;
+            const r = ref(db, `users/${currentUser.uid}/status`);
+            await set(r, { status, lastSeen: Date.now(), roomId: roomId || null });
+            if (status !== 'offline') {
+                onDisconnect(r).set({ status: 'offline', lastSeen: Date.now(), roomId: null });
+            }
+        }
 
-        for (const [uid, data] of results) {
-            const isFriend = !!myFriends[uid], sentReq = !!sentRequests[uid];
-            const status = (data.status && data.status.status) || 'offline';
-            const statusText = {online:'🟢 نشط', playing:'🎮 يلعب', offline:'⚫ غير نشط'}[status] || '⚫ غير نشط';
-            let actionBtn = isFriend
-                ? '<span style="color:#2ecc71;font-size:0.85rem;">✅ صديق</span>'
-                : sentReq
-                    ? '<span style="color:#f1c40f;font-size:0.85rem;">⏳ تم الإرسال</span>'
-                    : `<button onclick="sendFriendRequest('${uid}','${(data.name||'').replace(/'/g,"\\'")}')">➕ إضافة</button>`;
-            resultsDiv.innerHTML += `
+        // ===== البحث: جلب كل المستخدمين وفلترة محلياً =====
+        window.searchFriend = async () => {
+            const term = document.getElementById('friend-search').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('search-results');
+            if (!term || term.length < 2) {
+                resultsDiv.innerHTML =
+                    '<p style="font-size:0.85rem;color:var(--offline);">أدخل حرفين على الأقل</p>';
+                return;
+            }
+            resultsDiv.innerHTML = '<p><span class="spin">⏳</span> جاري البحث...</p>';
+            try {
+                const snap = await get(ref(db, 'users'));
+                if (!snap.exists()) { resultsDiv.innerHTML =
+                        '<p style="color:var(--offline);">لا توجد نتائج</p>'; return; }
+                const allUsers = snap.val();
+
+                const myFriendsSnap = await get(ref(db, `friends/${currentUser.uid}`));
+                const myFriends = myFriendsSnap.val() || {};
+                const sentSnap = await get(ref(db, `sentRequests/${currentUser.uid}`));
+                const sentRequests = sentSnap.val() || {};
+
+                const results = Object.entries(allUsers).filter(([uid, data]) => {
+                    if (uid === currentUser.uid) return false;
+                    return (data.name || '').toLowerCase().includes(term) || (data.email || '')
+                        .toLowerCase().includes(term);
+                });
+
+                if (results.length === 0) { resultsDiv.innerHTML =
+                        '<p style="color:var(--offline);font-size:0.85rem;">❌ لا توجد نتائج</p>'; return; }
+                resultsDiv.innerHTML = '';
+
+                for (const [uid, data] of results) {
+                    const isFriend = !!myFriends[uid],
+                        sentReq = !!sentRequests[uid];
+                    const status = (data.status && data.status.status) || 'offline';
+                    const statusText = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [
+                        status
+                    ] || '⚫ غير نشط';
+                    let actionBtn = isFriend ?
+                        '<span style="color:#2ecc71;font-size:0.85rem;">✅ صديق</span>' :
+                        sentReq ?
+                        '<span style="color:#f1c40f;font-size:0.85rem;">⏳ تم الإرسال</span>' :
+                        `<button onclick="sendFriendRequest('${uid}','${(data.name||'').replace(/'/g,"\\'")}')">➕ إضافة</button>`;
+                    resultsDiv.innerHTML += `
                 <div class="search-result-item">
                     <div>
                         <strong>${data.name||'مجهول'}</strong>
@@ -318,110 +692,123 @@ window.searchFriend = async () => {
                     </div>
                     ${actionBtn}
                 </div>`;
+                }
+            } catch (err) {
+                console.error('Search error:', err);
+                resultsDiv.innerHTML = '<p style="color:#ff4757;font-size:0.85rem;">❌ خطأ في البحث</p>';
+            }
+        };
+
+        window.sendFriendRequest = async (toUid, toName) => {
+            try {
+                const existSnap = await get(ref(db, `friendRequests/${toUid}/${currentUser.uid}`));
+                if (existSnap.exists()) { alert('تم إرسال طلب الصداقة مسبقاً ⏳'); return; }
+                const alreadyFriend = await get(ref(db, `friends/${currentUser.uid}/${toUid}`));
+                if (alreadyFriend.exists()) { alert('هذا المستخدم صديقك بالفعل ✅'); return; }
+                await set(ref(db, `friendRequests/${toUid}/${currentUser.uid}`), {
+                    fromUid: currentUser.uid,
+                    name: myName,
+                    email: currentUser.email,
+                    timestamp: Date.now()
+                });
+                await set(ref(db, `sentRequests/${currentUser.uid}/${toUid}`), true);
+                alert('✅ تم إرسال طلب الصداقة إلى ' + toName);
+                document.getElementById('friend-search').value = '';
+                document.getElementById('search-results').innerHTML = '';
+            } catch (err) { console.error('Send request error:', err);
+                alert('❌ فشل إرسال الطلب'); }
+        };
+
+        window.addFriendFromGame = (playerName, playerUid) => {
+            if (!currentUser || playerUid === currentUser.uid) return;
+            pendingFriendTarget = { uid: playerUid, name: playerName };
+            document.getElementById('add-friend-message').innerHTML =
+                `هل تريد إضافة <b>${playerName}</b> كصديق؟`;
+            document.getElementById('add-friend-modal').style.display = 'flex';
+        };
+
+        window.confirmAddFriend = async () => {
+            if (!pendingFriendTarget) return;
+            await sendFriendRequest(pendingFriendTarget.uid, pendingFriendTarget.name);
+            closeModal('add-friend-modal');
+            pendingFriendTarget = null;
+        };
+
+        window.acceptFriendRequest = async (fromUid) => {
+            try {
+                const reqSnap = await get(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
+                if (!reqSnap.exists()) { alert('الطلب غير موجود'); return; }
+                const req = reqSnap.val();
+                const mySnap = await get(ref(db, `users/${currentUser.uid}`));
+                const myData = mySnap.val() || {};
+                await set(ref(db, `friends/${currentUser.uid}/${fromUid}`), { uid: fromUid, name: req.name,
+                    email: req.email, addedAt: Date.now() });
+                await set(ref(db, `friends/${fromUid}/${currentUser.uid}`), { uid: currentUser.uid, name: myData
+                        .name || myName, email: currentUser.email, addedAt: Date.now() });
+                await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
+                await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
+                alert('✅ تمت إضافة الصديق!');
+            } catch (err) { console.error('Accept error:', err); }
+        };
+
+        window.rejectFriendRequest = async (fromUid) => {
+            await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
+            await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
+        };
+
+        window.removeFriend = async (friendUid) => {
+            if (!confirm('هل أنت متأكد من حذف هذا الصديق؟')) return;
+            await remove(ref(db, `friends/${currentUser.uid}/${friendUid}`));
+            await remove(ref(db, `friends/${friendUid}/${currentUser.uid}`));
+        };
+
+        window.joinFriendRoom = (roomId) => {
+            document.getElementById('room-input').value = roomId;
+            showMainMenu();
+            enterRoom('join');
+        };
+
+        // ===== Realtime Listeners =====
+        function listenRealtime() {
+            if (!currentUser) return;
+            onValue(ref(db, `friends/${currentUser.uid}`), (snap) => {
+                const friends = snap.val() || {};
+                document.getElementById('friends-count').textContent = Object.keys(friends).length;
+                renderFriendsList(friends);
+            });
+            onValue(ref(db, `friendRequests/${currentUser.uid}`), (snap) => {
+                const requests = snap.val() || {};
+                const count = Object.keys(requests).length;
+                const badge = document.getElementById('req-badge');
+                badge.style.display = count > 0 ? 'inline' : 'none';
+                badge.textContent = count;
+                renderRequestsList(requests);
+            });
         }
-    } catch(err) {
-        console.error('Search error:', err);
-        resultsDiv.innerHTML = '<p style="color:#ff4757;font-size:0.85rem;">❌ خطأ في البحث</p>';
-    }
-};
 
-window.sendFriendRequest = async (toUid, toName) => {
-    try {
-        const existSnap = await get(ref(db, `friendRequests/${toUid}/${currentUser.uid}`));
-        if (existSnap.exists()) { alert('تم إرسال طلب الصداقة مسبقاً ⏳'); return; }
-        const alreadyFriend = await get(ref(db, `friends/${currentUser.uid}/${toUid}`));
-        if (alreadyFriend.exists()) { alert('هذا المستخدم صديقك بالفعل ✅'); return; }
-        await set(ref(db, `friendRequests/${toUid}/${currentUser.uid}`), {
-            fromUid: currentUser.uid, name: myName, email: currentUser.email, timestamp: Date.now()
-        });
-        await set(ref(db, `sentRequests/${currentUser.uid}/${toUid}`), true);
-        alert('✅ تم إرسال طلب الصداقة إلى ' + toName);
-        document.getElementById('friend-search').value = '';
-        document.getElementById('search-results').innerHTML = '';
-    } catch(err) { console.error('Send request error:', err); alert('❌ فشل إرسال الطلب'); }
-};
-
-window.addFriendFromGame = (playerName, playerUid) => {
-    if (!currentUser || playerUid === currentUser.uid) return;
-    pendingFriendTarget = { uid: playerUid, name: playerName };
-    document.getElementById('add-friend-message').innerHTML = `هل تريد إضافة <b>${playerName}</b> كصديق؟`;
-    document.getElementById('add-friend-modal').style.display = 'flex';
-};
-
-window.confirmAddFriend = async () => {
-    if (!pendingFriendTarget) return;
-    await sendFriendRequest(pendingFriendTarget.uid, pendingFriendTarget.name);
-    closeModal('add-friend-modal'); pendingFriendTarget = null;
-};
-
-window.acceptFriendRequest = async (fromUid) => {
-    try {
-        const reqSnap = await get(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
-        if (!reqSnap.exists()) { alert('الطلب غير موجود'); return; }
-        const req = reqSnap.val();
-        const mySnap = await get(ref(db, `users/${currentUser.uid}`));
-        const myData = mySnap.val() || {};
-        await set(ref(db, `friends/${currentUser.uid}/${fromUid}`), { uid:fromUid, name:req.name, email:req.email, addedAt:Date.now() });
-        await set(ref(db, `friends/${fromUid}/${currentUser.uid}`), { uid:currentUser.uid, name:myData.name||myName, email:currentUser.email, addedAt:Date.now() });
-        await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
-        await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
-        alert('✅ تمت إضافة الصديق!');
-    } catch(err) { console.error('Accept error:', err); }
-};
-
-window.rejectFriendRequest = async (fromUid) => {
-    await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
-    await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
-};
-
-window.removeFriend = async (friendUid) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الصديق؟')) return;
-    await remove(ref(db, `friends/${currentUser.uid}/${friendUid}`));
-    await remove(ref(db, `friends/${friendUid}/${currentUser.uid}`));
-};
-
-window.joinFriendRoom = (roomId) => {
-    document.getElementById('room-input').value = roomId;
-    showMainMenu(); enterRoom('join');
-};
-
-// ===== Realtime Listeners =====
-function listenRealtime() {
-    if (!currentUser) return;
-    onValue(ref(db, `friends/${currentUser.uid}`), (snap) => {
-        const friends = snap.val() || {};
-        document.getElementById('friends-count').textContent = Object.keys(friends).length;
-        renderFriendsList(friends);
-    });
-    onValue(ref(db, `friendRequests/${currentUser.uid}`), (snap) => {
-        const requests = snap.val() || {};
-        const count = Object.keys(requests).length;
-        const badge = document.getElementById('req-badge');
-        badge.style.display = count > 0 ? 'inline' : 'none';
-        badge.textContent = count;
-        renderRequestsList(requests);
-    });
-}
-
-async function renderFriendsList(friends) {
-    const div = document.getElementById('friends-list');
-    if (Object.keys(friends).length === 0) {
-        div.innerHTML = '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا يوجد أصدقاء بعد. ابحث عن أصدقاء جدد!</p>';
-        return;
-    }
-    div.innerHTML = '';
-    for (const [uid, data] of Object.entries(friends)) {
-        let status = 'offline', roomId = null;
-        try {
-            const stSnap = await get(ref(db, `users/${uid}/status`));
-            const st = stSnap.val() || {};
-            status = st.status || 'offline'; roomId = st.roomId || null;
-        } catch(e) {}
-        const statusText = {online:'🟢 نشط', playing:'🎮 يلعب', offline:'⚫ غير نشط'}[status]||'⚫ غير نشط';
-        const joinBtn = (status==='playing' && roomId)
-            ? `<button onclick="joinFriendRoom('${roomId}')" style="width:auto;padding:5px 10px;font-size:0.8rem;margin:0;background:#3498db;">🎮 انضمام</button>`
-            : '';
-        div.innerHTML += `
+        async function renderFriendsList(friends) {
+            const div = document.getElementById('friends-list');
+            if (Object.keys(friends).length === 0) {
+                div.innerHTML =
+                    '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا يوجد أصدقاء بعد. ابحث عن أصدقاء جدد!</p>';
+                return;
+            }
+            div.innerHTML = '';
+            for (const [uid, data] of Object.entries(friends)) {
+                let status = 'offline',
+                    roomId = null;
+                try {
+                    const stSnap = await get(ref(db, `users/${uid}/status`));
+                    const st = stSnap.val() || {};
+                    status = st.status || 'offline';
+                    roomId = st.roomId || null;
+                } catch (e) {}
+                const statusText = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [status] ||
+                    '⚫ غير نشط';
+                const joinBtn = (status === 'playing' && roomId) ?
+                    `<button onclick="joinFriendRoom('${roomId}')" style="width:auto;padding:5px 10px;font-size:0.8rem;margin:0;background:#3498db;">🎮 انضمام</button>` :
+                    '';
+                div.innerHTML += `
             <div class="friend-item ${status}">
                 <div><strong>${data.name||'مجهول'}</strong><br><small style="color:var(--offline);">${statusText}</small></div>
                 <div style="display:flex;gap:5px;align-items:center;">
@@ -429,18 +816,19 @@ async function renderFriendsList(friends) {
                     <button onclick="removeFriend('${uid}')" style="width:auto;padding:5px 10px;font-size:0.8rem;margin:0;background:#e74c3c;">❌</button>
                 </div>
             </div>`;
-    }
-}
+            }
+        }
 
-function renderRequestsList(requests) {
-    const div = document.getElementById('requests-list');
-    if (Object.keys(requests).length === 0) {
-        div.innerHTML = '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا توجد طلبات</p>';
-        return;
-    }
-    div.innerHTML = '';
-    for (const [fromUid, data] of Object.entries(requests)) {
-        div.innerHTML += `
+        function renderRequestsList(requests) {
+            const div = document.getElementById('requests-list');
+            if (Object.keys(requests).length === 0) {
+                div.innerHTML =
+                    '<p style="color:var(--offline);font-size:0.85rem;text-align:right;">لا توجد طلبات</p>';
+                return;
+            }
+            div.innerHTML = '';
+            for (const [fromUid, data] of Object.entries(requests)) {
+                div.innerHTML += `
             <div class="request-item">
                 <div><strong>${data.name||'مجهول'}</strong><br><small style="color:var(--offline);">${data.email||''}</small></div>
                 <div class="btns">
@@ -448,600 +836,937 @@ function renderRequestsList(requests) {
                     <button onclick="rejectFriendRequest('${fromUid}')" style="background:#e74c3c;">❌</button>
                 </div>
             </div>`;
-    }
-}
-
-window.showMainMenu = () => { document.getElementById('main-menu').classList.remove('hidden'); document.getElementById('friends-menu').classList.add('hidden'); };
-window.showFriendsList = () => { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('friends-menu').classList.remove('hidden'); document.getElementById('search-results').innerHTML=''; document.getElementById('friend-search').value=''; };
-
-// ===== Firebase Auth =====
-window.register = async () => {
-    const name=document.getElementById('reg-name').value.trim(), email=document.getElementById('reg-email').value.trim(), password=document.getElementById('reg-password').value;
-    const err=document.getElementById('reg-error'); err.textContent='';
-    if(!name||!email||!password){err.textContent='يرجى ملء جميع الحقول';return;}
-    if(password.length<6){err.textContent='كلمة المرور يجب أن تكون 6 أحرف على الأقل';return;}
-    try {
-        const cred=await createUserWithEmailAndPassword(auth,email,password);
-        await updateProfile(cred.user,{displayName:name});
-        await set(ref(db,`users/${cred.user.uid}`),{name,email,nameLower:name.toLowerCase(),emailLower:email.toLowerCase(),createdAt:Date.now()});
-    } catch(e) {
-        const msgs={'auth/email-already-in-use':'البريد الإلكتروني مستخدم بالفعل','auth/invalid-email':'بريد إلكتروني غير صالح','auth/weak-password':'كلمة المرور ضعيفة'};
-        err.textContent=msgs[e.code]||'حدث خطأ: '+e.message;
-    }
-};
-
-window.login = async () => {
-    const email=document.getElementById('login-email').value.trim(), password=document.getElementById('login-password').value;
-    const err=document.getElementById('login-error'); err.textContent='';
-    if(!email||!password){err.textContent='يرجى إدخال البريد وكلمة المرور';return;}
-    try { await signInWithEmailAndPassword(auth,email,password); }
-    catch(e) {
-        const msgs={'auth/invalid-email':'بريد إلكتروني غير صالح','auth/user-not-found':'المستخدم غير موجود','auth/wrong-password':'كلمة المرور خاطئة','auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة'};
-        err.textContent=msgs[e.code]||'خطأ: '+e.message;
-    }
-};
-
-window.logout = async () => { stopVoiceChat(); await updateUserStatus('offline'); await signOut(auth); };
-window.showRegister = () => { document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); document.getElementById('login-error').textContent=''; };
-window.showLogin = () => { document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); document.getElementById('reg-error').textContent=''; };
-
-// ===== الصوت =====
-let audioCtx=null, isMuted=false;
-const initAudio=()=>{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();};
-function playTone(freq,dur,type='sine',vol=0.3,delay=0){
-    if(isMuted||!audioCtx)return;
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.connect(g);g.connect(audioCtx.destination);o.type=type;
-    o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);
-    g.gain.setValueAtTime(vol,audioCtx.currentTime+delay);
-    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+delay+dur);
-    o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+dur);
-}
-const soundPlayCard=()=>{initAudio();playTone(300,.06,'triangle',.5);playTone(500,.08,'triangle',.4,.05);};
-const soundDrawCard=()=>{initAudio();playTone(400,.08,'sawtooth',.3);playTone(250,.12,'sawtooth',.2,.07);};
-const soundUno=()=>{initAudio();playTone(880,.1,'square',.4);playTone(1100,.1,'square',.5,.1);};
-const soundYourTurn=()=>{initAudio();playTone(523,.12,'sine',.4);playTone(659,.12,'sine',.4,.13);playTone(784,.18,'sine',.4,.26);};
-const soundPenalty=()=>{initAudio();playTone(200,.15,'sawtooth',.5);playTone(150,.2,'sawtooth',.5,.15);};
-const soundReverse=()=>{initAudio();playTone(600,.08,'sine',.4);playTone(400,.08,'sine',.4,.09);};
-const soundWin=()=>{initAudio();[523,659,784,1047].forEach((f,i)=>playTone(f,.2,'sine',.5,i*.18));};
-const soundGameStart=()=>{initAudio();[330,392,494,523].forEach((f,i)=>playTone(f,.15,'sine',.45,i*.15));};
-
-// ===== اللعبة =====
-const t={
-    ar:{main:"أونو أونلاين",create:"إنشاء غرفة",join:"دخول",quit:"خروج",wait:"بانتظار الخصوم...",ready:"أنا جاهز!",draw:"سحب كرت",turn:"دورك! 🔥",waitT:"انتظر...",copy:"نسخ الرابط",copied:"تم النسخ! ✅"},
-    en:{main:"UNO ONLINE",create:"Create Room",join:"Join",quit:"Quit",wait:"Waiting...",ready:"Ready!",draw:"Draw Card",turn:"Your Turn! 🔥",waitT:"Wait...",copy:"Copy Link",copied:"Copied! ✅"}
-};
-
-let myKey,myRoom,isAdmin=false,hasUno=false,picking=false,prevTurnKey=null;
-
-function getCardImgPath(card){
-    if(card.value==='+4')return"cards/+4.png";
-    if(card.value==='Wild')return"cards/wild.png";
-    const cM={red:'r',blue:'b',green:'g',yellow:'y'},vM={Skip:'s','🔄':'r','+2':'+2'};
-    return`cards/${cM[card.color]||card.color}${vM[card.value]||card.value}.png`;
-}
-
-window.onload=()=>{
-    const hash=window.location.hash.substring(1);
-    if(hash&&hash.length===6&&!isNaN(hash))document.getElementById('room-input').value=hash;
-    updateUI();
-};
-
-window.updateUI=()=>{
-    const l=document.getElementById('lang-select').value;
-    document.documentElement.dir=l==='ar'?'rtl':'ltr';
-    const g=id=>document.getElementById(id);
-    if(g('main-title'))g('main-title').innerText=t[l].main;
-    if(g('wait-msg'))g('wait-msg').innerText='⏳ '+t[l].wait;
-    if(g('turn-display'))g('turn-display').innerText=t[l].waitT;
-};
-
-window.enterRoom=async(type)=>{
-    if(!currentUser){alert('يجب تسجيل الدخول أولاً');return;}
-    initAudio();
-    myName=currentUser.displayName||currentUser.email.split('@')[0];
-    myRoom=type==='create'?Math.floor(100000+Math.random()*899999).toString():document.getElementById('room-input').value;
-    if(!myRoom||myRoom.length!==6){alert('أدخل كود غرفة صحيح (6 أرقام)');return;}
-    window.location.hash=myRoom;
-    const roomRef=ref(db,`rooms/${myRoom}/players`);
-    const snap=await get(roomRef);
-    const players=snap.val()||{};
-    let alreadyIn=false;
-    Object.entries(players).forEach(([k,p])=>{if(p.uid===currentUser.uid){alreadyIn=true;myKey=k;}});
-    if(!alreadyIn){
-        const pRef=push(roomRef);myKey=pRef.key;
-        isAdmin=Object.keys(players).length===0;
-        await set(pRef,{name:myName,uid:currentUser.uid,ready:false,isAdmin});
-        onDisconnect(ref(db,`rooms/${myRoom}/players/${myKey}`)).remove();
-    }
-    await updateUserStatus('playing',myRoom);
-    document.getElementById('main-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    document.getElementById('room-display').innerText=`🏠 Room: ${myRoom} ${isAdmin?'(Admin)':''}`;
-    listenGame();
-};
-
-window.copyRoomLink=()=>{
-    const el=document.createElement('textarea');el.value=window.location.href;
-    document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
-    const btn=document.querySelector('.copy-btn'),l=document.getElementById('lang-select').value;
-    btn.innerText='✅ '+t[l].copied;setTimeout(()=>btn.innerText='📋 '+t[l].copy,2000);
-};
-
-function setupPlayerTags(players,turnKey){
-    const div=document.getElementById('players-tags');div.innerHTML='';
-    Object.entries(players).forEach(([key,player])=>{
-        const span=document.createElement('span');
-        span.className='player-tag'+(key===turnKey?' active-turn':'');
-        span.textContent=player.uid===currentUser?.uid?player.name+' (أنت)':player.name;
-        if(player.uid&&player.uid!==currentUser?.uid){
-            span.title='اضغط لإضافة كصديق';
-            span.onclick=()=>addFriendFromGame(player.name,player.uid);
+            }
         }
-        div.appendChild(span);
-    });
-}
 
-function listenGame(){
-    onValue(ref(db,`rooms/${myRoom}`),(s)=>{
-        const data=s.val();
-        if(!data){
-            stopVoiceChat();
+        window.showMainMenu = () => { document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('friends-menu').classList.add('hidden'); };
+        window.showFriendsList = () => { document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('friends-menu').classList.remove('hidden');
+            document.getElementById('search-results').innerHTML = '';
+            document.getElementById('friend-search').value = ''; };
+
+        // ===== Firebase Auth =====
+        window.register = async () => {
+            const name = document.getElementById('reg-name').value.trim(),
+                email = document.getElementById('reg-email').value.trim(),
+                password = document.getElementById('reg-password').value;
+            const err = document.getElementById('reg-error');
+            err.textContent = '';
+            if (!name || !email || !password) { err.textContent = 'يرجى ملء جميع الحقول'; return; }
+            if (password.length < 6) { err.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'; return; }
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(cred.user, { displayName: name });
+                await set(ref(db, `users/${cred.user.uid}`), { name, email, nameLower: name.toLowerCase(),
+                    emailLower: email.toLowerCase(), createdAt: Date.now() });
+            } catch (e) {
+                const msgs = { 'auth/email-already-in-use': 'البريد الإلكتروني مستخدم بالفعل',
+                    'auth/invalid-email': 'بريد إلكتروني غير صالح', 'auth/weak-password': 'كلمة المرور ضعيفة' };
+                err.textContent = msgs[e.code] || 'حدث خطأ: ' + e.message;
+            }
+        };
+
+        window.login = async () => {
+            const email = document.getElementById('login-email').value.trim(),
+                password = document.getElementById('login-password').value;
+            const err = document.getElementById('login-error');
+            err.textContent = '';
+            if (!email || !password) { err.textContent = 'يرجى إدخال البريد وكلمة المرور'; return; }
+            try { await signInWithEmailAndPassword(auth, email, password); } catch (e) {
+                const msgs = { 'auth/invalid-email': 'بريد إلكتروني غير صالح',
+                    'auth/user-not-found': 'المستخدم غير موجود', 'auth/wrong-password': 'كلمة المرور خاطئة',
+                    'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة' };
+                err.textContent = msgs[e.code] || 'خطأ: ' + e.message;
+            }
+        };
+
+        window.logout = async () => { stopVoiceChat();
+            await updateUserStatus('offline');
+            await signOut(auth); };
+        window.showRegister = () => { document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-error').textContent = ''; };
+        window.showLogin = () => { document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('reg-error').textContent = ''; };
+
+        // ===== الصوت (مؤثرات) =====
+        let audioCtx = null,
+            isMuted = false;
+        const initAudio = () => { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); };
+
+        function playTone(freq, dur, type = 'sine', vol = 0.3, delay = 0) {
+            if (isMuted || !audioCtx) return;
+            const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.type = type;
+            o.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+            g.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + dur);
+            o.start(audioCtx.currentTime + delay);
+            o.stop(audioCtx.currentTime + delay + dur);
+        }
+        const soundPlayCard = () => { initAudio();
+            playTone(300, .06, 'triangle', .5);
+            playTone(500, .08, 'triangle', .4, .05); };
+        const soundDrawCard = () => { initAudio();
+            playTone(400, .08, 'sawtooth', .3);
+            playTone(250, .12, 'sawtooth', .2, .07); };
+        const soundUno = () => { initAudio();
+            playTone(880, .1, 'square', .4);
+            playTone(1100, .1, 'square', .5, .1); };
+        const soundYourTurn = () => { initAudio();
+            playTone(523, .12, 'sine', .4);
+            playTone(659, .12, 'sine', .4, .13);
+            playTone(784, .18, 'sine', .4, .26); };
+        const soundPenalty = () => { initAudio();
+            playTone(200, .15, 'sawtooth', .5);
+            playTone(150, .2, 'sawtooth', .5, .15); };
+        const soundReverse = () => { initAudio();
+            playTone(600, .08, 'sine', .4);
+            playTone(400, .08, 'sine', .4, .09); };
+        const soundWin = () => { initAudio();
+            [523, 659, 784, 1047].forEach((f, i) => playTone(f, .2, 'sine', .5, i * .18)); };
+        const soundGameStart = () => { initAudio();
+            [330, 392, 494, 523].forEach((f, i) => playTone(f, .15, 'sine', .45, i * .15)); };
+
+        // ===== اللعبة =====
+        const t = {
+            ar: { main: "أونو أونلاين", create: "إنشاء غرفة", join: "دخول", quit: "خروج", wait: "بانتظار الخصوم...",
+                ready: "أنا جاهز!", draw: "سحب كرت", turn: "دورك! 🔥", waitT: "انتظر...", copy: "نسخ الرابط",
+                copied: "تم النسخ! ✅" },
+            en: { main: "UNO ONLINE", create: "Create Room", join: "Join", quit: "Quit", wait: "Waiting...",
+                ready: "Ready!", draw: "Draw Card", turn: "Your Turn! 🔥", waitT: "Wait...", copy: "Copy Link",
+                copied: "Copied! ✅" }
+        };
+
+        let myKey, myRoom, isAdmin = false,
+            hasUno = false,
+            picking = false,
+            prevTurnKey = null;
+
+        function getCardImgPath(card) {
+            if (card.value === '+4') return "cards/+4.png";
+            if (card.value === 'Wild') return "cards/wild.png";
+            const cM = { red: 'r', blue: 'b', green: 'g', yellow: 'y' },
+                vM = { Skip: 's', '🔄': 'r', '+2': '+2' };
+            return `cards/${cM[card.color]||card.color}${vM[card.value]||card.value}.png`;
+        }
+
+        window.onload = () => {
+            const hash = window.location.hash.substring(1);
+            if (hash && hash.length === 6 && !isNaN(hash)) document.getElementById('room-input').value = hash;
+            updateUI();
+        };
+
+        window.updateUI = () => {
+            const l = document.getElementById('lang-select').value;
+            document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+            const g = id => document.getElementById(id);
+            if (g('main-title')) g('main-title').innerText = t[l].main;
+            if (g('wait-msg')) g('wait-msg').innerText = '⏳ ' + t[l].wait;
+            if (g('turn-display')) g('turn-display').innerText = t[l].waitT;
+        };
+
+        window.enterRoom = async (type) => {
+            if (!currentUser) { alert('يجب تسجيل الدخول أولاً'); return; }
+            initAudio();
+            myName = currentUser.displayName || currentUser.email.split('@')[0];
+            myRoom = type === 'create' ? Math.floor(100000 + Math.random() * 899999).toString() : document
+                .getElementById('room-input').value;
+            if (!myRoom || myRoom.length !== 6) { alert('أدخل كود غرفة صحيح (6 أرقام)'); return; }
+            window.location.hash = myRoom;
+            const roomRef = ref(db, `rooms/${myRoom}/players`);
+            const snap = await get(roomRef);
+            const players = snap.val() || {};
+            let alreadyIn = false;
+            Object.entries(players).forEach(([k, p]) => { if (p.uid === currentUser.uid) { alreadyIn = true;
+                    myKey = k; } });
+            if (!alreadyIn) {
+                const pRef = push(roomRef);
+                myKey = pRef.key;
+                isAdmin = Object.keys(players).length === 0;
+                await set(pRef, { name: myName, uid: currentUser.uid, ready: false, isAdmin });
+                onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
+            }
+            await updateUserStatus('playing', myRoom);
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('room-display').innerText =
+                `🏠 Room: ${myRoom} ${isAdmin?'(Admin)':''}`;
+            // بدء الدردشة الصوتية فور دخول الغرفة
+            initVoiceForRoom(players);
+            listenGame();
+        };
+
+        window.copyRoomLink = () => {
+            const el = document.createElement('textarea');
+            el.value = window.location.href;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const btn = document.querySelector('.copy-btn'),
+                l = document.getElementById('lang-select').value;
+            btn.innerText = '✅ ' + t[l].copied;
+            setTimeout(() => btn.innerText = '📋 ' + t[l].copy, 2000);
+        };
+
+        function setupPlayerTags(players, turnKey) {
+            const div = document.getElementById('players-tags');
+            div.innerHTML = '';
+            Object.entries(players).forEach(([key, player]) => {
+                const span = document.createElement('span');
+                span.className = 'player-tag' + (key === turnKey ? ' active-turn' : '');
+                span.textContent = player.uid === currentUser?.uid ? player.name + ' (أنت)' : player.name;
+                if (player.uid && player.uid !== currentUser?.uid) {
+                    span.title = 'اضغط لإضافة كصديق';
+                    span.onclick = () => addFriendFromGame(player.name, player.uid);
+                }
+                div.appendChild(span);
+            });
+        }
+
+        function listenGame() {
+            onValue(ref(db, `rooms/${myRoom}`), (s) => {
+                const data = s.val();
+                if (!data) {
+                    stopVoiceChat();
+                    updateUserStatus('online');
+                    document.getElementById('game-screen').classList.add('hidden');
+                    document.getElementById('main-screen').classList.remove('hidden');
+                    return;
+                }
+                const players = data.players || {},
+                    turnKey = data.game ? data.game.order[data.game.turn] : null;
+                setupPlayerTags(players, turnKey);
+                if (Object.values(players).length >= 2 && Object.values(players).every(p => p
+                    .ready) && !data.game) {
+                    soundGameStart();
+                    initGame(Object.keys(players));
+                }
+                // تحديث قائمة الصوت عند تغير اللاعبين
+                if (voiceActive && data.players) {
+                    updateVoiceBarFromPlayers(data.players);
+                }
+                if (data.game) {
+                    const cur = data.game.order[data.game.turn];
+                    if (cur !== prevTurnKey) { if (cur === myKey) soundYourTurn();
+                        prevTurnKey = cur; }
+                    render(data.game);
+                }
+            });
+            onValue(ref(db, `rooms/${myRoom}/chat`), (s) => {
+                const msgs = document.getElementById('chat-msgs');
+                msgs.innerHTML = "";
+                if (s.exists()) Object.values(s.val()).forEach(m => msgs.innerHTML +=
+                    `<div><b>${m.u}:</b> ${m.t}</div>`);
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+        }
+
+        async function initGame(keys) {
+            if (!isAdmin) return;
+            let deck = [];
+            ['red', 'blue', 'green', 'yellow'].forEach(c => { for (let i = 0; i <= 9; i++) deck.push({ color: c,
+                    value: i.toString() });
+                ['+2', 'Skip', '🔄'].forEach(v => deck.push({ color: c, value: v })); });
+            for (let i = 0; i < 4; i++) { deck.push({ color: 'black', value: 'Wild' });
+                deck.push({ color: 'black', value: '+4' }); }
+            deck.sort(() => Math.random() - .5);
+            let game = { discard: [deck.find(c => !isNaN(c.value))], turn: 0, order: keys, deck, winner: null };
+            keys.forEach(k => game[`hand_${k}`] = deck.splice(0, 7));
+            await update(ref(db, `rooms/${myRoom}/game`), game);
+        }
+
+        function showWinnerScreen(winnerName) {
             updateUserStatus('online');
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('main-screen').classList.remove('hidden');
-            return;
-        }
-        const players=data.players||{},turnKey=data.game?data.game.order[data.game.turn]:null;
-        setupPlayerTags(players,turnKey);
-        if(Object.values(players).length>=2&&Object.values(players).every(p=>p.ready)&&!data.game){
-            soundGameStart();initGame(Object.keys(players));
-            if(voiceActive){ /* already started */ } else { startVoiceChat(players); listenVoiceChannel(); }
-        }
-        // إذا اللعبة شغّالة وما بعد بدأنا الصوت
-        if(data.game && !voiceActive){ startVoiceChat(players); listenVoiceChannel(); }
-        if(data.game){const cur=data.game.order[data.game.turn];if(cur!==prevTurnKey){if(cur===myKey)soundYourTurn();prevTurnKey=cur;}render(data.game);}
-    });
-    onValue(ref(db,`rooms/${myRoom}/chat`),(s)=>{
-        const msgs=document.getElementById('chat-msgs');msgs.innerHTML="";
-        if(s.exists())Object.values(s.val()).forEach(m=>msgs.innerHTML+=`<div><b>${m.u}:</b> ${m.t}</div>`);
-        msgs.scrollTop=msgs.scrollHeight;
-    });
-}
-
-async function initGame(keys){
-    if(!isAdmin)return;
-    let deck=[];
-    ['red','blue','green','yellow'].forEach(c=>{for(let i=0;i<=9;i++)deck.push({color:c,value:i.toString()});['+2','Skip','🔄'].forEach(v=>deck.push({color:c,value:v}));});
-    for(let i=0;i<4;i++){deck.push({color:'black',value:'Wild'});deck.push({color:'black',value:'+4'});}
-    deck.sort(()=>Math.random()-.5);
-    let game={discard:[deck.find(c=>!isNaN(c.value))],turn:0,order:keys,deck,winner:null};
-    keys.forEach(k=>game[`hand_${k}`]=deck.splice(0,7));
-    await update(ref(db,`rooms/${myRoom}/game`),game);
-}
-
-// ===== إظهار شاشة الفائز =====
-function showWinnerScreen(winnerName){
-    updateUserStatus('online');
-    const isWinner = winnerName === myName;
-    // أخذ شاشة اللعبة وعرض نتيجة جميلة بدلاً من alert
-    const board = document.getElementById('game-board');
-    board.innerHTML = `
+            const isWinner = winnerName === myName;
+            const board = document.getElementById('game-board');
+            board.innerHTML = `
         <div style="text-align:center;padding:30px 10px;">
             <div style="font-size:3.5rem;margin-bottom:10px;">${isWinner?'🏆':'😔'}</div>
-            <h2 style="font-size:1.6rem;margin-bottom:8px;">${isWinner?'أنت الفائز!':'انتهت اللعبة'}</h2>
+            <h2 style="font-size:1.6rem;margin-bottom:8px;font-weight:700;">${isWinner?'أنت الفائز!':'انتهت اللعبة'}</h2>
             <p style="font-size:1.1rem;color:var(--offline);margin-bottom:20px;">
                 ${isWinner?'أحسنت يا بطل! 🎉':'الفائز: <strong>'+winnerName+'</strong>'}
             </p>
-            <button onclick="returnToMainScreen()" style="width:auto;padding:12px 30px;background:#2ecc71;">🏠 العودة للرئيسية</button>
+            <button onclick="returnToMainScreen()" style="width:auto;padding:12px 30px;background:#2ecc71;font-weight:600;">🏠 العودة للرئيسية</button>
         </div>`;
-    board.classList.remove('hidden');
-    document.getElementById('waiting-area').classList.add('hidden');
-    document.getElementById('btn-draw').classList.add('hidden');
-    document.getElementById('btn-quit').classList.add('hidden');
-    // العودة تلقائياً بعد 5 ثوانٍ
-    setTimeout(()=>returnToMainScreen(), 6000);
-}
+            board.classList.remove('hidden');
+            document.getElementById('waiting-area').classList.add('hidden');
+            document.getElementById('btn-draw').classList.add('hidden');
+            document.getElementById('btn-quit').classList.add('hidden');
+            setTimeout(() => returnToMainScreen(), 6000);
+        }
 
-// ===== العودة للشاشة الرئيسية =====
-window.returnToMainScreen = () => {
-    stopVoiceChat(); myRoom=null; myKey=null; isAdmin=false; hasUno=false; picking=false; prevTurnKey=null;
-    window.location.hash='';
-    document.getElementById('game-screen').classList.add('hidden');
-    document.getElementById('main-screen').classList.remove('hidden');
-    document.getElementById('game-board').classList.add('hidden');
-    document.getElementById('game-board').innerHTML = `
-        <p id="turn-display" style="font-weight:bold;font-size:1.2rem;margin:15px 0;"></p>
+        window.returnToMainScreen = () => {
+            stopVoiceChat();
+            myRoom = null;
+            myKey = null;
+            isAdmin = false;
+            hasUno = false;
+            picking = false;
+            prevTurnKey = null;
+            window.location.hash = '';
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            document.getElementById('game-board').classList.add('hidden');
+            document.getElementById('game-board').innerHTML = `
+        <p id="turn-display" style="font-weight:600;font-size:1.2rem;margin:15px 0;"></p>
         <img id="top-card" class="uno-card" style="margin:10px auto;cursor:default;" src="cards/r0.png">
         <div id="player-hand" style="overflow-x:auto;white-space:nowrap;padding:20px;min-height:120px;background:rgba(0,0,0,0.05);border-radius:15px;margin:15px 0;"></div>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
             <button onclick="drawCardAction()" id="btn-draw">🃏 سحب كرت</button>
             <button id="uno-btn" onclick="sayUno()">⚠️ UNO!</button>
         </div>`;
-    document.getElementById('waiting-area').classList.remove('hidden');
-    document.getElementById('btn-quit').classList.remove('hidden');
-    document.getElementById('room-input').value='';
-};
+            document.getElementById('waiting-area').classList.remove('hidden');
+            document.getElementById('btn-quit').classList.remove('hidden');
+            document.getElementById('room-input').value = '';
+        };
 
-function render(game){
-    if(game.winner){
-        soundWin();
-        // الفائز يحذف الغرفة بعد إشعار الجميع بنتيجة اللعبة
-        if(game.winner===myName){
-            setTimeout(async()=>{ try{ await remove(ref(db,`rooms/${myRoom}`)); }catch(e){} },3500);
-        }
-        showWinnerScreen(game.winner);
-        return;
-    }
-    document.getElementById('waiting-area').classList.add('hidden');
-    document.getElementById('game-board').classList.remove('hidden');
-    document.getElementById('top-card').src=getCardImgPath(game.discard[game.discard.length-1]);
-    const hand=game[`hand_${myKey}`]||[],handDiv=document.getElementById('player-hand');handDiv.innerHTML="";
-    hand.forEach((c,i)=>{const img=document.createElement('img');img.className='uno-card';img.src=getCardImgPath(c);img.onclick=()=>play(i,game);handDiv.appendChild(img);});
-    const isTurn=game.order[game.turn]===myKey,l=document.getElementById('lang-select').value;
-    document.getElementById('turn-display').innerText=isTurn?t[l].turn:t[l].waitT;
-    document.getElementById('uno-btn').style.display=(hand.length===2&&isTurn)?'block':'none';
-}
-
-async function play(idx,game){
-    if(game.order[game.turn]!==myKey||picking)return;
-    const card=game[`hand_${myKey}`][idx],top=game.discard[game.discard.length-1];
-    if(card.color===top.color||card.value===top.value||card.color==='black'){
-        if(game[`hand_${myKey}`].length===2&&!hasUno){alert("⚠️ اضغط UNO أولاً!");return;}
-        soundPlayCard();game[`hand_${myKey}`].splice(idx,1);game.discard.push(card);
-        if(game[`hand_${myKey}`].length===0){game.winner=myName;await update(ref(db,`rooms/${myRoom}/game`),game);return;}
-        let nextIdx=(game.turn+1)%game.order.length,victim=game.order[nextIdx];
-        if(card.value==='+2'){soundPenalty();for(let i=0;i<2;i++)game[`hand_${victim}`].push(game.deck.pop());game.turn=(nextIdx+1)%game.order.length;}
-        else if(card.value==='Skip'){game.turn=(nextIdx+1)%game.order.length;}
-        else if(card.value==='🔄'){soundReverse();game.order.reverse();game.turn=(game.order.indexOf(myKey)+1)%game.order.length;}
-        else if(card.color==='black'){if(card.value==='+4'){soundPenalty();for(let i=0;i<4;i++)game[`hand_${victim}`].push(game.deck.pop());}picking=true;document.getElementById('color-modal').style.display='flex';}
-        else{game.turn=nextIdx;}
-        hasUno=false;await update(ref(db,`rooms/${myRoom}/game`),game);
-    }
-}
-
-window.pickColor=async(color)=>{
-    const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
-    const last=game.discard[game.discard.length-1];game.discard[game.discard.length-1].color=color;
-    game.turn=(last.value==='+4')?(game.turn+2)%game.order.length:(game.turn+1)%game.order.length;
-    picking=false;document.getElementById('color-modal').style.display='none';
-    await update(ref(db,`rooms/${myRoom}/game`),game);
-};
-
-window.drawCardAction=async()=>{
-    initAudio();soundDrawCard();
-    const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
-    if(game.order[game.turn]!==myKey)return;
-    game[`hand_${myKey}`].push(game.deck.pop());game.turn=(game.turn+1)%game.order.length;
-    hasUno=false;await update(ref(db,`rooms/${myRoom}/game`),game);
-};
-
-window.quitGame=async()=>{
-    if(isAdmin){
-        if(confirm("أنت الأدمن — سيتم إغلاق الغرفة لجميع اللاعبين. متأكد؟")){
-            await remove(ref(db,`rooms/${myRoom}`));
-            await updateUserStatus('online');
-            returnToMainScreen();
-        }
-    } else {
-        await remove(ref(db,`rooms/${myRoom}/players/${myKey}`));
-        await updateUserStatus('online');
-        returnToMainScreen();
-    }
-};
-
-window.sayUno=()=>{initAudio();soundUno();hasUno=true;sendMsg("⚠️ قُلت UNO!");};
-window.sendMsg=(txt)=>{const i=document.getElementById('chat-input');const msg=txt||i.value;if(msg)push(ref(db,`rooms/${myRoom}/chat`),{u:myName,t:msg});i.value="";};
-window.setReady=()=>{initAudio();update(ref(db,`rooms/${myRoom}/players/${myKey}`),{ready:true});};
-
-// ================================================================
-//  🎙 نظام الدردشة الصوتية - WebRTC + Firebase Signaling
-//  STUN فقط (مجاني، بدون أي إعداد خارجي)
-// ================================================================
-
-const ICE_CONFIG = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302'  },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' }
-    ]
-};
-
-// دالة وهمية للتوافق مع باقي الكود
-async function fetchIceServers() { /* STUN جاهز مسبقاً */ }
-
-let localStream      = null;   // ستريم المايك المحلي
-let peerConnections  = {};     // { uid: RTCPeerConnection }
-let micEnabled       = true;   // حالة المايك
-let voiceActive      = false;  // هل الصوت مفعّل في هذه الجلسة
-let speakDetectors   = {};     // AudioContext لكشف الكلام
-let voiceListenerOff = null;   // دالة إيقاف listener الإشارات
-
-// ===== تفعيل/إيقاف المايك من الزر =====
-window.toggleMic = () => {
-    if (!localStream) return;
-    micEnabled = !micEnabled;
-    localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
-    const btn = document.getElementById('btn-mic');
-    btn.textContent = micEnabled ? '🎙️' : '🔇';
-    btn.classList.toggle('muted', !micEnabled);
-    // أخبر الآخرين بحالة المايك عبر Firebase
-    if (myRoom && myKey) {
-        set(ref(db, `rooms/${myRoom}/voice/${myKey}/muted`), !micEnabled);
-    }
-    updateVoiceBar();
-};
-
-// ===== تغيير إعداد الصوت من الإعدادات =====
-window.onVoiceSettingChange = () => {
-    const enabled = document.getElementById('voice-enabled').checked;
-    if (!enabled && voiceActive) stopVoiceChat();
-};
-
-// ===== بدء الدردشة الصوتية (يُستدعى عند دخول الغرفة) =====
-async function startVoiceChat(players) {
-    const voiceEnabled = document.getElementById('voice-enabled');
-    if (voiceEnabled && !voiceEnabled.checked) return;
-    if (voiceActive) return;
-
-    try {
-        // جلب ICE servers من Metered.ca اولا
-        await fetchIceServers();
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        voiceActive = true;
-        micEnabled  = true;
-
-        document.getElementById('voice-bar').classList.remove('hidden');
-        document.getElementById('voice-status').textContent = '🟢 متصل بالصوت';
-
-        // كشف الكلام للمستخدم المحلي
-        setupSpeakDetector(myKey, myName, localStream);
-
-        // تسجيل وجودنا في قناة الصوت
-        await set(ref(db, `rooms/${myRoom}/voice/${myKey}`), {
-            uid: myKey, name: myName, muted: false, joined: Date.now()
-        });
-        onDisconnect(ref(db, `rooms/${myRoom}/voice/${myKey}`)).remove();
-
-        // الاستماع للإشارات (Signaling)
-        listenSignaling(players);
-
-        // بدء الاتصال مع اللاعبين الموجودين
-        const voiceSnap = await get(ref(db, `rooms/${myRoom}/voice`));
-        const voicePlayers = voiceSnap.val() || {};
-        for (const uid of Object.keys(voicePlayers)) {
-            if (uid !== myKey) await createOffer(uid);
-        }
-
-        updateVoiceBar();
-
-    } catch (err) {
-        console.warn('Voice chat error:', err.name, err.message);
-        document.getElementById('voice-status').textContent =
-            err.name === 'NotAllowedError' ? '⚠️ تم رفض إذن المايكروفون' : '⚠️ المايكروفون غير متاح';
-        document.getElementById('voice-bar').classList.remove('hidden');
-    }
-}
-
-// ===== إيقاف الدردشة الصوتية =====
-function stopVoiceChat() {
-    voiceActive = false;
-    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-    Object.values(peerConnections).forEach(pc => pc.close());
-    peerConnections = {};
-    Object.values(speakDetectors).forEach(d => { try{ d.ctx.close(); }catch(e){} });
-    speakDetectors = {};
-    if (voiceListenerOff) { voiceListenerOff(); voiceListenerOff = null; }
-    if (myRoom && myKey) remove(ref(db, `rooms/${myRoom}/voice/${myKey}`)).catch(()=>{});
-    document.getElementById('voice-bar').classList.add('hidden');
-    document.getElementById('voice-players').innerHTML = '';
-}
-
-// ===== الاستماع لإشارات WebRTC عبر Firebase =====
-function listenSignaling(players) {
-    const sigRef = ref(db, `rooms/${myRoom}/signals/${myKey}`);
-    const unsub = onValue(sigRef, async (snap) => {
-        if (!snap.exists()) return;
-        const signals = snap.val();
-        for (const [fromUid, data] of Object.entries(signals)) {
-            if (!data) continue;
-            if (data.type === 'offer') {
-                await handleOffer(fromUid, data);
-            } else if (data.type === 'answer') {
-                await handleAnswer(fromUid, data);
-            } else if (data.type === 'ice') {
-                await handleIce(fromUid, data.candidate);
+        function render(game) {
+            if (game.winner) {
+                soundWin();
+                if (game.winner === myName) {
+                    setTimeout(async () => { try { await remove(ref(db, `rooms/${myRoom}`)); } catch (
+                        e) {} }, 3500);
+                }
+                showWinnerScreen(game.winner);
+                return;
             }
-            // حذف الإشارة بعد معالجتها
-            remove(ref(db, `rooms/${myRoom}/signals/${myKey}/${fromUid}`)).catch(()=>{});
+            document.getElementById('waiting-area').classList.add('hidden');
+            document.getElementById('game-board').classList.remove('hidden');
+            document.getElementById('top-card').src = getCardImgPath(game.discard[game.discard.length - 1]);
+            const hand = game[`hand_${myKey}`] || [],
+                handDiv = document.getElementById('player-hand');
+            handDiv.innerHTML = "";
+            hand.forEach((c, i) => { const img = document.createElement('img');
+                img.className = 'uno-card';
+                img.src = getCardImgPath(c);
+                img.onclick = () => play(i, game);
+                handDiv.appendChild(img); });
+            const isTurn = game.order[game.turn] === myKey,
+                l = document.getElementById('lang-select').value;
+            document.getElementById('turn-display').innerText = isTurn ? t[l].turn : t[l].waitT;
+            document.getElementById('uno-btn').style.display = (hand.length === 2 && isTurn) ? 'block' :
+            'none';
         }
-    });
-    voiceListenerOff = unsub;
-}
 
-// ===== إنشاء RTCPeerConnection جديد =====
-function createPeerConnection(remoteUid) {
-    if (peerConnections[remoteUid]) return peerConnections[remoteUid];
-    const pc = new RTCPeerConnection(ICE_CONFIG);
-    peerConnections[remoteUid] = pc;
+        async function play(idx, game) {
+            if (game.order[game.turn] !== myKey || picking) return;
+            const card = game[`hand_${myKey}`][idx],
+                top = game.discard[game.discard.length - 1];
+            if (card.color === top.color || card.value === top.value || card.color === 'black') {
+                if (game[`hand_${myKey}`].length === 2 && !hasUno) { alert("⚠️ اضغط UNO أولاً!"); return; }
+                soundPlayCard();
+                game[`hand_${myKey}`].splice(idx, 1);
+                game.discard.push(card);
+                if (game[`hand_${myKey}`].length === 0) { game.winner = myName;
+                    await update(ref(db, `rooms/${myRoom}/game`), game); return; }
+                let nextIdx = (game.turn + 1) % game.order.length,
+                    victim = game.order[nextIdx];
+                if (card.value === '+2') { soundPenalty(); for (let i = 0; i < 2; i++) game[`hand_${victim}`]
+                        .push(game.deck.pop());
+                    game.turn = (nextIdx + 1) % game.order.length; } else if (card.value === 'Skip') { game
+                        .turn = (nextIdx + 1) % game.order.length; } else if (card.value === '🔄') {
+                    soundReverse();
+                    game.order.reverse();
+                    game.turn = (game.order.indexOf(myKey) + 1) % game.order.length; } else if (card.color ===
+                    'black') { if (card.value === '+4') { soundPenalty(); for (let i = 0; i < 4; i++) game[
+                            `hand_${victim}`].push(game.deck.pop()); }
+                    picking = true;
+                    document.getElementById('color-modal').style.display = 'flex'; } else { game.turn = nextIdx; }
+                hasUno = false;
+                await update(ref(db, `rooms/${myRoom}/game`), game);
+            }
+        }
 
-    // إضافة تراك الصوت المحلي
-    if (localStream) localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+        window.pickColor = async (color) => {
+            const s = await get(ref(db, `rooms/${myRoom}/game`));
+            const game = s.val();
+            const last = game.discard[game.discard.length - 1];
+            game.discard[game.discard.length - 1].color = color;
+            game.turn = (last.value === '+4') ? (game.turn + 2) % game.order.length : (game.turn + 1) % game.order
+                .length;
+            picking = false;
+            document.getElementById('color-modal').style.display = 'none';
+            await update(ref(db, `rooms/${myRoom}/game`), game);
+        };
 
-    // إرسال ICE candidates للطرف الآخر عبر Firebase
-    pc.onicecandidate = (e) => {
-        if (e.candidate) {
-            set(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
-                type: 'ice',
-                candidate: e.candidate.toJSON()
+        window.drawCardAction = async () => {
+            initAudio();
+            soundDrawCard();
+            const s = await get(ref(db, `rooms/${myRoom}/game`));
+            const game = s.val();
+            if (game.order[game.turn] !== myKey) return;
+            game[`hand_${myKey}`].push(game.deck.pop());
+            game.turn = (game.turn + 1) % game.order.length;
+            hasUno = false;
+            await update(ref(db, `rooms/${myRoom}/game`), game);
+        };
+
+        window.quitGame = async () => {
+            if (isAdmin) {
+                if (confirm("أنت الأدمن — سيتم إغلاق الغرفة لجميع اللاعبين. متأكد؟")) {
+                    await remove(ref(db, `rooms/${myRoom}`));
+                    await updateUserStatus('online');
+                    returnToMainScreen();
+                }
+            } else {
+                await remove(ref(db, `rooms/${myRoom}/players/${myKey}`));
+                await updateUserStatus('online');
+                returnToMainScreen();
+            }
+        };
+
+        window.sayUno = () => { initAudio();
+            soundUno();
+            hasUno = true;
+            sendMsg("⚠️ قُلت UNO!"); };
+        window.sendMsg = (txt) => { const i = document.getElementById('chat-input');
+            const msg = txt || i.value; if (msg) push(ref(db, `rooms/${myRoom}/chat`), { u: myName, t: msg });
+            i.value = ""; };
+        window.setReady = () => { initAudio();
+            update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true }); };
+
+        // ================================================================
+        //  🎙 نظام الدردشة الصوتية المحسّن - WebRTC + Firebase Signaling
+        //  مع TURN servers احتياطية وإدارة أفضل للاتصالات
+        // ================================================================
+
+        const ICE_CONFIG = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+            ],
+            iceCandidatePoolSize: 2,
+            iceTransportPolicy: 'all',
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require',
+        };
+
+        // ===== متغيرات الصوت =====
+        let localStream = null;
+        let peerConnections = {};
+        let micEnabled = true;
+        let voiceActive = false;
+        let speakDetectors = {};
+        let voiceListenerOff = null;
+        let signalListeners = {};
+        let pendingOffers = {};
+        let voiceInitAttempted = false;
+        let reconnectTimers = {};
+
+        // ===== تفعيل/إيقاف المايك =====
+        window.toggleMic = () => {
+            if (!localStream) return;
+            micEnabled = !micEnabled;
+            localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+            const btn = document.getElementById('btn-mic');
+            btn.textContent = micEnabled ? '🎙️' : '🔇';
+            btn.classList.toggle('muted', !micEnabled);
+            if (myRoom && myKey) {
+                set(ref(db, `rooms/${myRoom}/voice/${myKey}/muted`), !micEnabled).catch(() => {});
+            }
+            updateVoiceBarFromRoom();
+        };
+
+        // ===== تغيير إعداد الصوت =====
+        window.onVoiceSettingChange = () => {
+            const enabled = document.getElementById('voice-enabled').checked;
+            if (!enabled && voiceActive) stopVoiceChat();
+            if (enabled && myRoom && !voiceActive && myKey) {
+                const playersRef = ref(db, `rooms/${myRoom}/players`);
+                get(playersRef).then(snap => {
+                    if (snap.exists()) initVoiceForRoom(snap.val());
+                }).catch(() => {});
+            }
+        };
+
+        // ===== بدء الدردشة الصوتية للغرفة =====
+        async function initVoiceForRoom(players) {
+            const voiceEnabled = document.getElementById('voice-enabled');
+            if (voiceEnabled && !voiceEnabled.checked) return;
+            if (voiceActive) return;
+            if (voiceInitAttempted) return;
+            voiceInitAttempted = true;
+
+            document.getElementById('voice-bar').classList.remove('hidden');
+            document.getElementById('voice-status').textContent = '⏳ جاري تهيئة الصوت...';
+            document.getElementById('voice-debug').textContent = '';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        channelCount: 1,
+                        sampleRate: 16000,
+                    },
+                    video: false,
+                });
+                localStream = stream;
+                voiceActive = true;
+                micEnabled = true;
+                voiceInitAttempted = false;
+                document.getElementById('voice-status').textContent = '🟢 متصل بالصوت';
+                document.getElementById('voice-debug').textContent = '';
+                document.getElementById('btn-mic').classList.remove('muted');
+                document.getElementById('btn-mic').textContent = '🎙️';
+
+                setupSpeakDetector(myKey, myName, stream);
+                await set(ref(db, `rooms/${myRoom}/voice/${myKey}`), {
+                    uid: myKey,
+                    name: myName,
+                    muted: false,
+                    speaking: false,
+                    joined: Date.now(),
+                });
+                onDisconnect(ref(db, `rooms/${myRoom}/voice/${myKey}`)).remove().catch(() => {});
+
+                listenSignaling();
+                listenVoiceChannel();
+
+                const voiceSnap = await get(ref(db, `rooms/${myRoom}/voice`));
+                const voicePlayers = voiceSnap.val() || {};
+                for (const uid of Object.keys(voicePlayers)) {
+                    if (uid !== myKey) {
+                        setTimeout(() => createAndSendOffer(uid), 300 * Object.keys(voicePlayers).indexOf(uid));
+                    }
+                }
+                updateVoiceBarFromRoom();
+            } catch (err) {
+                voiceInitAttempted = false;
+                console.warn('Voice chat init error:', err.name, err.message);
+                const debugEl = document.getElementById('voice-debug');
+                debugEl.textContent = 'تفاصيل: ' + (err.message || err.name);
+                if (err.name === 'NotAllowedError') {
+                    document.getElementById('voice-status').textContent = '⚠️ تم رفض إذن المايكروفون';
+                } else if (err.name === 'NotFoundError') {
+                    document.getElementById('voice-status').textContent = '⚠️ لم يتم العثور على مايكروفون';
+                } else {
+                    document.getElementById('voice-status').textContent = '⚠️ خطأ: ' + (err.message || err.name);
+                }
+                document.getElementById('voice-bar').classList.remove('hidden');
+            }
+        }
+
+        // ===== إيقاف الدردشة الصوتية =====
+        function stopVoiceChat() {
+            voiceActive = false;
+            voiceInitAttempted = false;
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
+            Object.values(peerConnections).forEach(pc => {
+                try { pc.close(); } catch (e) {}
+            });
+            peerConnections = {};
+            Object.values(speakDetectors).forEach(d => { try { d.ctx.close(); } catch (e) {} });
+            speakDetectors = {};
+            Object.values(signalListeners).forEach(unsub => { try { unsub(); } catch (e) {} });
+            signalListeners = {};
+            if (voiceListenerOff) { try { voiceListenerOff(); } catch (e) {}
+                voiceListenerOff = null; }
+            Object.values(reconnectTimers).forEach(t => clearTimeout(t));
+            reconnectTimers = {};
+            pendingOffers = {};
+            if (myRoom && myKey) {
+                remove(ref(db, `rooms/${myRoom}/voice/${myKey}`)).catch(() => {});
+                remove(ref(db, `rooms/${myRoom}/signals/${myKey}`)).catch(() => {});
+            }
+            document.getElementById('voice-bar').classList.add('hidden');
+            document.getElementById('voice-players').innerHTML = '';
+            document.getElementById('voice-status').textContent = '';
+            document.getElementById('voice-debug').textContent = '';
+            const btn = document.getElementById('btn-mic');
+            btn.classList.remove('muted');
+            btn.textContent = '🎙️';
+        }
+
+        // ===== إنشاء RTCPeerConnection =====
+        function createPeerConnection(remoteUid) {
+            if (peerConnections[remoteUid]) {
+                if (peerConnections[remoteUid].connectionState === 'failed' ||
+                    peerConnections[remoteUid].connectionState === 'disconnected' ||
+                    peerConnections[remoteUid].connectionState === 'closed') {
+                    try { peerConnections[remoteUid].close(); } catch (e) {}
+                    delete peerConnections[remoteUid];
+                } else {
+                    return peerConnections[remoteUid];
+                }
+            }
+
+            const pc = new RTCPeerConnection(ICE_CONFIG);
+            peerConnections[remoteUid] = pc;
+
+            if (localStream) {
+                localStream.getTracks().forEach(t => {
+                    try { pc.addTrack(t, localStream); } catch (e) {}
+                });
+            }
+
+            pc.onicecandidate = (e) => {
+                if (e.candidate && myRoom && myKey) {
+                    const candidateData = {
+                        type: 'ice',
+                        candidate: e.candidate.toJSON(),
+                        timestamp: Date.now(),
+                    };
+                    push(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), candidateData).catch(
+                    () => {});
+                }
+            };
+
+            pc.ontrack = (e) => {
+                if (e.streams && e.streams[0]) {
+                    const stream = e.streams[0];
+                    let audio = document.getElementById('audio-' + remoteUid);
+                    if (!audio) {
+                        audio = document.createElement('audio');
+                        audio.id = 'audio-' + remoteUid;
+                        audio.autoplay = true;
+                        audio.playsinline = true;
+                        audio.style.display = 'none';
+                        document.body.appendChild(audio);
+                    }
+                    if (audio.srcObject !== stream) {
+                        audio.srcObject = stream;
+                    }
+                    setupSpeakDetectorRemote(remoteUid, stream);
+                }
+            };
+
+            pc.onconnectionstatechange = () => {
+                const state = pc.connectionState;
+                updateVoiceBarFromRoom();
+                if (state === 'failed' || state === 'disconnected') {
+                    document.getElementById('voice-debug').textContent =
+                        `⚠️ انقطع الاتصال بـ ${remoteUid} - جاري إعادة المحاولة...`;
+                    scheduleReconnect(remoteUid);
+                }
+                if (state === 'connected') {
+                    document.getElementById('voice-debug').textContent = '';
+                    clearTimeout(reconnectTimers[remoteUid]);
+                    delete reconnectTimers[remoteUid];
+                }
+            };
+
+            pc.oniceconnectionstatechange = () => {
+                if (pc.iceConnectionState === 'failed') {
+                    scheduleReconnect(remoteUid);
+                }
+            };
+
+            return pc;
+        }
+
+        function scheduleReconnect(remoteUid) {
+            if (reconnectTimers[remoteUid]) return;
+            reconnectTimers[remoteUid] = setTimeout(async () => {
+                delete reconnectTimers[remoteUid];
+                if (!voiceActive || !myRoom) return;
+                if (peerConnections[remoteUid]) {
+                    try { peerConnections[remoteUid].close(); } catch (e) {}
+                    delete peerConnections[remoteUid];
+                }
+                document.getElementById('voice-debug').textContent =
+                `🔄 إعادة الاتصال بـ ${remoteUid}...`;
+                await createAndSendOffer(remoteUid);
+            }, 3000);
+        }
+
+        // ===== إرسال Offer =====
+        async function createAndSendOffer(remoteUid) {
+            if (!voiceActive || !myRoom || !myKey) return;
+            try {
+                const pc = createPeerConnection(remoteUid);
+                if (pc.signalingState !== 'stable' && pc.signalingState !== 'have-local-offer') {
+                    return;
+                }
+                const offer = await pc.createOffer({
+                    offerToReceiveAudio: true,
+                    voiceActivityDetection: true,
+                });
+                await pc.setLocalDescription(offer);
+                await set(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
+                    type: 'offer',
+                    sdp: offer.sdp,
+                    timestamp: Date.now(),
+                });
+                pendingOffers[remoteUid] = Date.now();
+            } catch (err) {
+                console.warn('Error creating offer for', remoteUid, ':', err.message);
+                scheduleReconnect(remoteUid);
+            }
+        }
+
+        // ===== استقبال Offer =====
+        async function handleOffer(fromUid, data) {
+            if (!voiceActive || !myRoom) return;
+            try {
+                const pc = createPeerConnection(fromUid);
+                if (pc.signalingState !== 'stable') {
+                    return;
+                }
+                await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
+                const answer = await pc.createAnswer({
+                    offerToReceiveAudio: true,
+                    voiceActivityDetection: true,
+                });
+                await pc.setLocalDescription(answer);
+                await set(ref(db, `rooms/${myRoom}/signals/${fromUid}/${myKey}`), {
+                    type: 'answer',
+                    sdp: answer.sdp,
+                    timestamp: Date.now(),
+                });
+            } catch (err) {
+                console.warn('Error handling offer from', fromUid, ':', err.message);
+            }
+        }
+
+        // ===== استقبال Answer =====
+        async function handleAnswer(fromUid, data) {
+            const pc = peerConnections[fromUid];
+            if (pc && (pc.signalingState === 'have-local-offer' || pc.signalingState ===
+                'have-remote-offer')) {
+                try {
+                    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+                    delete pendingOffers[fromUid];
+                } catch (err) {
+                    console.warn('Error handling answer from', fromUid, ':', err.message);
+                }
+            }
+        }
+
+        // ===== استقبال ICE Candidate =====
+        async function handleIce(fromUid, candidateData) {
+            const pc = peerConnections[fromUid];
+            if (pc && candidateData && candidateData.candidate) {
+                try {
+                    const candidate = new RTCIceCandidate(candidateData);
+                    await pc.addIceCandidate(candidate);
+                } catch (err) {
+                    console.warn('Error adding ICE candidate from', fromUid, ':', err.message);
+                }
+            }
+        }
+
+        // ===== الاستماع للإشارات =====
+        function listenSignaling() {
+            if (!myRoom || !myKey) return;
+            Object.values(signalListeners).forEach(unsub => { try { unsub(); } catch (e) {} });
+            signalListeners = {};
+
+            const sigRef = ref(db, `rooms/${myRoom}/signals/${myKey}`);
+            const unsub = onValue(sigRef, async (snap) => {
+                if (!snap.exists() || !voiceActive) return;
+                const signals = snap.val();
+                const processed = new Set();
+                for (const [fromUid, data] of Object.entries(signals)) {
+                    if (!data || processed.has(fromUid + '_' + (data.timestamp || ''))) continue;
+                    processed.add(fromUid + '_' + (data.timestamp || ''));
+                    try {
+                        if (data.type === 'offer') {
+                            await handleOffer(fromUid, data);
+                        } else if (data.type === 'answer') {
+                            await handleAnswer(fromUid, data);
+                        } else if (data.type === 'ice') {
+                            await handleIce(fromUid, data.candidate);
+                        }
+                    } catch (e) {
+                        console.warn('Signal processing error:', e.message);
+                    }
+                    // تنظيف الإشارة القديمة
+                    if (data.timestamp && Date.now() - data.timestamp > 30000) {
+                        remove(ref(db, `rooms/${myRoom}/signals/${myKey}/${fromUid}`)).catch(() => {});
+                    }
+                }
+            });
+            signalListeners['main'] = unsub;
+        }
+
+        // ===== الاستماع لقناة الصوت =====
+        function listenVoiceChannel() {
+            if (!myRoom) return;
+            if (voiceListenerOff) { try { voiceListenerOff(); } catch (e) {} }
+            const voiceRef = ref(db, `rooms/${myRoom}/voice`);
+            voiceListenerOff = onValue(voiceRef, async (snap) => {
+                if (!voiceActive) return;
+                const voicePlayers = snap.val() || {};
+                updateVoiceBarFromPlayers(voicePlayers);
+                for (const uid of Object.keys(voicePlayers)) {
+                    if (uid !== myKey && !peerConnections[uid] && voiceActive) {
+                        setTimeout(() => createAndSendOffer(uid), 200);
+                    }
+                }
             });
         }
-    };
 
-    // استقبال الصوت من الطرف الآخر
-    pc.ontrack = (e) => {
-        const stream = e.streams[0];
-        let audio = document.getElementById('audio-' + remoteUid);
-        if (!audio) {
-            audio = document.createElement('audio');
-            audio.id = 'audio-' + remoteUid;
-            audio.autoplay = true;
-            audio.style.display = 'none';
-            document.body.appendChild(audio);
+        // ===== تحديث شريط الصوت =====
+        async function updateVoiceBarFromRoom() {
+            if (!myRoom || !voiceActive) return;
+            const snap = await get(ref(db, `rooms/${myRoom}/voice`));
+            const players = snap.val() || {};
+            updateVoiceBarFromPlayers(players);
         }
-        audio.srcObject = stream;
-        setupSpeakDetectorRemote(remoteUid, stream);
-        updateVoiceBar();
-    };
 
-    pc.onconnectionstatechange = () => updateVoiceBar();
-    return pc;
-}
-
-// ===== إرسال Offer =====
-async function createOffer(remoteUid) {
-    const pc = createPeerConnection(remoteUid);
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await set(ref(db, `rooms/${myRoom}/signals/${remoteUid}/${myKey}`), {
-        type: 'offer',
-        sdp: offer.sdp
-    });
-}
-
-// ===== استقبال Offer وإرسال Answer =====
-async function handleOffer(fromUid, data) {
-    const pc = createPeerConnection(fromUid);
-    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await set(ref(db, `rooms/${myRoom}/signals/${fromUid}/${myKey}`), {
-        type: 'answer',
-        sdp: answer.sdp
-    });
-}
-
-// ===== استقبال Answer =====
-async function handleAnswer(fromUid, data) {
-    const pc = peerConnections[fromUid];
-    if (pc && pc.signalingState !== 'stable') {
-        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
-    }
-}
-
-// ===== استقبال ICE Candidate =====
-async function handleIce(fromUid, candidateData) {
-    const pc = peerConnections[fromUid];
-    if (pc && candidateData) {
-        try { await pc.addIceCandidate(new RTCIceCandidate(candidateData)); } catch(e) {}
-    }
-}
-
-// ===== كشف الكلام (Speaking Detection) =====
-function setupSpeakDetector(uid, name, stream) {
-    try {
-        const ctx = new AudioContext();
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
-        const src = ctx.createMediaStreamSource(stream);
-        src.connect(analyser);
-        const data = new Uint8Array(analyser.fftSize);
-        let speaking = false;
-
-        const check = () => {
-            if (!voiceActive) return;
-            analyser.getByteTimeDomainData(data);
-            let sum = 0;
-            for (let i = 0; i < data.length; i++) sum += Math.abs(data[i] - 128);
-            const avg = sum / data.length;
-            const nowSpeaking = avg > 6 && micEnabled;
-            if (nowSpeaking !== speaking) {
-                speaking = nowSpeaking;
-                updateVoiceCircle(uid, nowSpeaking);
-                // إخبار الآخرين بحالة الكلام (اختياري عبر Firebase)
-                if (myRoom && myKey) set(ref(db, `rooms/${myRoom}/voice/${myKey}/speaking`), nowSpeaking);
-            }
-            requestAnimationFrame(check);
-        };
-        requestAnimationFrame(check);
-        speakDetectors[uid] = { ctx };
-    } catch(e) {}
-}
-
-function setupSpeakDetectorRemote(uid, stream) {
-    try {
-        const ctx = new AudioContext();
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
-        const src = ctx.createMediaStreamSource(stream);
-        src.connect(analyser);
-        const data = new Uint8Array(analyser.fftSize);
-        let speaking = false;
-
-        const check = () => {
-            if (!voiceActive) return;
-            analyser.getByteTimeDomainData(data);
-            let sum = 0;
-            for (let i = 0; i < data.length; i++) sum += Math.abs(data[i] - 128);
-            const avg = sum / data.length;
-            const nowSpeaking = avg > 5;
-            if (nowSpeaking !== speaking) { speaking = nowSpeaking; updateVoiceCircle(uid, nowSpeaking); }
-            requestAnimationFrame(check);
-        };
-        requestAnimationFrame(check);
-        speakDetectors[uid] = { ctx };
-    } catch(e) {}
-}
-
-function updateVoiceCircle(uid, isSpeaking) {
-    const circle = document.getElementById('vc-' + uid);
-    if (!circle) return;
-    circle.classList.toggle('speaking', isSpeaking);
-}
-
-// ===== تحديث شريط الصوت =====
-async function updateVoiceBar() {
-    if (!myRoom || !voiceActive) return;
-    const snap = await get(ref(db, `rooms/${myRoom}/voice`));
-    const voicePlayers = snap.val() || {};
-    const playersDiv = document.getElementById('voice-players');
-    playersDiv.innerHTML = '';
-
-    for (const [uid, data] of Object.entries(voicePlayers)) {
-        const isMe = uid === myKey;
-        const isMutedUser = isMe ? !micEnabled : (data.muted || false);
-        const initials = (data.name || '?').substring(0, 2).toUpperCase();
-        const pc = peerConnections[uid];
-        const connected = isMe || (pc && pc.connectionState === 'connected');
-
-        playersDiv.innerHTML += `
+        function updateVoiceBarFromPlayers(voicePlayers) {
+            const playersDiv = document.getElementById('voice-players');
+            playersDiv.innerHTML = '';
+            for (const [uid, data] of Object.entries(voicePlayers)) {
+                const isMe = uid === myKey;
+                const isMutedUser = isMe ? !micEnabled : (data.muted || false);
+                const initials = (data.name || '؟').substring(0, 2).toUpperCase();
+                const pc = peerConnections[uid];
+                const connected = isMe || (pc && pc.connectionState === 'connected');
+                playersDiv.innerHTML += `
             <div class="voice-avatar">
-                <div class="voice-circle ${isMutedUser ? 'muted-remote' : ''}" id="vc-${uid}" title="${data.name || uid}">
-                    ${isMutedUser ? '🔇' : initials}
+                <div class="voice-circle ${isMutedUser?'muted-remote':''}" id="vc-${uid}" title="${data.name||uid}">
+                    ${isMutedUser?'🔇':initials}
                 </div>
-                <span class="voice-name">${isMe ? 'أنت' : (data.name || uid)}</span>
+                <span class="voice-name">${isMe?'أنت':(data.name||uid)}</span>
             </div>`;
-    }
-}
+            }
+            // تحديث عدد المتحدثين
+            const count = Object.keys(voicePlayers).length;
+            document.getElementById('voice-status').textContent =
+                count > 0 ? `🟢 ${count} متحدث` : '🟢 متصل بالصوت';
+        }
 
-// ===== الاستماع لتغييرات قناة الصوت (دخول/خروج) =====
-function listenVoiceChannel() {
-    onValue(ref(db, `rooms/${myRoom}/voice`), async (snap) => {
-        const voicePlayers = snap.val() || {};
-        await updateVoiceBar();
-        // إذا دخل لاعب جديد، أرسل له offer
-        for (const uid of Object.keys(voicePlayers)) {
-            if (uid !== myKey && !peerConnections[uid] && voiceActive) {
-                await createOffer(uid);
+        // ===== كشف الكلام =====
+        function setupSpeakDetector(uid, name, stream) {
+            try {
+                if (speakDetectors[uid]) { try { speakDetectors[uid].ctx.close(); } catch (e) {} }
+                const ctx = new AudioContext();
+                const analyser = ctx.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.3;
+                const src = ctx.createMediaStreamSource(stream);
+                src.connect(analyser);
+                const data = new Uint8Array(analyser.fftSize);
+                let speaking = false;
+                let silenceFrames = 0;
+                const check = () => {
+                    if (!voiceActive || !speakDetectors[uid]) return;
+                    analyser.getByteFrequencyData(data);
+                    let sum = 0;
+                    for (let i = 0; i < data.length; i++) sum += data[i];
+                    const avg = sum / data.length;
+                    const nowSpeaking = avg > 15 && micEnabled;
+                    if (nowSpeaking !== speaking) {
+                        if (nowSpeaking) {
+                            speaking = true;
+                            silenceFrames = 0;
+                            updateVoiceCircle(uid, true);
+                        } else {
+                            silenceFrames++;
+                            if (silenceFrames > 8) {
+                                speaking = false;
+                                silenceFrames = 0;
+                                updateVoiceCircle(uid, false);
+                            }
+                        }
+                    } else if (speaking && !nowSpeaking) {
+                        silenceFrames++;
+                        if (silenceFrames > 8) {
+                            speaking = false;
+                            silenceFrames = 0;
+                            updateVoiceCircle(uid, false);
+                        }
+                    } else if (!speaking) {
+                        silenceFrames = 0;
+                    }
+                    if (myRoom && myKey && uid === myKey) {
+                        set(ref(db, `rooms/${myRoom}/voice/${myKey}/speaking`), speaking).catch(() => {});
+                    }
+                    if (speakDetectors[uid]) {
+                        requestAnimationFrame(check);
+                    }
+                };
+                requestAnimationFrame(check);
+                speakDetectors[uid] = { ctx, analyser };
+            } catch (e) {
+                console.warn('Speak detector setup error:', e.message);
             }
         }
-    });
-}
-// ================================================================
-window.openModal=id=>document.getElementById(id).style.display='flex';
-window.closeModal=id=>document.getElementById(id).style.display='none';
-window.updateTheme=()=>document.getElementById('body-tag').className=document.getElementById('theme-select').value+'-mode';
-</script>
+
+        function setupSpeakDetectorRemote(uid, stream) {
+            try {
+                if (speakDetectors[uid]) { try { speakDetectors[uid].ctx.close(); } catch (e) {} }
+                const ctx = new AudioContext();
+                const analyser = ctx.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.3;
+                const src = ctx.createMediaStreamSource(stream);
+                src.connect(analyser);
+                const data = new Uint8Array(analyser.fftSize);
+                let speaking = false;
+                let silenceFrames = 0;
+                const check = () => {
+                    if (!voiceActive || !speakDetectors[uid]) return;
+                    analyser.getByteFrequencyData(data);
+                    let sum = 0;
+                    for (let i = 0; i < data.length; i++) sum += data[i];
+                    const avg = sum / data.length;
+                    const nowSpeaking = avg > 12;
+                    if (nowSpeaking !== speaking) {
+                        if (nowSpeaking) {
+                            speaking = true;
+                            silenceFrames = 0;
+                            updateVoiceCircle(uid, true);
+                        } else {
+                            silenceFrames++;
+                            if (silenceFrames > 6) {
+                                speaking = false;
+                                silenceFrames = 0;
+                                updateVoiceCircle(uid, false);
+                            }
+                        }
+                    } else if (speaking && !nowSpeaking) {
+                        silenceFrames++;
+                        if (silenceFrames > 6) {
+                            speaking = false;
+                            silenceFrames = 0;
+                            updateVoiceCircle(uid, false);
+                        }
+                    } else if (!speaking) {
+                        silenceFrames = 0;
+                    }
+                    if (speakDetectors[uid]) {
+                        requestAnimationFrame(check);
+                    }
+                };
+                requestAnimationFrame(check);
+                speakDetectors[uid] = { ctx, analyser };
+            } catch (e) {
+                console.warn('Remote speak detector setup error:', e.message);
+            }
+        }
+
+        function updateVoiceCircle(uid, isSpeaking) {
+            const circle = document.getElementById('vc-' + uid);
+            if (!circle) return;
+            if (isSpeaking) {
+                circle.classList.add('speaking');
+            } else {
+                circle.classList.remove('speaking');
+            }
+        }
+
+        // ================================================================
+        window.openModal = id => document.getElementById(id).style.display = 'flex';
+        window.closeModal = id => document.getElementById(id).style.display = 'none';
+        window.updateTheme = () => document.getElementById('body-tag').className = document.getElementById(
+            'theme-select').value + '-mode';
+    </script>
 </body>
 </html>
