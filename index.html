@@ -284,6 +284,39 @@ select {
 }
 .spin { display: inline-block; animation: spin 1s linear infinite; }
 @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+/* ── توهج البطاقات القابلة للعب ── */
+.uno-card.playable {
+    filter: drop-shadow(0 0 8px #ffd60a) drop-shadow(0 0 16px rgba(255,214,10,0.6));
+    transform: translateY(-6px);
+    cursor: pointer;
+}
+.uno-card.playable:hover { transform: translateY(-16px) scale(1.1); }
+.uno-card.not-playable { opacity: 0.45; cursor: default; }
+
+/* ── ثيم لون مخصص ── */
+.custom-color-mode { --bg: var(--custom-bg,#e8f4fd); --surface: var(--custom-surface,#fff); --txt: var(--custom-txt,#1c1c1e); }
+
+/* ── ثيم صورة خلفية ── */
+.bg-image-mode body { background: none !important; }
+#bg-image-layer {
+    position: fixed; inset: 0; z-index: -1;
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat;
+}
+#bg-image-layer::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(0,0,0,0.35);
+}
+.bg-image-mode .screen { background: rgba(255,255,255,0.82); backdrop-filter: blur(14px); }
+.dark-mode.bg-image-mode .screen { background: rgba(20,20,20,0.82); }
+
+/* ── منتقي اللون المخصص ── */
+#custom-color-picker { display:none; background:var(--bg); border-radius:var(--radius); padding:14px; margin-top:8px; }
+#custom-color-picker.show { display:block; }
+.color-pick-row { display:flex; align-items:center; gap:10px; margin:6px 0; }
+.color-pick-row label { font-size:0.85rem; flex:1; text-align:right; color:var(--txt2); }
+.color-pick-row input[type=color] { width:44px; height:36px; padding:2px; border-radius:8px; border:1.5px solid var(--gray); cursor:pointer; }
 </style>
 </head>
 <body id="body-tag">
@@ -291,6 +324,7 @@ select {
 <!-- ══════════════════════════════════════
      شاشة المصادقة
 ══════════════════════════════════════ -->
+<div id="bg-image-layer"></div>
 <div class="screen" id="auth-screen">
     <div class="auth-logo">🎴</div>
     <div class="auth-title">UNO Online</div>
@@ -323,7 +357,7 @@ select {
 
     <!-- شريط المستخدم -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-        <button onclick="logout()" style="width:auto;background:var(--bg);color:var(--accent);padding:8px 14px;border-radius:20px;font-size:0.82rem;font-weight:600;margin:0;">خروج</button>
+        <button onclick="switchTab('settings')" style="width:auto;background:var(--bg);color:var(--blue);padding:8px 14px;border-radius:20px;font-size:0.82rem;font-weight:600;margin:0;">⚙️</button>
         <div style="display:flex;align-items:center;gap:9px;">
             <div>
                 <div style="font-weight:700;font-size:0.93rem;text-align:right;" id="display-name"></div>
@@ -382,19 +416,55 @@ select {
     <!-- ── تبويب الإعدادات ── -->
     <div id="tab-settings-content" class="hidden">
         <p class="section-title">الإعدادات</p>
-        <div class="setting-row">
-            <select id="lang-select" onchange="updateGameUI()" style="width:auto;margin:0;">
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
-            </select>
-            <span class="setting-label">اللغة</span>
+
+        <!-- الحساب -->
+        <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:10px 0 4px;">الحساب</p>
+        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-name-modal')">
+            <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
+            <span class="setting-label">اسم المستخدم<small id="settings-username"></small></span>
         </div>
+        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-pass-modal')">
+            <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
+            <span class="setting-label">كلمة المرور</span>
+        </div>
+        <div class="setting-row" style="cursor:pointer;" onclick="logout()">
+            <span style="color:var(--accent);font-size:0.85rem;">خروج ←</span>
+            <span class="setting-label" style="color:var(--accent);">تسجيل الخروج</span>
+        </div>
+
+        <!-- المظهر -->
+        <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:16px 0 4px;">المظهر</p>
         <div class="setting-row">
             <select id="theme-select" onchange="updateTheme()" style="width:auto;margin:0;">
-                <option value="">فاتح</option>
-                <option value="dark-mode">داكن</option>
+                <option value="light">فاتح ☀️</option>
+                <option value="dark">داكن 🌙</option>
+                <option value="custom">لون مخصص 🎨</option>
+                <option value="bgimage">صورة خلفية 🖼️</option>
             </select>
             <span class="setting-label">المظهر</span>
+        </div>
+        <!-- منتقي اللون المخصص -->
+        <div id="custom-color-picker">
+            <div class="color-pick-row">
+                <input type="color" id="cp-bg"      value="#e8f4fd" onchange="applyCustomColors()">
+                <label>لون الخلفية</label>
+            </div>
+            <div class="color-pick-row">
+                <input type="color" id="cp-surface"  value="#ffffff" onchange="applyCustomColors()">
+                <label>لون البطاقات</label>
+            </div>
+            <div class="color-pick-row">
+                <input type="color" id="cp-txt"      value="#1c1c1e" onchange="applyCustomColors()">
+                <label>لون النص</label>
+            </div>
+        </div>
+        <!-- رفع صورة خلفية -->
+        <div id="bg-image-upload" style="display:none;margin-top:8px;">
+            <label style="display:block;background:var(--bg);border-radius:var(--radius-sm);padding:12px;cursor:pointer;font-size:0.88rem;text-align:center;color:var(--blue);">
+                📂 اختر صورة من جهازك
+                <input type="file" accept="image/*" onchange="applyBgImage(this)" style="display:none;">
+            </label>
+            <button onclick="clearBgImage()" class="secondary" style="margin-top:6px;font-size:0.82rem;padding:8px;">🗑️ إزالة الصورة</button>
         </div>
     </div>
 </div>
@@ -477,6 +547,37 @@ select {
         </div>
     </div>
     <button onclick="quitGame()" style="background:var(--accent);margin-top:14px;">🚪 خروج من الغرفة</button>
+</div>
+
+
+<!-- ══ مودال تغيير الاسم ══ -->
+<div id="change-name-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>✏️ تغيير اسم المستخدم</h3>
+        <input type="text" id="new-name-input" placeholder="الاسم الجديد" style="margin:12px 0;">
+        <div id="name-change-err" style="color:var(--accent);font-size:0.82rem;min-height:18px;"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="success" onclick="changeName()">حفظ</button>
+            <button class="secondary" onclick="closeModal('change-name-modal')">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ مودال تغيير كلمة المرور ══ -->
+<div id="change-pass-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>🔑 تغيير كلمة المرور</h3>
+        <input type="password" id="curr-pass-input"  placeholder="كلمة المرور الحالية" style="margin:8px 0;">
+        <input type="password" id="new-pass-input"   placeholder="كلمة المرور الجديدة">
+        <input type="password" id="new-pass2-input"  placeholder="تأكيد كلمة المرور الجديدة">
+        <div id="pass-change-err" style="color:var(--accent);font-size:0.82rem;min-height:18px;margin:4px 0;"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="success" onclick="changePassword()">حفظ</button>
+            <button class="secondary" onclick="closeModal('change-pass-modal')">إلغاء</button>
+        </div>
+    </div>
 </div>
 
 <!-- إيموجي الطائرة الكبيرة -->
@@ -869,14 +970,15 @@ window.sendChatMsg=async()=>{
 
 // إيموجي سريعة — تُرسل للدردشة وتطير بحجم كبير
 window.sendQuickEmoji=(emoji,ctx)=>{
-    blastEmoji(emoji);
     if(ctx==='chat' && activeChatId){
         push(ref(db,`convos/${activeChatId}/msgs`),{uid:currentUser.uid,name:myName,text:emoji,time:Date.now()});
         update(ref(db,`convos/${activeChatId}`),{lastMsg:emoji,lastTime:Date.now()});
+        // إيموجي للجميع في الدردشة الخاصة — محلياً فقط (لا يوجد listener مشترك)
+        blastEmoji(emoji);
     } else if(ctx==='game' && myRoom){
-        push(ref(db,`rooms/${myRoom}/chat`),{u:myName,t:emoji});
+        // أرسل الإيموجي لقناة اللعبة ليراه الجميع
+        push(ref(db,`rooms/${myRoom}/emoji`),{e:emoji,uid:currentUser.uid,t:Date.now()});
     }
-    // إخفاء picker بعد الإرسال
     document.getElementById(`emoji-picker-${ctx}`).style.display='none';
 };
 
@@ -1075,6 +1177,18 @@ function listenGame(){
         if(s.exists()) Object.values(s.val()).forEach(m=>div.innerHTML+=`<div style="text-align:right;font-size:0.82rem;padding:2px 0;"><b>${m.u}:</b> ${m.t}</div>`);
         div.scrollTop=div.scrollHeight;
     });
+    // إيموجي مشتركة — يراها الجميع
+    let lastEmojiKey='';
+    onValue(ref(db,`rooms/${myRoom}/emoji`),s=>{
+        if(!s.exists()) return;
+        const entries=Object.entries(s.val());
+        const latest=entries[entries.length-1];
+        if(!latest) return;
+        const [key,data]=latest;
+        if(key===lastEmojiKey) return;
+        lastEmojiKey=key;
+        blastEmoji(data.e);
+    });
 }
 
 async function initGame(keys){
@@ -1111,6 +1225,10 @@ window.returnToMain=()=>{
     document.getElementById('main-screen').classList.remove('hidden');
 };
 
+function canPlay(card, top){
+    return card.color===top.color||card.value===top.value||card.color==='black';
+}
+
 function render(game){
     if(game.winner){
         if(game.winner===myName) setTimeout(async()=>{ try{await remove(ref(db,`rooms/${myRoom}`));}catch(e){} },3500);
@@ -1118,20 +1236,44 @@ function render(game){
     }
     document.getElementById('waiting-area').classList.add('hidden');
     document.getElementById('game-board').classList.remove('hidden');
-    document.getElementById('top-card').src=cardImg(game.discard[game.discard.length-1]);
+    const top=game.discard[game.discard.length-1];
+    document.getElementById('top-card').src=cardImg(top);
     const hand=game[`hand_${myKey}`]||[];
-    const hDiv=document.getElementById('player-hand'); hDiv.innerHTML='';
-    hand.forEach((c,i)=>{ const img=document.createElement('img'); img.className='uno-card'; img.src=cardImg(c); img.onclick=()=>play(i,game); hDiv.appendChild(img); });
     const isTurn=game.order[game.turn]===myKey;
+    const hDiv=document.getElementById('player-hand'); hDiv.innerHTML='';
+
+    let hasAnyPlayable=false;
+    hand.forEach((card,i)=>{
+        const img=document.createElement('img');
+        img.src=cardImg(card);
+        const playable=isTurn&&canPlay(card,top);
+        if(playable) hasAnyPlayable=true;
+        img.className='uno-card'+(playable?' playable':isTurn?' not-playable':'');
+        img.onclick=()=>{ if(isTurn) play(i,game); };
+        hDiv.appendChild(img);
+    });
+
     document.getElementById('turn-display').textContent=isTurn?'🔥 دورك!':'⏳ انتظر...';
     document.getElementById('uno-btn').style.display=hand.length===2&&isTurn?'block':'none';
+
+    // سحب تلقائي إذا دور اللاعب ولا يوجد ما يمكن لعبه
+    if(isTurn && !hasAnyPlayable && !picking && hand.length>0){
+        setTimeout(()=>drawCardAction(true),800);
+    }
 }
 
 async function play(idx,game){
     if(game.order[game.turn]!==myKey||picking)return;
     const card=game[`hand_${myKey}`][idx],top=game.discard[game.discard.length-1];
     if(card.color===top.color||card.value===top.value||card.color==='black'){
-        if(game[`hand_${myKey}`].length===2&&!hasUno){alert('اضغط UNO أولاً!');return;}
+        // إذا الكرت قبل الأخير ولم يضغط UNO — يُسحب منه بطاقتان كعقوبة
+        if(game[`hand_${myKey}`].length===2&&!hasUno){
+            sndPen();
+            game[`hand_${myKey}`].push(game.deck.pop());
+            game[`hand_${myKey}`].push(game.deck.pop());
+            await update(ref(db,`rooms/${myRoom}/game`),game);
+            return;
+        }
         sndPlay(); game[`hand_${myKey}`].splice(idx,1); game.discard.push(card);
         if(!game[`hand_${myKey}`].length){game.winner=myName;await update(ref(db,`rooms/${myRoom}/game`),game);return;}
         let ni=(game.turn+1)%game.order.length,victim=game.order[ni];
@@ -1153,22 +1295,28 @@ window.pickColor=async color=>{
     await update(ref(db,`rooms/${myRoom}/game`),game);
 };
 
-window.drawCardAction=async()=>{
+window.drawCardAction=async(auto=false)=>{
     initAudio();sndDraw();
     const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
-    if(game.order[game.turn]!==myKey)return;
-    game[`hand_${myKey}`].push(game.deck.pop());game.turn=(game.turn+1)%game.order.length;
+    if(!game||game.order[game.turn]!==myKey)return;
+    if(!game.deck||!game.deck.length) return;
+    game[`hand_${myKey}`].push(game.deck.pop());
+    game.turn=(game.turn+1)%game.order.length;
     hasUno=false;await update(ref(db,`rooms/${myRoom}/game`),game);
 };
 
 window.quitGame=async()=>{
-    if(isAdmin){if(confirm('إغلاق الغرفة للجميع؟'))await remove(ref(db,`rooms/${myRoom}`));}
-    else await remove(ref(db,`rooms/${myRoom}/players/${myKey}`));
-    await updateUserStatus('online');
-    document.getElementById('game-screen').classList.add('hidden');
-    document.getElementById('main-screen').classList.remove('hidden');
-    myRoom=null;myKey=null;isAdmin=false;hasUno=false;picking=false;prevTurnKey=null;
-    window.location.hash='';
+    if(isAdmin){
+        if(confirm('إغلاق الغرفة للجميع؟')){
+            await remove(ref(db,`rooms/${myRoom}`));
+            await updateUserStatus('online');
+            returnToMain();
+        }
+    } else {
+        await remove(ref(db,`rooms/${myRoom}/players/${myKey}`));
+        await updateUserStatus('online');
+        returnToMain();
+    }
 };
 
 window.sayUno=()=>{ initAudio();sndUno();hasUno=true;sendGameMsg('⚠️ UNO!'); };
@@ -1197,7 +1345,119 @@ window.confirmAddFriend=async()=>{
 
 window.openModal =id=>document.getElementById(id).style.display='flex';
 window.closeModal=id=>{ document.getElementById(id).style.display='none'; };
-window.updateTheme=()=>document.getElementById('body-tag').className=document.getElementById('theme-select').value;
+
+// ═══ ثيمات المظهر ═══
+window.updateTheme=()=>{
+    const theme=document.getElementById('theme-select').value;
+    const body=document.getElementById('body-tag');
+    const cpPicker=document.getElementById('custom-color-picker');
+    const bgUpload=document.getElementById('bg-image-upload');
+    const bgLayer =document.getElementById('bg-image-layer');
+
+    body.className='';
+    cpPicker.classList.remove('show');
+    bgUpload.style.display='none';
+    bgLayer.style.backgroundImage='';
+
+    if(theme==='dark')    { body.className='dark-mode'; }
+    else if(theme==='custom') {
+        body.className='custom-color-mode';
+        cpPicker.classList.add('show');
+        applyCustomColors();
+    } else if(theme==='bgimage') {
+        bgUpload.style.display='block';
+        const saved=localStorage.getItem('uno_bg_image');
+        if(saved){ bgLayer.style.backgroundImage=`url(${saved})`; body.className='bg-image-mode'; }
+    }
+    localStorage.setItem('uno_theme', theme);
+};
+
+window.applyCustomColors=()=>{
+    const root=document.documentElement;
+    root.style.setProperty('--custom-bg',     document.getElementById('cp-bg').value);
+    root.style.setProperty('--custom-surface', document.getElementById('cp-surface').value);
+    root.style.setProperty('--custom-txt',    document.getElementById('cp-txt').value);
+};
+
+window.applyBgImage=(input)=>{
+    const file=input.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        const url=e.target.result;
+        localStorage.setItem('uno_bg_image', url);
+        document.getElementById('bg-image-layer').style.backgroundImage=`url(${url})`;
+        document.getElementById('body-tag').className='bg-image-mode';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.clearBgImage=()=>{
+    localStorage.removeItem('uno_bg_image');
+    document.getElementById('bg-image-layer').style.backgroundImage='';
+    document.getElementById('body-tag').className='';
+    document.getElementById('theme-select').value='light';
+};
+
+// استعادة الثيم عند التحميل
+(()=>{
+    const saved=localStorage.getItem('uno_theme');
+    if(saved){ document.getElementById('theme-select') && (document.getElementById('theme-select').value=saved); updateTheme(); }
+})();
+
+// ═══ تغيير الاسم ═══
+window.changeName=async()=>{
+    const newName=document.getElementById('new-name-input').value.trim();
+    const err=document.getElementById('name-change-err');
+    err.textContent='';
+    if(!newName||newName.length<2){ err.textContent='الاسم قصير جداً'; return; }
+    try{
+        await updateProfile(currentUser,{displayName:newName});
+        await update(ref(db,`users/${currentUser.uid}`),{name:newName,nameLower:newName.toLowerCase()});
+        myName=newName;
+        document.getElementById('display-name').textContent=newName;
+        document.getElementById('settings-username').textContent=newName;
+        const av=document.getElementById('main-avatar');
+        av.textContent=initials(newName); av.style.background=strColor(newName);
+        closeModal('change-name-modal');
+        document.getElementById('new-name-input').value='';
+    }catch(e){ err.textContent='خطأ: '+e.message; }
+};
+
+// ═══ تغيير كلمة المرور ═══
+window.changePassword=async()=>{
+    const curr =document.getElementById('curr-pass-input').value;
+    const np   =document.getElementById('new-pass-input').value;
+    const np2  =document.getElementById('new-pass2-input').value;
+    const err  =document.getElementById('pass-change-err');
+    err.textContent='';
+    if(!curr||!np){ err.textContent='يرجى ملء جميع الحقول'; return; }
+    if(np.length<6){ err.textContent='كلمة المرور الجديدة 6 أحرف على الأقل'; return; }
+    if(np!==np2){ err.textContent='كلمتا المرور غير متطابقتين'; return; }
+    try{
+        // إعادة مصادقة ثم تغيير
+        const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const cred=EmailAuthProvider.credential(currentUser.email, curr);
+        await reauthenticateWithCredential(currentUser, cred);
+        await updatePassword(currentUser, np);
+        closeModal('change-pass-modal');
+        ['curr-pass-input','new-pass-input','new-pass2-input'].forEach(id=>document.getElementById(id).value='');
+        alert('✅ تم تغيير كلمة المرور');
+    }catch(e){
+        const m={'auth/wrong-password':'كلمة المرور الحالية غاطئة','auth/invalid-credential':'كلمة المرور الحالية غاطئة'};
+        err.textContent=m[e.code]||e.message;
+    }
+};
+
+// تحديث اسم المستخدم في الإعدادات عند فتحها
+const origSwitchTab=window.switchTab;
+window.switchTab=tab=>{
+    origSwitchTab(tab);
+    if(tab==='settings' && currentUser){
+        const el=document.getElementById('settings-username');
+        if(el) el.textContent=' — '+(currentUser.displayName||currentUser.email.split('@')[0]);
+    }
+};
+
 window.updateGameUI=()=>{};
 </script>
 </body>
