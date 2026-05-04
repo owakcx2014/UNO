@@ -1,1354 +1,872 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Online</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --sf: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
-            --bg: #f2f2f7;
-            --surface: #ffffff;
-            --txt: #1c1c1e;
-            --txt2: #6c6c70;
-            --accent: #ff3b30;
-            --blue: #007aff;
-            --green: #34c759;
-            --yellow: #ffd60a;
-            --orange: #ff9500;
-            --gray: #8e8e93;
-            --online: #34c759;
-            --playing: #007aff;
-            --offline: #8e8e93;
-            --radius: 18px;
-            --radius-sm: 12px;
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
-        }
-        .dark-mode {
-            --bg: #000000;
-            --surface: #1c1c1e;
-            --txt: #ffffff;
-            --txt2: #8e8e93;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background: var(--bg);
-            color: var(--txt);
-            font-family: var(--sf);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 16px;
-            -webkit-font-smoothing: antialiased;
-        }
-        .screen {
-            background: var(--surface);
-            border-radius: 28px;
-            padding: 24px 20px;
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 480px;
-            max-height: 92vh;
-            overflow-y: auto;
-            text-align: center;
-        }
-        .hidden {
-            display: none !important;
-        }
-        input,
-        button,
-        select {
-            font-family: var(--sf);
-            font-size: 1rem;
-            width: 100%;
-            border-radius: var(--radius-sm);
-            border: none;
-            outline: none;
-            margin: 4px 0;
-            transition: all 0.18s;
-        }
-        input {
-            background: var(--bg);
-            color: var(--txt);
-            padding: 13px 16px;
-            text-align: right;
-            border: 1.5px solid transparent;
-        }
-        input:focus {
-            border-color: var(--blue);
-            background: var(--surface);
-        }
-        button {
-            padding: 13px 18px;
-            background: var(--blue);
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-            letter-spacing: -0.2px;
-        }
-        button:active {
-            transform: scale(0.97);
-            opacity: 0.88;
-        }
-        button.secondary {
-            background: var(--bg);
-            color: var(--blue);
-        }
-        button.danger {
-            background: var(--accent);
-        }
-        button.success {
-            background: var(--green);
-        }
-        button.ghost {
-            background: transparent;
-            color: var(--txt2);
-            font-weight: 500;
-        }
-        .auth-logo {
-            font-size: 3.2rem;
-            margin-bottom: 6px;
-        }
-        .auth-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin-bottom: 4px;
-        }
-        .auth-sub {
-            font-size: 0.85rem;
-            color: var(--txt2);
-            margin-bottom: 24px;
-        }
-        .auth-err {
-            color: var(--accent);
-            font-size: 0.82rem;
-            min-height: 18px;
-            margin: 4px 0;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 14px;
-            letter-spacing: -0.3px;
-        }
-        .tab-bar {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 18px;
-            background: var(--bg);
-            border-radius: var(--radius);
-            padding: 4px;
-        }
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            color: var(--txt2);
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 9px 6px;
-            border-radius: 14px;
-            position: relative;
-        }
-        .tab-btn.active {
-            background: var(--surface);
-            color: var(--blue);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-        .tab-badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: var(--accent);
-            color: #fff;
-            border-radius: 20px;
-            font-size: 0.62rem;
-            padding: 1px 5px;
-            font-weight: 700;
-            display: none;
-        }
-        .tab-badge.show {
-            display: block;
-        }
-        .friend-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            margin: 7px 0;
-            text-align: right;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .friend-card:active {
-            transform: scale(0.98);
-        }
-        .avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1rem;
-            color: #fff;
-        }
-        .avatar-sm {
-            width: 32px;
-            height: 32px;
-            font-size: 0.8rem;
-        }
-        .fc-info {
-            flex: 1;
-        }
-        .fc-name {
-            font-weight: 600;
-            font-size: 0.93rem;
-        }
-        .fc-status {
-            font-size: 0.75rem;
-            color: var(--txt2);
-            margin-top: 1px;
-        }
-        .fc-actions {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-        .fc-actions button {
-            width: auto;
-            padding: 6px 12px;
-            font-size: 0.78rem;
-            margin: 0;
-            border-radius: 20px;
-        }
-        .status-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 5px;
-        }
-        .dot-online {
-            background: var(--green);
-        }
-        .dot-playing {
-            background: var(--blue);
-        }
-        .dot-offline {
-            background: var(--gray);
-        }
-        .search-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .search-row input {
-            margin: 0;
-        }
-        .search-row button {
-            width: auto;
-            padding: 0 16px;
-            margin: 0;
-            border-radius: var(--radius-sm);
-        }
-        .search-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            padding: 10px 12px;
-            margin: 5px 0;
-            text-align: right;
-        }
-        .search-item .fc-info {
-            flex: 1;
-        }
-        .search-item button {
-            width: auto;
-            padding: 6px 14px;
-            font-size: 0.78rem;
-            margin: 0;
-            border-radius: 20px;
-        }
-        .chat-screen {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        .chat-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--bg);
-            margin-bottom: 10px;
-        }
-        .chat-back {
-            width: auto;
-            background: none;
-            color: var(--blue);
-            font-size: 1.1rem;
-            padding: 0 10px 0 0;
-            margin: 0;
-        }
-        .chat-header-info {
-            flex: 1;
-            text-align: right;
-        }
-        .chat-header-name {
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-        .chat-header-sub {
-            font-size: 0.75rem;
-            color: var(--txt2);
-        }
-        .chat-msgs {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px 2px;
-            max-height: 340px;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .msg-row {
-            display: flex;
-            align-items: flex-end;
-            gap: 6px;
-        }
-        .msg-row.mine {
-            flex-direction: row-reverse;
-        }
-        .bubble {
-            max-width: 72%;
-            padding: 9px 13px;
-            border-radius: 18px;
-            font-size: 0.88rem;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-        .bubble-them {
-            background: var(--bg);
-            color: var(--txt);
-            border-bottom-right-radius: 5px;
-        }
-        .bubble-mine {
-            background: var(--blue);
-            color: #fff;
-            border-bottom-left-radius: 5px;
-        }
-        .msg-time {
-            font-size: 0.65rem;
-            color: var(--txt2);
-            flex-shrink: 0;
-            margin-bottom: 2px;
-        }
-        .chat-input-row {
-            display: flex;
-            gap: 8px;
-            padding-top: 10px;
-            border-top: 1px solid var(--bg);
-            margin-top: 8px;
-            align-items: center;
-        }
-        .chat-input-row input {
-            margin: 0;
-            flex: 1;
-        }
-        .chat-input-row button {
-            width: auto;
-            padding: 10px 14px;
-            margin: 0;
-            border-radius: var(--radius-sm);
-        }
-        .emoji-quick-btn {
-            width: auto;
-            background: var(--bg);
-            color: var(--txt);
-            padding: 10px 11px;
-            margin: 0;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-        }
-        #emoji-blast {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            background: transparent;
-        }
-        .emoji-big {
-            font-size: clamp(80px, 25vw, 140px);
-            animation: emoji-fly 2.6s ease-out forwards;
-            filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.18));
-            line-height: 1;
-        }
-        @keyframes emoji-fly {
-            0% {
-                opacity: 0;
-                transform: scale(0.2) translateY(60px);
-            }
-            25% {
-                opacity: 1;
-                transform: scale(1.1) translateY(-10px);
-            }
-            55% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-            85% {
-                opacity: 0.8;
-                transform: scale(1) translateY(-8px);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(0.8) translateY(-30px);
-            }
-        }
-        .emoji-picker-row {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 8px 0;
-        }
-        .emoji-pick-btn {
-            width: auto;
-            background: var(--bg);
-            border: none;
-            font-size: 1.5rem;
-            padding: 6px 8px;
-            border-radius: 12px;
-            cursor: pointer;
-            margin: 0;
-            transition: 0.15s;
-        }
-        .emoji-pick-btn:active {
-            transform: scale(0.85);
-        }
-        .room-info {
-            background: #1c1c1e;
-            color: var(--yellow);
-            padding: 11px 16px;
-            border-radius: var(--radius);
-            margin-bottom: 14px;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-        .copy-btn {
-            background: var(--yellow);
-            color: #000;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            width: auto;
-            margin: 0;
-        }
-        .player-tag {
-            background: var(--gray);
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            margin: 3px;
-            display: inline-block;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .player-tag:active {
-            opacity: 0.7;
-        }
-        .active-turn {
-            background: var(--accent) !important;
-            box-shadow: 0 0 14px var(--accent);
-            transform: scale(1.05);
-        }
-        .uno-card {
-            width: 58px;
-            cursor: pointer;
-            transition: 0.18s;
-            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.18));
-            margin: 2px;
-        }
-        .uno-card:hover {
-            transform: translateY(-14px) scale(1.08);
-            z-index: 10;
-        }
-        #uno-btn {
-            background: var(--yellow);
-            color: #000;
-            border: 3px solid #fff;
-            border-radius: var(--radius-sm);
-            padding: 11px 20px;
-            font-weight: 800;
-            font-size: 1.05rem;
-            cursor: pointer;
-            display: none;
-            animation: pulse 1s infinite;
-            width: auto;
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.08);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-        #game-chat-msgs {
-            height: 72px;
-            overflow-y: auto;
-            font-size: 0.8rem;
-            background: var(--bg);
-            padding: 8px 10px;
-            border-radius: var(--radius-sm);
-            margin: 8px 0;
-            text-align: right;
-        }
-        #game-chat-input-row {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-        #game-chat-input-row input {
-            flex: 1;
-            margin: 0;
-            font-size: 0.88rem;
-        }
-        #game-chat-input-row button {
-            width: auto;
-            padding: 10px 13px;
-            margin: 0;
-            font-size: 0.88rem;
-            border-radius: var(--radius-sm);
-        }
-        .quick-emoji-game {
-            width: auto;
-            background: var(--bg);
-            color: var(--txt);
-            padding: 10px 11px;
-            margin: 0;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: flex-end;
-            justify-content: center;
-            padding: 0 0 0 0;
-        }
-        .modal.center {
-            align-items: center;
-            padding: 16px;
-        }
-        .modal-sheet {
-            background: var(--surface);
-            border-radius: 28px 28px 0 0;
-            padding: 20px;
-            width: 100%;
-            max-width: 480px;
-            max-height: 85vh;
-            overflow-y: auto;
-            text-align: center;
-        }
-        .modal.center .modal-sheet {
-            border-radius: 28px;
-        }
-        .modal-handle {
-            width: 36px;
-            height: 4px;
-            background: var(--bg);
-            border-radius: 3px;
-            margin: 0 auto 18px;
-        }
-        .modal-sheet h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 14px;
-        }
-        .color-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 14px;
-        }
-        .color-swatch {
-            height: 72px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .color-swatch:active {
-            transform: scale(0.95);
-        }
-        select {
-            background: var(--bg);
-            color: var(--txt);
-            padding: 12px 14px;
-            text-align: right;
-            border-radius: var(--radius-sm);
-            margin: 6px 0;
-            cursor: pointer;
-        }
-        .setting-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--bg);
-        }
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-        .setting-label {
-            font-size: 0.93rem;
-            font-weight: 500;
-            text-align: right;
-        }
-        .setting-label small {
-            display: block;
-            color: var(--txt2);
-            font-size: 0.75rem;
-            font-weight: 400;
-        }
-        .group-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            margin: 7px 0;
-            text-align: right;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .group-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            flex-shrink: 0;
-            background: var(--orange);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-        }
-        .spin {
-            display: inline-block;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from {
-                transform: rotate(0);
-            }
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        .uno-card.playable {
-            filter: drop-shadow(0 0 8px #ffd60a) drop-shadow(0 0 16px rgba(255, 214, 10, 0.6));
-            transform: translateY(-6px);
-            cursor: pointer;
-        }
-        .uno-card.playable:hover {
-            transform: translateY(-16px) scale(1.1);
-        }
-        .uno-card.not-playable {
-            opacity: 0.45;
-            cursor: default;
-        }
-        .custom-color-mode {
-            --bg: var(--custom-bg, #e8f4fd);
-            --surface: var(--custom-surface, #fff);
-            --txt: var(--custom-txt, #1c1c1e);
-        }
-        .bg-image-mode body {
-            background: none !important;
-        }
-        #bg-image-layer {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        #bg-image-layer::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.35);
-        }
-        .bg-image-mode .screen {
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(14px);
-        }
-        .dark-mode.bg-image-mode .screen {
-            background: rgba(20, 20, 20, 0.82);
-        }
-        #custom-color-picker {
-            display: none;
-            background: var(--bg);
-            border-radius: var(--radius);
-            padding: 14px;
-            margin-top: 8px;
-        }
-        #custom-color-picker.show {
-            display: block;
-        }
-        .color-pick-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 6px 0;
-        }
-        .color-pick-row label {
-            font-size: 0.85rem;
-            flex: 1;
-            text-align: right;
-            color: var(--txt2);
-        }
-        .color-pick-row input[type=color] {
-            width: 44px;
-            height: 36px;
-            padding: 2px;
-            border-radius: 8px;
-            border: 1.5px solid var(--gray);
-            cursor: pointer;
-        }
-        .grp-members-list {
-            max-height: 250px;
-            overflow-y: auto;
-            text-align: right;
-            margin: 10px 0;
-        }
-        .grp-members-list .friend-card {
-            cursor: default;
-        }
-        .grp-members-list .friend-card .fc-actions button {
-            font-size: 0.7rem;
-            padding: 4px 10px;
-        }
-        .grp-settings-section {
-            text-align: right;
-            margin: 8px 0;
-        }
-        .grp-settings-section label {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--txt2);
-            display: block;
-            margin: 8px 0 4px;
-        }
-        .grp-settings-section input[type="file"] {
-            display: none;
-        }
-        .grp-settings-section .file-label {
-            display: inline-block;
-            background: var(--bg);
-            padding: 10px 16px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: var(--blue);
-        }
-        .grp-avatar-preview {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            object-fit: cover;
-            margin: 4px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UNO Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── خط San Francisco عبر Inter (أقرب بديل ويب لـ SF Pro) ── */
+:root {
+    --sf: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+    --bg: #f2f2f7; --surface: #ffffff; --txt: #1c1c1e; --txt2: #6c6c70;
+    --accent: #ff3b30; --blue: #007aff; --green: #34c759;
+    --yellow: #ffd60a; --orange: #ff9500; --gray: #8e8e93;
+    --online: #34c759; --playing: #007aff; --offline: #8e8e93;
+    --radius: 18px; --radius-sm: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10);
+}
+.dark-mode {
+    --bg: #000000; --surface: #1c1c1e; --txt: #ffffff; --txt2: #8e8e93;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+    background: var(--bg); color: var(--txt);
+    font-family: var(--sf);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+.screen {
+    background: var(--surface); border-radius: 28px;
+    padding: 24px 20px; box-shadow: var(--shadow);
+    width: 100%; max-width: 480px;
+    max-height: 92vh; overflow-y: auto;
+    text-align: center;
+}
+.hidden { display: none !important; }
+
+/* ── مدخلات وأزرار ── */
+input, button, select {
+    font-family: var(--sf); font-size: 1rem;
+    width: 100%; border-radius: var(--radius-sm);
+    border: none; outline: none; margin: 4px 0;
+    transition: all 0.18s;
+}
+input {
+    background: var(--bg); color: var(--txt);
+    padding: 13px 16px; text-align: right;
+    border: 1.5px solid transparent;
+}
+input:focus { border-color: var(--blue); background: var(--surface); }
+button {
+    padding: 13px 18px; background: var(--blue); color: #fff;
+    font-weight: 600; cursor: pointer; letter-spacing: -0.2px;
+}
+button:active { transform: scale(0.97); opacity: 0.88; }
+button.secondary { background: var(--bg); color: var(--blue); }
+button.danger    { background: var(--accent); }
+button.success   { background: var(--green); }
+button.ghost     { background: transparent; color: var(--txt2); font-weight: 500; }
+
+/* ── شاشة المصادقة ── */
+.auth-logo { font-size: 3.2rem; margin-bottom: 6px; }
+.auth-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.auth-sub { font-size: 0.85rem; color: var(--txt2); margin-bottom: 24px; }
+.auth-err { color: var(--accent); font-size: 0.82rem; min-height: 18px; margin: 4px 0; }
+.section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; letter-spacing: -0.3px; }
+
+/* ── nav شريط التبويب ── */
+.tab-bar {
+    display: flex; gap: 6px; margin-bottom: 18px;
+    background: var(--bg); border-radius: var(--radius);
+    padding: 4px;
+}
+.tab-btn {
+    flex: 1; background: transparent; color: var(--txt2);
+    font-size: 0.78rem; font-weight: 600; padding: 9px 6px;
+    border-radius: 14px; position: relative;
+}
+.tab-btn.active { background: var(--surface); color: var(--blue); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.tab-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--accent); color: #fff;
+    border-radius: 20px; font-size: 0.62rem;
+    padding: 1px 5px; font-weight: 700;
+    display: none;
+}
+.tab-badge.show { display: block; }
+
+/* ── بطاقات الأصدقاء ── */
+.friend-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg); border-radius: var(--radius-sm);
+    padding: 12px 14px; margin: 7px 0; text-align: right;
+    cursor: pointer; transition: 0.15s;
+}
+.friend-card:active { transform: scale(0.98); }
+.avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem; color: #fff;
+}
+.avatar-sm { width: 32px; height: 32px; font-size: 0.8rem; }
+.fc-info { flex: 1; }
+.fc-name { font-weight: 600; font-size: 0.93rem; }
+.fc-status { font-size: 0.75rem; color: var(--txt2); margin-top: 1px; }
+.fc-actions { display: flex; gap: 6px; align-items: center; }
+.fc-actions button { width: auto; padding: 6px 12px; font-size: 0.78rem; margin: 0; border-radius: 20px; }
+.status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-left: 5px; }
+.dot-online  { background: var(--green); }
+.dot-playing { background: var(--blue); }
+.dot-offline { background: var(--gray); }
+
+/* ── قسم البحث ── */
+.search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.search-row input { margin: 0; }
+.search-row button { width: auto; padding: 0 16px; margin: 0; border-radius: var(--radius-sm); }
+.search-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg); border-radius: var(--radius-sm);
+    padding: 10px 12px; margin: 5px 0; text-align: right;
+}
+.search-item .fc-info { flex: 1; }
+.search-item button { width: auto; padding: 6px 14px; font-size: 0.78rem; margin: 0; border-radius: 20px; }
+
+/* ── الدردشة ── */
+.chat-screen {
+    display: flex; flex-direction: column; height: 100%;
+}
+.chat-header {
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--bg);
+    margin-bottom: 10px;
+}
+.chat-back { width: auto; background: none; color: var(--blue); font-size: 1.1rem; padding: 0 10px 0 0; margin: 0; }
+.chat-header-info { flex: 1; text-align: right; }
+.chat-header-name { font-weight: 700; font-size: 0.95rem; }
+.chat-header-sub  { font-size: 0.75rem; color: var(--txt2); }
+.chat-msgs {
+    flex: 1; overflow-y: auto; padding: 4px 2px;
+    max-height: 340px; min-height: 200px;
+    display: flex; flex-direction: column; gap: 6px;
+}
+.msg-row { display: flex; align-items: flex-end; gap: 6px; }
+.msg-row.mine { flex-direction: row-reverse; }
+.bubble {
+    max-width: 72%; padding: 9px 13px;
+    border-radius: 18px; font-size: 0.88rem; line-height: 1.4;
+    word-break: break-word;
+}
+.bubble-them { background: var(--bg); color: var(--txt); border-bottom-right-radius: 5px; }
+.bubble-mine { background: var(--blue); color: #fff; border-bottom-left-radius: 5px; }
+.msg-time { font-size: 0.65rem; color: var(--txt2); flex-shrink: 0; margin-bottom: 2px; }
+.chat-input-row {
+    display: flex; gap: 8px; padding-top: 10px;
+    border-top: 1px solid var(--bg); margin-top: 8px;
+    align-items: center;
+}
+.chat-input-row input { margin: 0; flex: 1; }
+.chat-input-row button { width: auto; padding: 10px 14px; margin: 0; border-radius: var(--radius-sm); }
+.emoji-quick-btn {
+    width: auto; background: var(--bg); color: var(--txt);
+    padding: 10px 11px; margin: 0; border-radius: var(--radius-sm);
+    font-size: 1rem;
+}
+
+/* ── إيموجي كبيرة طائرة ── */
+#emoji-blast {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; background: transparent;
+}
+.emoji-big {
+    font-size: clamp(80px, 25vw, 140px);
+    animation: emoji-fly 2.6s ease-out forwards;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
+    line-height: 1;
+}
+@keyframes emoji-fly {
+    0%   { opacity: 0; transform: scale(0.2) translateY(60px); }
+    25%  { opacity: 1; transform: scale(1.1) translateY(-10px); }
+    55%  { opacity: 1; transform: scale(1) translateY(0); }
+    85%  { opacity: 0.8; transform: scale(1) translateY(-8px); }
+    100% { opacity: 0; transform: scale(0.8) translateY(-30px); }
+}
+.emoji-picker-row {
+    display: flex; gap: 6px; justify-content: center;
+    flex-wrap: wrap; padding: 8px 0;
+}
+.emoji-pick-btn {
+    width: auto; background: var(--bg); border: none;
+    font-size: 1.5rem; padding: 6px 8px; border-radius: 12px;
+    cursor: pointer; margin: 0; transition: 0.15s;
+}
+.emoji-pick-btn:active { transform: scale(0.85); }
+
+/* ── شريط اللعبة ── */
+.room-info {
+    background: #1c1c1e; color: var(--yellow);
+    padding: 11px 16px; border-radius: var(--radius);
+    margin-bottom: 14px; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.9rem;
+}
+.copy-btn {
+    background: var(--yellow); color: #000;
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 700; width: auto; margin: 0;
+}
+.player-tag {
+    background: var(--gray); color: #fff;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 0.78rem; margin: 3px; display: inline-block;
+    cursor: pointer; font-weight: 500;
+}
+.player-tag:active { opacity: 0.7; }
+.active-turn {
+    background: var(--accent) !important;
+    box-shadow: 0 0 14px var(--accent); transform: scale(1.05);
+}
+.uno-card {
+    width: 58px; cursor: pointer; transition: 0.18s;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.18)); margin: 2px;
+}
+.uno-card:hover { transform: translateY(-14px) scale(1.08); z-index: 10; }
+#uno-btn {
+    background: var(--yellow); color: #000;
+    border: 3px solid #fff; border-radius: var(--radius-sm);
+    padding: 11px 20px; font-weight: 800; font-size: 1.05rem;
+    cursor: pointer; display: none; animation: pulse 1s infinite; width: auto;
+}
+@keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+#game-chat-msgs {
+    height: 72px; overflow-y: auto; font-size: 0.8rem;
+    background: var(--bg); padding: 8px 10px;
+    border-radius: var(--radius-sm); margin: 8px 0; text-align: right;
+}
+#game-chat-input-row { display: flex; gap: 6px; align-items: center; }
+#game-chat-input-row input  { flex: 1; margin: 0; font-size: 0.88rem; }
+#game-chat-input-row button { width: auto; padding: 10px 13px; margin: 0; font-size: 0.88rem; border-radius: var(--radius-sm); }
+.quick-emoji-game { width: auto; background: var(--bg); color: var(--txt); padding: 10px 11px; margin: 0; border-radius: var(--radius-sm); font-size: 1rem; }
+
+/* ── مودالات ── */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-end; justify-content: center; padding: 0 0 0 0; }
+.modal.center { align-items: center; padding: 16px; }
+.modal-sheet {
+    background: var(--surface); border-radius: 28px 28px 0 0;
+    padding: 20px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+    text-align: center;
+}
+.modal.center .modal-sheet { border-radius: 28px; }
+.modal-handle { width: 36px; height: 4px; background: var(--bg); border-radius: 3px; margin: 0 auto 18px; }
+.modal-sheet h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; }
+.color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.color-swatch { height: 72px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.15s; }
+.color-swatch:active { transform: scale(0.95); }
+
+/* ── إعدادات ── */
+select {
+    background: var(--bg); color: var(--txt);
+    padding: 12px 14px; text-align: right; border-radius: var(--radius-sm);
+    margin: 6px 0; cursor: pointer;
+}
+.setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--bg);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 0.93rem; font-weight: 500; text-align: right; }
+.setting-label small { display: block; color: var(--txt2); font-size: 0.75rem; font-weight: 400; }
+
+/* ── جروبات ── */
+.group-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg); border-radius: var(--radius-sm);
+    padding: 12px 14px; margin: 7px 0; text-align: right;
+    cursor: pointer; transition: 0.15s;
+}
+.group-avatar {
+    width: 42px; height: 42px; border-radius: 14px; flex-shrink: 0;
+    background: var(--orange); display: flex; align-items: center;
+    justify-content: center; font-size: 1.3rem;
+}
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+/* ── توهج البطاقات القابلة للعب ── */
+.uno-card.playable {
+    filter: drop-shadow(0 0 8px #ffd60a) drop-shadow(0 0 16px rgba(255,214,10,0.6));
+    transform: translateY(-6px);
+    cursor: pointer;
+}
+.uno-card.playable:hover { transform: translateY(-16px) scale(1.1); }
+.uno-card.not-playable { opacity: 0.45; cursor: default; }
+
+/* ── ثيم لون مخصص ── */
+.custom-color-mode { --bg: var(--custom-bg,#e8f4fd); --surface: var(--custom-surface,#fff); --txt: var(--custom-txt,#1c1c1e); }
+
+/* ── ثيم صورة خلفية ── */
+.bg-image-mode body { background: none !important; }
+#bg-image-layer {
+    position: fixed; inset: 0; z-index: -1;
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat;
+}
+#bg-image-layer::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(0,0,0,0.35);
+}
+.bg-image-mode .screen { background: rgba(255,255,255,0.82); backdrop-filter: blur(14px); }
+.dark-mode.bg-image-mode .screen { background: rgba(20,20,20,0.82); }
+
+/* ── منتقي اللون المخصص ── */
+#custom-color-picker { display:none; background:var(--bg); border-radius:var(--radius); padding:14px; margin-top:8px; }
+#custom-color-picker.show { display:block; }
+.color-pick-row { display:flex; align-items:center; gap:10px; margin:6px 0; }
+.color-pick-row label { font-size:0.85rem; flex:1; text-align:right; color:var(--txt2); }
+.color-pick-row input[type=color] { width:44px; height:36px; padding:2px; border-radius:8px; border:1.5px solid var(--gray); cursor:pointer; }
+</style>
 </head>
 <body id="body-tag">
 
-    <div id="bg-image-layer"></div>
-
-    <!-- ══════════════════════════════════════
+<!-- ══════════════════════════════════════
      شاشة المصادقة
-    ══════════════════════════════════════ -->
-    <div class="screen" id="auth-screen">
-        <div class="auth-logo">🎴</div>
-        <div class="auth-title">UNO Online</div>
-        <div class="auth-sub">العب مع أصدقائك في أي مكان</div>
-        <div id="login-form">
-            <p class="section-title">تسجيل الدخول</p>
-            <input type="email" id="login-email" placeholder="البريد الإلكتروني">
-            <input type="password" id="login-password" placeholder="كلمة المرور">
-            <div id="login-error" class="auth-err"></div>
-            <button onclick="login()">دخول</button>
-            <button class="secondary" onclick="showRegister()">إنشاء حساب جديد</button>
-        </div>
-        <div id="register-form" class="hidden">
-            <p class="section-title">إنشاء حساب</p>
-            <input type="text" id="reg-name" placeholder="اسم المستخدم">
-            <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
-            <input type="password" id="reg-password" placeholder="كلمة المرور (6 أحرف+)">
-            <div id="reg-error" class="auth-err"></div>
-            <button onclick="register()">إنشاء الحساب</button>
-            <button class="ghost" onclick="showLogin()">العودة لتسجيل الدخول</button>
-        </div>
+══════════════════════════════════════ -->
+<div id="bg-image-layer"></div>
+<div class="screen" id="auth-screen">
+    <div class="auth-logo">🎴</div>
+    <div class="auth-title">UNO Online</div>
+    <div class="auth-sub">العب مع أصدقائك في أي مكان</div>
+
+    <div id="login-form">
+        <p class="section-title">تسجيل الدخول</p>
+        <input type="email" id="login-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="login-password" placeholder="كلمة المرور">
+        <div id="login-error" class="auth-err"></div>
+        <button onclick="login()">دخول</button>
+        <button class="secondary" onclick="showRegister()">إنشاء حساب جديد</button>
     </div>
 
-    <!-- ══════════════════════════════════════
+    <div id="register-form" class="hidden">
+        <p class="section-title">إنشاء حساب</p>
+        <input type="text" id="reg-name" placeholder="اسم المستخدم">
+        <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="reg-password" placeholder="كلمة المرور (6 أحرف+)">
+        <div id="reg-error" class="auth-err"></div>
+        <button onclick="register()">إنشاء الحساب</button>
+        <button class="ghost" onclick="showLogin()">العودة لتسجيل الدخول</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
      الشاشة الرئيسية
-    ══════════════════════════════════════ -->
-    <div class="screen hidden" id="main-screen">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-            <button onclick="switchTab('settings')" style="width:auto;background:var(--bg);color:var(--blue);padding:8px 14px;border-radius:20px;font-size:0.82rem;font-weight:600;margin:0;">⚙️</button>
-            <div style="display:flex;align-items:center;gap:9px;">
-                <div>
-                    <div style="font-weight:700;font-size:0.93rem;text-align:right;" id="display-name"></div>
-                    <div style="font-size:0.72rem;color:var(--txt2);text-align:right;">مرحباً 👋</div>
-                </div>
-                <div class="avatar" id="main-avatar" style="background:var(--blue);">؟</div>
-            </div>
-        </div>
+══════════════════════════════════════ -->
+<div class="screen hidden" id="main-screen">
 
-        <div class="tab-bar">
-            <button class="tab-btn active" id="tab-home" onclick="switchTab('home')">🏠<br>اللعبة</button>
-            <button class="tab-btn" id="tab-msgs" onclick="switchTab('msgs')">💬<br>الرسائل<span class="tab-badge" id="badge-msgs"></span></button>
-            <button class="tab-btn" id="tab-friends" onclick="switchTab('friends')">👥<br>الأصدقاء<span class="tab-badge" id="badge-req"></span></button>
-            <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">⚙️<br>الإعدادات</button>
-        </div>
-
-        <div id="tab-home-content">
-            <div style="display:flex;justify-content:center;gap:14px;margin-bottom:18px;">
-                <img src="cards/r7.png" style="width:58px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transform:rotate(-8deg);" alt="">
-                <img src="cards/+4.png" style="width:58px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transform:rotate(8deg);" alt="">
+    <!-- شريط المستخدم -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <button onclick="switchTab('settings')" style="width:auto;background:var(--bg);color:var(--blue);padding:8px 14px;border-radius:20px;font-size:0.82rem;font-weight:600;margin:0;">⚙️</button>
+        <div style="display:flex;align-items:center;gap:9px;">
+            <div>
+                <div style="font-weight:700;font-size:0.93rem;text-align:right;" id="display-name"></div>
+                <div style="font-size:0.72rem;color:var(--txt2);text-align:right;">مرحباً 👋</div>
             </div>
-            <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:18px;">أونو أونلاين 🎮</h1>
-            <button onclick="enterRoom('create')">🎯 إنشاء غرفة جديدة</button>
-            <div style="display:flex;gap:8px;margin-top:4px;">
-                <input type="text" id="room-input" maxlength="8" placeholder="كود الغرفة (8 أرقام)" style="text-align:center;">
-                <button onclick="enterRoom('join')" style="width:auto;padding:0 18px;margin:4px 0;">دخول</button>
-            </div>
-        </div>
-
-        <div id="tab-msgs-content" class="hidden">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <button onclick="openNewChat()" style="width:auto;padding:8px 14px;font-size:0.82rem;border-radius:20px;margin:0;">✏️ محادثة جديدة</button>
-                <p style="font-size:1.05rem;font-weight:700;">الرسائل</p>
-            </div>
-            <div id="convos-list">
-                <p style="color:var(--txt2);font-size:0.85rem;padding:20px 0;">لا توجد محادثات بعد</p>
-            </div>
-        </div>
-
-        <div id="tab-friends-content" class="hidden">
-            <div class="search-row">
-                <input type="text" id="friend-search" placeholder="ابحث بالاسم أو البريد...">
-                <button onclick="searchFriend()">🔍</button>
-            </div>
-            <div id="search-results" style="margin-bottom:8px;"></div>
-            <p style="font-size:0.78rem;font-weight:600;color:var(--txt2);text-align:right;margin:10px 0 6px;">الأصدقاء</p>
-            <div id="friends-list"><p style="color:var(--txt2);font-size:0.85rem;"><span class="spin">⏳</span></p></div>
-            <p style="font-size:0.78rem;font-weight:600;color:var(--txt2);text-align:right;margin:14px 0 6px;">📨 طلبات الصداقة</p>
-            <div id="requests-list"><p style="color:var(--txt2);font-size:0.85rem;">لا توجد طلبات</p></div>
-        </div>
-
-        <div id="tab-settings-content" class="hidden">
-            <p class="section-title">الإعدادات</p>
-            <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:10px 0 4px;">الحساب</p>
-            <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-name-modal')">
-                <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
-                <span class="setting-label">اسم المستخدم<small id="settings-username"></small></span>
-            </div>
-            <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-pass-modal')">
-                <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
-                <span class="setting-label">كلمة المرور</span>
-            </div>
-            <div class="setting-row" style="cursor:pointer;" onclick="logout()">
-                <span style="color:var(--accent);font-size:0.85rem;">خروج ←</span>
-                <span class="setting-label" style="color:var(--accent);">تسجيل الخروج</span>
-            </div>
-            <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:16px 0 4px;">المظهر</p>
-            <div class="setting-row">
-                <select id="theme-select" onchange="updateTheme()" style="width:auto;margin:0;">
-                    <option value="light">فاتح ☀️</option>
-                    <option value="dark">داكن 🌙</option>
-                    <option value="custom">لون مخصص 🎨</option>
-                    <option value="bgimage">صورة خلفية 🖼️</option>
-                </select>
-                <span class="setting-label">المظهر</span>
-            </div>
-            <div id="custom-color-picker">
-                <div class="color-pick-row">
-                    <input type="color" id="cp-bg" value="#e8f4fd" onchange="applyCustomColors()">
-                    <label>لون الخلفية</label>
-                </div>
-                <div class="color-pick-row">
-                    <input type="color" id="cp-surface" value="#ffffff" onchange="applyCustomColors()">
-                    <label>لون البطاقات</label>
-                </div>
-                <div class="color-pick-row">
-                    <input type="color" id="cp-txt" value="#1c1c1e" onchange="applyCustomColors()">
-                    <label>لون النص</label>
-                </div>
-            </div>
-            <div id="bg-image-upload" style="display:none;margin-top:8px;">
-                <label style="display:block;background:var(--bg);border-radius:var(--radius-sm);padding:12px;cursor:pointer;font-size:0.88rem;text-align:center;color:var(--blue);">
-                    📂 اختر صورة من جهازك
-                    <input type="file" accept="image/*" onchange="applyBgImage(this)" style="display:none;">
-                </label>
-                <button onclick="clearBgImage()" class="secondary" style="margin-top:6px;font-size:0.82rem;padding:8px;">🗑️ إزالة الصورة</button>
-            </div>
+            <div class="avatar" id="main-avatar" style="background:var(--blue);">؟</div>
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════
-     شاشة الدردشة
-    ══════════════════════════════════════ -->
-    <div class="screen hidden" id="chat-screen">
-        <div class="chat-header">
-            <button class="chat-back" onclick="backFromChat()">‹</button>
-            <div style="display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end;">
-                <div class="chat-header-info">
-                    <div class="chat-header-name" id="chat-peer-name"></div>
-                    <div class="chat-header-sub" id="chat-peer-sub"></div>
-                </div>
-                <div class="avatar avatar-sm" id="chat-peer-avatar" style="background:var(--blue);">؟</div>
-            </div>
+    <!-- تبويبات -->
+    <div class="tab-bar">
+        <button class="tab-btn active" id="tab-home"  onclick="switchTab('home')">🏠<br>اللعبة</button>
+        <button class="tab-btn"        id="tab-msgs"  onclick="switchTab('msgs')">💬<br>الرسائل<span class="tab-badge" id="badge-msgs"></span></button>
+        <button class="tab-btn"        id="tab-friends" onclick="switchTab('friends')">👥<br>الأصدقاء<span class="tab-badge" id="badge-req"></span></button>
+        <button class="tab-btn"        id="tab-settings" onclick="switchTab('settings')">⚙️<br>الإعدادات</button>
+    </div>
+
+    <!-- ── تبويب اللعبة ── -->
+    <div id="tab-home-content">
+        <div style="display:flex;justify-content:center;gap:14px;margin-bottom:18px;">
+            <img src="cards/r7.png" style="width:58px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transform:rotate(-8deg);" alt="">
+            <img src="cards/+4.png" style="width:58px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transform:rotate(8deg);"  alt="">
         </div>
-        <div class="chat-msgs" id="chat-msgs-div"></div>
-        <div class="emoji-picker-row" id="emoji-picker-chat" style="display:none;">
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🔥','chat')">🔥</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('😂','chat')">😂</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('😭','chat')">😭</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🎉','chat')">🎉</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('💀','chat')">💀</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🤩','chat')">🤩</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('😤','chat')">😤</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🥶','chat')">🥶</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('👑','chat')">👑</button>
-            <button class="emoji-pick-btn" onclick="sendQuickEmoji('💥','chat')">💥</button>
-        </div>
-        <div class="chat-input-row">
-            <button class="emoji-quick-btn" onclick="toggleEmojiPicker('chat')" title="إيموجي سريعة">😊</button>
-            <input type="text" id="chat-text-input" placeholder="رسالة..." onkeydown="if(event.key==='Enter')sendChatMsg()">
-            <button onclick="sendChatMsg()" style="width:auto;padding:10px 14px;">إرسال</button>
+        <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:18px;">أونو أونلاين 🎮</h1>
+        <button onclick="enterRoom('create')">🎯 إنشاء غرفة جديدة</button>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+            <input type="text" id="room-input" maxlength="6" placeholder="كود الغرفة" style="text-align:center;">
+            <button onclick="enterRoom('join')" style="width:auto;padding:0 18px;margin:4px 0;">دخول</button>
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════
+    <!-- ── تبويب الرسائل ── -->
+    <div id="tab-msgs-content" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <button onclick="openNewChat()" style="width:auto;padding:8px 14px;font-size:0.82rem;border-radius:20px;margin:0;">✏️ محادثة جديدة</button>
+            <p style="font-size:1.05rem;font-weight:700;">الرسائل</p>
+        </div>
+        <div id="convos-list">
+            <p style="color:var(--txt2);font-size:0.85rem;padding:20px 0;">لا توجد محادثات بعد</p>
+        </div>
+    </div>
+
+    <!-- ── تبويب الأصدقاء ── -->
+    <div id="tab-friends-content" class="hidden">
+        <div class="search-row">
+            <input type="text" id="friend-search" placeholder="ابحث بالاسم أو البريد...">
+            <button onclick="searchFriend()">🔍</button>
+        </div>
+        <div id="search-results" style="margin-bottom:8px;"></div>
+        <p style="font-size:0.78rem;font-weight:600;color:var(--txt2);text-align:right;margin:10px 0 6px;">الأصدقاء</p>
+        <div id="friends-list"><p style="color:var(--txt2);font-size:0.85rem;"><span class="spin">⏳</span></p></div>
+        <p style="font-size:0.78rem;font-weight:600;color:var(--txt2);text-align:right;margin:14px 0 6px;">📨 طلبات الصداقة</p>
+        <div id="requests-list"><p style="color:var(--txt2);font-size:0.85rem;">لا توجد طلبات</p></div>
+    </div>
+
+    <!-- ── تبويب الإعدادات ── -->
+    <div id="tab-settings-content" class="hidden">
+        <p class="section-title">الإعدادات</p>
+
+        <!-- الحساب -->
+        <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:10px 0 4px;">الحساب</p>
+        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-name-modal')">
+            <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
+            <span class="setting-label">اسم المستخدم<small id="settings-username"></small></span>
+        </div>
+        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-pass-modal')">
+            <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
+            <span class="setting-label">كلمة المرور</span>
+        </div>
+        <div class="setting-row" style="cursor:pointer;" onclick="logout()">
+            <span style="color:var(--accent);font-size:0.85rem;">خروج ←</span>
+            <span class="setting-label" style="color:var(--accent);">تسجيل الخروج</span>
+        </div>
+
+        <!-- المظهر -->
+        <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:16px 0 4px;">المظهر</p>
+        <div class="setting-row">
+            <select id="theme-select" onchange="updateTheme()" style="width:auto;margin:0;">
+                <option value="light">فاتح ☀️</option>
+                <option value="dark">داكن 🌙</option>
+                <option value="custom">لون مخصص 🎨</option>
+                <option value="bgimage">صورة خلفية 🖼️</option>
+            </select>
+            <span class="setting-label">المظهر</span>
+        </div>
+        <!-- منتقي اللون المخصص -->
+        <div id="custom-color-picker">
+            <div class="color-pick-row">
+                <input type="color" id="cp-bg"      value="#e8f4fd" onchange="applyCustomColors()">
+                <label>لون الخلفية</label>
+            </div>
+            <div class="color-pick-row">
+                <input type="color" id="cp-surface"  value="#ffffff" onchange="applyCustomColors()">
+                <label>لون البطاقات</label>
+            </div>
+            <div class="color-pick-row">
+                <input type="color" id="cp-txt"      value="#1c1c1e" onchange="applyCustomColors()">
+                <label>لون النص</label>
+            </div>
+        </div>
+        <!-- رفع صورة خلفية -->
+        <div id="bg-image-upload" style="display:none;margin-top:8px;">
+            <label style="display:block;background:var(--bg);border-radius:var(--radius-sm);padding:12px;cursor:pointer;font-size:0.88rem;text-align:center;color:var(--blue);">
+                📂 اختر صورة من جهازك
+                <input type="file" accept="image/*" onchange="applyBgImage(this)" style="display:none;">
+            </label>
+            <button onclick="clearBgImage()" class="secondary" style="margin-top:6px;font-size:0.82rem;padding:8px;">🗑️ إزالة الصورة</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     شاشة الدردشة (خاصة أو جروب)
+══════════════════════════════════════ -->
+<div class="screen hidden" id="chat-screen">
+    <div class="chat-header">
+        <button class="chat-back" onclick="backFromChat()">‹</button>
+        <div style="display:flex;align-items:center;gap:9px;flex:1;justify-content:flex-end;">
+            <div class="chat-header-info">
+                <div class="chat-header-name" id="chat-peer-name"></div>
+                <div class="chat-header-sub"  id="chat-peer-sub"></div>
+            </div>
+            <div class="avatar avatar-sm" id="chat-peer-avatar" style="background:var(--blue);">؟</div>
+        </div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs-div"></div>
+    <div class="emoji-picker-row" id="emoji-picker-chat" style="display:none;">
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('🔥','chat')">🔥</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('😂','chat')">😂</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('😭','chat')">😭</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('🎉','chat')">🎉</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('💀','chat')">💀</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('🤩','chat')">🤩</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('😤','chat')">😤</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('🥶','chat')">🥶</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('👑','chat')">👑</button>
+        <button class="emoji-pick-btn" onclick="sendQuickEmoji('💥','chat')">💥</button>
+    </div>
+    <div class="chat-input-row">
+        <button class="emoji-quick-btn" onclick="toggleEmojiPicker('chat')" title="إيموجي سريعة">😊</button>
+        <input type="text" id="chat-text-input" placeholder="رسالة..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+        <button onclick="sendChatMsg()" style="width:auto;padding:10px 14px;">إرسال</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
      شاشة اللعبة
-    ══════════════════════════════════════ -->
-    <div class="screen hidden" id="game-screen">
-        <div class="room-info">
-            <button class="copy-btn" onclick="copyRoomLink()">📋 نسخ</button>
-            <span id="room-display">---</span>
-        </div>
-        <div id="players-tags" style="margin:10px 0;min-height:28px;"></div>
-        <div id="waiting-area">
-            <p style="color:var(--txt2);margin:16px 0;">⏳ بانتظار اللاعبين...</p>
-            <button class="success" onclick="setReady()">👍 أنا جاهز!</button>
-        </div>
-        <div id="game-board" class="hidden">
-            <p id="turn-display" style="font-weight:700;font-size:1.1rem;margin:12px 0;"></p>
-            <img id="top-card" class="uno-card" style="margin:8px auto;cursor:default;transform:scale(1.25);display:block;" src="cards/r0.png">
-            <div id="player-hand" style="overflow-x:auto;white-space:nowrap;padding:18px 4px;min-height:110px;margin:14px 0;"></div>
-            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-                <button onclick="drawCardAction()" style="width:auto;">🃏 سحب</button>
-                <button id="uno-btn" onclick="sayUno()">⚠️ UNO!</button>
-            </div>
-        </div>
-        <div style="margin-top:14px;">
-            <div id="game-chat-msgs"></div>
-            <div class="emoji-picker-row" id="emoji-picker-game" style="display:none;">
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('🔥','game')">🔥</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('😂','game')">😂</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('😭','game')">😭</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('🎉','game')">🎉</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('💀','game')">💀</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('🤩','game')">🤩</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('😤','game')">😤</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('🥶','game')">🥶</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('👑','game')">👑</button>
-                <button class="emoji-pick-btn" onclick="sendQuickEmoji('💥','game')">💥</button>
-            </div>
-            <div id="game-chat-input-row">
-                <button class="quick-emoji-game" onclick="toggleEmojiPicker('game')" title="إيموجي">😊</button>
-                <input type="text" id="game-chat-input" placeholder="💬 رسالة..." onkeydown="if(event.key==='Enter')sendGameMsg()">
-                <button onclick="sendGameMsg()">📤</button>
-            </div>
-        </div>
-        <button onclick="quitGame()" style="background:var(--accent);margin-top:14px;">🚪 خروج من الغرفة</button>
+══════════════════════════════════════ -->
+<div class="screen hidden" id="game-screen">
+    <div class="room-info">
+        <button class="copy-btn" onclick="copyRoomLink()">📋 نسخ</button>
+        <span id="room-display">---</span>
     </div>
-
-    <!-- ══ مودال تغيير الاسم ══ -->
-    <div id="change-name-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>✏️ تغيير اسم المستخدم</h3>
-            <input type="text" id="new-name-input" placeholder="الاسم الجديد" style="margin:12px 0;">
-            <div id="name-change-err" style="color:var(--accent);font-size:0.82rem;min-height:18px;"></div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="success" onclick="changeName()">حفظ</button>
-                <button class="secondary" onclick="closeModal('change-name-modal')">إلغاء</button>
-            </div>
+    <div id="players-tags" style="margin:10px 0;min-height:28px;"></div>
+    <div id="waiting-area">
+        <p style="color:var(--txt2);margin:16px 0;">⏳ بانتظار اللاعبين...</p>
+        <button class="success" onclick="setReady()">👍 أنا جاهز!</button>
+    </div>
+    <div id="game-board" class="hidden">
+        <p id="turn-display" style="font-weight:700;font-size:1.1rem;margin:12px 0;"></p>
+        <img id="top-card" class="uno-card" style="margin:8px auto;cursor:default;transform:scale(1.25);display:block;" src="cards/r0.png">
+        <div id="player-hand" style="overflow-x:auto;white-space:nowrap;padding:18px 4px;min-height:110px;margin:14px 0;"></div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <button onclick="drawCardAction()" style="width:auto;">🃏 سحب</button>
+            <button id="uno-btn" onclick="sayUno()">⚠️ UNO!</button>
         </div>
     </div>
-
-    <!-- ══ مودال تغيير كلمة المرور ══ -->
-    <div id="change-pass-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>🔑 تغيير كلمة المرور</h3>
-            <input type="password" id="curr-pass-input" placeholder="كلمة المرور الحالية" style="margin:8px 0;">
-            <input type="password" id="new-pass-input" placeholder="كلمة المرور الجديدة">
-            <input type="password" id="new-pass2-input" placeholder="تأكيد كلمة المرور الجديدة">
-            <div id="pass-change-err" style="color:var(--accent);font-size:0.82rem;min-height:18px;margin:4px 0;"></div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="success" onclick="changePassword()">حفظ</button>
-                <button class="secondary" onclick="closeModal('change-pass-modal')">إلغاء</button>
-            </div>
+    <!-- شات اللعبة + إيموجي سريعة -->
+    <div style="margin-top:14px;">
+        <div id="game-chat-msgs"></div>
+        <div class="emoji-picker-row" id="emoji-picker-game" style="display:none;">
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🔥','game')">🔥</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('😂','game')">😂</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('😭','game')">😭</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🎉','game')">🎉</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('💀','game')">💀</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🤩','game')">🤩</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('😤','game')">😤</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('🥶','game')">🥶</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('👑','game')">👑</button>
+            <button class="emoji-pick-btn" onclick="sendQuickEmoji('💥','game')">💥</button>
+        </div>
+        <div id="game-chat-input-row">
+            <button class="quick-emoji-game" onclick="toggleEmojiPicker('game')" title="إيموجي">😊</button>
+            <input type="text" id="game-chat-input" placeholder="💬 رسالة..." onkeydown="if(event.key==='Enter')sendGameMsg()">
+            <button onclick="sendGameMsg()">📤</button>
         </div>
     </div>
+    <button onclick="quitGame()" style="background:var(--accent);margin-top:14px;">🚪 خروج من الغرفة</button>
+</div>
 
-    <!-- إيموجي الطائرة الكبيرة -->
-    <div id="emoji-blast" class="hidden"></div>
 
-    <!-- ══ مودال اختيار لون ══ -->
-    <div id="color-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>اختر اللون</h3>
-            <div class="color-grid">
-                <div class="color-swatch" style="background:#ff3b30;" onclick="pickColor('red')"></div>
-                <div class="color-swatch" style="background:#007aff;" onclick="pickColor('blue')"></div>
-                <div class="color-swatch" style="background:#34c759;" onclick="pickColor('green')"></div>
-                <div class="color-swatch" style="background:#ffd60a;" onclick="pickColor('yellow')"></div>
-            </div>
+<!-- ══ مودال تغيير الاسم ══ -->
+<div id="change-name-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>✏️ تغيير اسم المستخدم</h3>
+        <input type="text" id="new-name-input" placeholder="الاسم الجديد" style="margin:12px 0;">
+        <div id="name-change-err" style="color:var(--accent);font-size:0.82rem;min-height:18px;"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="success" onclick="changeName()">حفظ</button>
+            <button class="secondary" onclick="closeModal('change-name-modal')">إلغاء</button>
         </div>
     </div>
+</div>
 
-    <!-- ══ مودال قواعد ══ -->
-    <div id="rules-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>📖 قواعد اللعبة</h3>
-            <div style="text-align:right;line-height:1.9;font-size:0.9rem;margin:12px 0;">
-                <p>1. كل لاعب يبدأ بـ 7 كروت</p>
-                <p>2. <b>+2</b> — الخصم يسحب كرتين ويخسر دوره</p>
-                <p>3. <b>+4</b> — يسحب 4 ويخسر دوره وتختار اللون</p>
-                <p>4. <b>🔄</b> — يعكس اتجاه اللعب</p>
-                <p>5. <b>🚫</b> — يتخطى دور الخصم</p>
-                <p>6. اضغط <b>UNO!</b> قبل كرتك قبل الأخير</p>
-            </div>
-            <button onclick="closeModal('rules-modal')">حسناً</button>
+<!-- ══ مودال تغيير كلمة المرور ══ -->
+<div id="change-pass-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>🔑 تغيير كلمة المرور</h3>
+        <input type="password" id="curr-pass-input"  placeholder="كلمة المرور الحالية" style="margin:8px 0;">
+        <input type="password" id="new-pass-input"   placeholder="كلمة المرور الجديدة">
+        <input type="password" id="new-pass2-input"  placeholder="تأكيد كلمة المرور الجديدة">
+        <div id="pass-change-err" style="color:var(--accent);font-size:0.82rem;min-height:18px;margin:4px 0;"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="success" onclick="changePassword()">حفظ</button>
+            <button class="secondary" onclick="closeModal('change-pass-modal')">إلغاء</button>
         </div>
     </div>
+</div>
 
-    <!-- ══ مودال إضافة صديق من اللعبة ══ -->
-    <div id="add-friend-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>👋 إضافة صديق</h3>
-            <p id="add-friend-msg" style="margin:12px 0;font-size:0.9rem;"></p>
-            <div style="display:flex;gap:8px;justify-content:center;">
-                <button class="success" onclick="confirmAddFriend()" style="width:auto;">✅ إضافة</button>
-                <button class="danger" onclick="closeModal('add-friend-modal')" style="width:auto;">إلغاء</button>
-            </div>
+<!-- إيموجي الطائرة الكبيرة -->
+<div id="emoji-blast" class="hidden"></div>
+
+<!-- ══ مودال اختيار لون ══ -->
+<div id="color-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>اختر اللون</h3>
+        <div class="color-grid">
+            <div class="color-swatch" style="background:#ff3b30;" onclick="pickColor('red')"></div>
+            <div class="color-swatch" style="background:#007aff;" onclick="pickColor('blue')"></div>
+            <div class="color-swatch" style="background:#34c759;" onclick="pickColor('green')"></div>
+            <div class="color-swatch" style="background:#ffd60a;" onclick="pickColor('yellow')"></div>
         </div>
     </div>
+</div>
 
-    <!-- ══ مودال محادثة جديدة / جروب ══ -->
-    <div id="new-chat-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>محادثة جديدة</h3>
-            <div style="display:flex;gap:8px;margin:12px 0;">
-                <button id="nc-dm-btn" onclick="ncMode('dm')" style="flex:1;">💬 خاصة</button>
-                <button id="nc-grp-btn" onclick="ncMode('group')" style="flex:1;" class="secondary">👥 جروب</button>
-            </div>
-            <div id="nc-dm-section">
-                <p style="font-size:0.82rem;color:var(--txt2);margin-bottom:8px;text-align:right;">اختر صديقاً</p>
-                <div id="nc-friends-list"></div>
-            </div>
-            <div id="nc-grp-section" class="hidden">
-                <input type="text" id="grp-name-input" placeholder="اسم الجروب" style="margin-bottom:8px;">
-                <p style="font-size:0.82rem;color:var(--txt2);margin-bottom:6px;text-align:right;">اختر الأعضاء</p>
-                <div id="nc-grp-friends"></div>
-                <button class="success" onclick="createGroup()" style="margin-top:10px;">إنشاء الجروب ✓</button>
-            </div>
-            <button class="ghost" onclick="closeModal('new-chat-modal')" style="margin-top:8px;">إلغاء</button>
+<!-- ══ مودال قواعد ══ -->
+<div id="rules-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>📖 قواعد اللعبة</h3>
+        <div style="text-align:right;line-height:1.9;font-size:0.9rem;margin:12px 0;">
+            <p>1. كل لاعب يبدأ بـ 7 كروت</p>
+            <p>2. <b>+2</b> — الخصم يسحب كرتين ويخسر دوره</p>
+            <p>3. <b>+4</b> — يسحب 4 ويخسر دوره وتختار اللون</p>
+            <p>4. <b>🔄</b> — يعكس اتجاه اللعب</p>
+            <p>5. <b>🚫</b> — يتخطى دور الخصم</p>
+            <p>6. اضغط <b>UNO!</b> قبل كرتك قبل الأخير</p>
+        </div>
+        <button onclick="closeModal('rules-modal')">حسناً</button>
+    </div>
+</div>
+
+<!-- ══ مودال إضافة صديق من اللعبة ══ -->
+<div id="add-friend-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>👋 إضافة صديق</h3>
+        <p id="add-friend-msg" style="margin:12px 0;font-size:0.9rem;"></p>
+        <div style="display:flex;gap:8px;justify-content:center;">
+            <button class="success" onclick="confirmAddFriend()" style="width:auto;">✅ إضافة</button>
+            <button class="danger"  onclick="closeModal('add-friend-modal')" style="width:auto;">إلغاء</button>
         </div>
     </div>
+</div>
 
-    <!-- ══ مودال إعدادات الجروب ══ -->
-    <div id="group-settings-modal" class="modal center">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3>⚙️ إعدادات الجروب</h3>
-            <div class="grp-settings-section">
-                <label>اسم الجروب</label>
-                <input type="text" id="grp-settings-name" placeholder="اسم الجروب">
-                <label>صورة الجروب</label>
-                <img id="grp-settings-preview" class="grp-avatar-preview hidden" src="" alt="صورة الجروب">
-                <label class="file-label" for="grp-settings-img">📷 تغيير الصورة</label>
-                <input type="file" id="grp-settings-img" accept="image/*" onchange="previewGrpImage(this)">
-                <button onclick="saveGroupSettings()" class="success" style="margin-top:10px;">💾 حفظ التغييرات</button>
-                <hr style="border:none;border-top:1px solid var(--bg);margin:14px 0;">
-                <label>إضافة أعضاء</label>
-                <input type="text" id="grp-add-member-search" placeholder="ابحث عن لاعب بالاسم">
-                <button onclick="searchForGroupMember()" style="width:auto;margin:6px 0;">🔍 بحث</button>
-                <div id="grp-add-member-results"></div>
-                <hr style="border:none;border-top:1px solid var(--bg);margin:14px 0;">
-                <label>الأعضاء</label>
-                <div class="grp-members-list" id="grp-members-list"></div>
-                <button class="danger" onclick="deleteGroup()" style="margin-top:12px;">🗑️ حذف الجروب</button>
-            </div>
-            <button class="ghost" onclick="closeModal('group-settings-modal')" style="margin-top:8px;">إغلاق</button>
+<!-- ══ مودال محادثة جديدة / جروب ══ -->
+<div id="new-chat-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>محادثة جديدة</h3>
+        <div style="display:flex;gap:8px;margin:12px 0;">
+            <button id="nc-dm-btn"    onclick="ncMode('dm')"    style="flex:1;">💬 خاصة</button>
+            <button id="nc-grp-btn"   onclick="ncMode('group')" style="flex:1;" class="secondary">👥 جروب</button>
         </div>
+        <!-- DM -->
+        <div id="nc-dm-section">
+            <p style="font-size:0.82rem;color:var(--txt2);margin-bottom:8px;text-align:right;">اختر صديقاً</p>
+            <div id="nc-friends-list"></div>
+        </div>
+        <!-- جروب -->
+        <div id="nc-grp-section" class="hidden">
+            <input type="text" id="grp-name-input" placeholder="اسم الجروب" style="margin-bottom:8px;">
+            <p style="font-size:0.82rem;color:var(--txt2);margin-bottom:6px;text-align:right;">اختر الأعضاء</p>
+            <div id="nc-grp-friends"></div>
+            <button class="success" onclick="createGroup()" style="margin-top:10px;">إنشاء الجروب ✓</button>
+        </div>
+        <button class="ghost" onclick="closeModal('new-chat-modal')" style="margin-top:8px;">إلغاء</button>
     </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<script type="module">
+import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove, serverTimestamp }
+                               from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged, updateProfile }
+                               from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
-            authDomain: "uno-online-c4bb2.firebaseapp.com",
-            databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
-            projectId: "uno-online-c4bb2",
-            storageBucket: "uno-online-c4bb2.firebasestorage.app",
-            messagingSenderId: "1077724641787",
-            appId: "1:1077724641787:web:302acb78b4ee3f9090735e"
-        };
+const firebaseConfig = {
+    apiKey: "AIzaSyCTJA6RtmgNDfusmpQH7Yu5keo8LnB_arE",
+    authDomain: "uno-online-c4bb2.firebaseapp.com",
+    databaseURL: "https://uno-online-c4bb2-default-rtdb.firebaseio.com",
+    projectId: "uno-online-c4bb2",
+    storageBucket: "uno-online-c4bb2.firebasestorage.app",
+    messagingSenderId: "1077724641787",
+    appId: "1:1077724641787:web:302acb78b4ee3f9090735e"
+};
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
 
-        const AV_COLORS = ['#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#007aff', '#5856d6', '#af52de', '#ff2d55'];
-        function strColor(s) { let h = 0;
-            for (let c of s) h = (h << 5) - h + c.charCodeAt(0); return AV_COLORS[Math.abs(h) % AV_COLORS.length]; }
+// ═══════════════════════════════════════════════════
+//  ألوان الأفاتار
+// ═══════════════════════════════════════════════════
+const AV_COLORS = ['#ff3b30','#ff9500','#ffd60a','#34c759','#007aff','#5856d6','#af52de','#ff2d55'];
+function strColor(s){ let h=0; for(let c of s) h=(h<<5)-h+c.charCodeAt(0); return AV_COLORS[Math.abs(h)%AV_COLORS.length]; }
+function initials(s){ return (s||'?').substring(0,2).toUpperCase(); }
 
-        function initials(s) { return (s || '?').substring(0, 2).toUpperCase(); }
+// ═══════════════════════════════════════════════════
+//  حالة المصادقة
+// ═══════════════════════════════════════════════════
+let currentUser = null, myName = '';
 
-        let currentUser = null,
-            myName = '';
+onAuthStateChanged(auth, async user => {
+    if(user){
+        currentUser = user;
+        myName = user.displayName || user.email.split('@')[0];
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        document.getElementById('display-name').textContent = myName;
+        const av = document.getElementById('main-avatar');
+        av.textContent = initials(myName);
+        av.style.background = strColor(myName);
+        await updateUserStatus('online');
+        listenRealtime();
+    } else {
+        currentUser = null; myName = '';
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+    }
+});
 
-        onAuthStateChanged(auth, async user => {
-            if (user) {
-                currentUser = user;
-                myName = user.displayName || user.email.split('@')[0];
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-screen').classList.remove('hidden');
-                document.getElementById('display-name').textContent = myName;
-                const av = document.getElementById('main-avatar');
-                av.textContent = initials(myName);
-                av.style.background = strColor(myName);
-                await updateUserStatus('online');
-                listenRealtime();
-            } else {
-                currentUser = null;
-                myName = '';
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('main-screen').classList.add('hidden');
-                document.getElementById('game-screen').classList.add('hidden');
-                document.getElementById('chat-screen').classList.add('hidden');
-            }
-        });
+async function updateUserStatus(status, roomId=null){
+    if(!currentUser) return;
+    const r = ref(db,`users/${currentUser.uid}/status`);
+    await set(r,{status,lastSeen:Date.now(),roomId:roomId||null});
+    if(status!=='offline') onDisconnect(r).set({status:'offline',lastSeen:Date.now(),roomId:null});
+}
 
-        async function updateUserStatus(status, roomId = null) {
-            if (!currentUser) return;
-            const r = ref(db, `users/${currentUser.uid}/status`);
-            await set(r, { status, lastSeen: Date.now(), roomId: roomId || null });
-            if (status !== 'offline') onDisconnect(r).set({ status: 'offline', lastSeen: Date.now(), roomId: null });
-        }
+// ═══════════════════════════════════════════════════
+//  مصادقة
+// ═══════════════════════════════════════════════════
+window.register = async()=>{
+    const name=document.getElementById('reg-name').value.trim(),
+          email=document.getElementById('reg-email').value.trim(),
+          pass=document.getElementById('reg-password').value,
+          err=document.getElementById('reg-error');
+    err.textContent='';
+    if(!name||!email||!pass){err.textContent='يرجى ملء جميع الحقول';return;}
+    if(pass.length<6){err.textContent='كلمة المرور 6 أحرف على الأقل';return;}
+    try{
+        const c=await createUserWithEmailAndPassword(auth,email,pass);
+        await updateProfile(c.user,{displayName:name});
+        await set(ref(db,`users/${c.user.uid}`),{name,email,nameLower:name.toLowerCase(),emailLower:email.toLowerCase(),createdAt:Date.now()});
+    }catch(e){
+        const m={'auth/email-already-in-use':'البريد مستخدم','auth/invalid-email':'بريد غير صالح','auth/weak-password':'كلمة مرور ضعيفة'};
+        err.textContent=m[e.code]||e.message;
+    }
+};
 
-        window.register = async () => {
-            const name = document.getElementById('reg-name').value.trim(),
-                email = document.getElementById('reg-email').value.trim(),
-                pass = document.getElementById('reg-password').value,
-                err = document.getElementById('reg-error');
-            err.textContent = '';
-            if (!name || !email || !pass) { err.textContent = 'يرجى ملء جميع الحقول'; return; }
-            if (pass.length < 6) { err.textContent = 'كلمة المرور 6 أحرف على الأقل'; return; }
-            try {
-                const c = await createUserWithEmailAndPassword(auth, email, pass);
-                await updateProfile(c.user, { displayName: name });
-                await set(ref(db, `users/${c.user.uid}`), { name, email, nameLower: name.toLowerCase(),
-                    emailLower: email.toLowerCase(), createdAt: Date.now() });
-            } catch (e) {
-                const m = { 'auth/email-already-in-use': 'البريد مستخدم', 'auth/invalid-email': 'بريد غير صالح',
-                    'auth/weak-password': 'كلمة مرور ضعيفة' };
-                err.textContent = m[e.code] || e.message;
-            }
-        };
+window.login = async()=>{
+    const email=document.getElementById('login-email').value.trim(),
+          pass=document.getElementById('login-password').value,
+          err=document.getElementById('login-error');
+    err.textContent='';
+    if(!email||!pass){err.textContent='يرجى إدخال البريد وكلمة المرور';return;}
+    try{ await signInWithEmailAndPassword(auth,email,pass); }
+    catch(e){
+        const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/invalid-email':'بريد غير صالح','auth/user-not-found':'المستخدم غير موجود','auth/wrong-password':'كلمة المرور خاطئة'};
+        err.textContent=m[e.code]||e.message;
+    }
+};
 
-        window.login = async () => {
-            const email = document.getElementById('login-email').value.trim(),
-                pass = document.getElementById('login-password').value,
-                err = document.getElementById('login-error');
-            err.textContent = '';
-            if (!email || !pass) { err.textContent = 'يرجى إدخال البريد وكلمة المرور'; return; }
-            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) {
-                const m = { 'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة',
-                    'auth/invalid-email': 'بريد غير صالح', 'auth/user-not-found': 'المستخدم غير موجود',
-                    'auth/wrong-password': 'كلمة المرور خاطئة' };
-                err.textContent = m[e.code] || e.message;
-            }
-        };
+window.logout = async()=>{
+    await updateUserStatus('offline');
+    await signOut(auth);
+};
 
-        window.logout = async () => {
-            await updateUserStatus('offline');
-            await signOut(auth);
-        };
+window.showRegister=()=>{ document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); };
+window.showLogin   =()=>{ document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); };
 
-        window.showRegister = () => { document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden'); };
-        window.showLogin = () => { document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden'); };
+// ═══════════════════════════════════════════════════
+//  تبويبات التنقل
+// ═══════════════════════════════════════════════════
+const TABS = ['home','msgs','friends','settings'];
+window.switchTab = tab=>{
+    TABS.forEach(t=>{
+        document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+        document.getElementById(`tab-${t}-content`).classList.toggle('hidden', t!==tab);
+    });
+    if(tab==='friends') renderFriendsTab();
+    if(tab==='msgs')    renderConvosList();
+};
 
-        const TABS = ['home', 'msgs', 'friends', 'settings'];
-        window.switchTab = tab => {
-            TABS.forEach(t => {
-                document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
-                document.getElementById(`tab-${t}-content`).classList.toggle('hidden', t !== tab);
-            });
-            if (tab === 'friends') renderFriendsTab();
-            if (tab === 'msgs') renderConvosList();
-        };
-
-        window.searchFriend = async () => {
-            const term = document.getElementById('friend-search').value.trim().toLowerCase();
-            const div = document.getElementById('search-results');
-            if (term.length < 2) { div.innerHTML = ''; return; }
-            div.innerHTML = '<p style="font-size:0.82rem;color:var(--txt2);"><span class="spin">⏳</span> بحث...</p>';
-            try {
-                const snap = await get(ref(db, 'users'));
-                if (!snap.exists()) { div.innerHTML = ''; return; }
-                const all = snap.val();
-                const myF = (await get(ref(db, `friends/${currentUser.uid}`))).val() || {};
-                const sent = (await get(ref(db, `sentRequests/${currentUser.uid}`))).val() || {};
-                const res = Object.entries(all).filter(([uid, d]) =>
-                    uid !== currentUser.uid &&
-                    ((d.name || '').toLowerCase().includes(term) || (d.email || '').toLowerCase().includes(term))
-                );
-                if (!res.length) { div.innerHTML =
-                        '<p style="color:var(--txt2);font-size:0.85rem;">لا نتائج</p>'; return; }
-                div.innerHTML = '';
-                for (const [uid, d] of res) {
-                    const col = strColor(d.name || uid);
-                    const btn = myF[uid] ?
-                        '<span style="color:var(--green);font-size:0.82rem;font-weight:600;">✅ صديق</span>' :
-                        sent[uid] ? '<span style="color:var(--orange);font-size:0.82rem;">⏳ مُرسل</span>' :
-                        `<button onclick="sendFriendRequest('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">+ إضافة</button>`;
-                    div.innerHTML += `<div class="search-item">
+// ═══════════════════════════════════════════════════
+//  الأصدقاء — بحث وطلبات
+// ═══════════════════════════════════════════════════
+window.searchFriend = async()=>{
+    const term=document.getElementById('friend-search').value.trim().toLowerCase();
+    const div=document.getElementById('search-results');
+    if(term.length<2){div.innerHTML='';return;}
+    div.innerHTML='<p style="font-size:0.82rem;color:var(--txt2);"><span class="spin">⏳</span> بحث...</p>';
+    try{
+        const snap=await get(ref(db,'users'));
+        if(!snap.exists()){div.innerHTML='';return;}
+        const all=snap.val();
+        const myF=(await get(ref(db,`friends/${currentUser.uid}`))).val()||{};
+        const sent=(await get(ref(db,`sentRequests/${currentUser.uid}`))).val()||{};
+        const res=Object.entries(all).filter(([uid,d])=>
+            uid!==currentUser.uid &&
+            ((d.name||'').toLowerCase().includes(term)||(d.email||'').toLowerCase().includes(term))
+        );
+        if(!res.length){div.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;">لا نتائج</p>';return;}
+        div.innerHTML='';
+        for(const[uid,d] of res){
+            const col=strColor(d.name||uid);
+            const btn=myF[uid]?'<span style="color:var(--green);font-size:0.82rem;font-weight:600;">✅ صديق</span>':
+                      sent[uid]?'<span style="color:var(--orange);font-size:0.82rem;">⏳ مُرسل</span>':
+                      `<button onclick="sendFriendRequest('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">+ إضافة</button>`;
+            div.innerHTML+=`<div class="search-item">
                 <div class="avatar avatar-sm" style="background:${col};">${initials(d.name)}</div>
                 <div class="fc-info"><div class="fc-name">${d.name||'مجهول'}</div><div class="fc-status">${d.email||''}</div></div>
                 ${btn}</div>`;
-                }
-            } catch (e) { div.innerHTML = '<p style="color:var(--accent);font-size:0.82rem;">خطأ في البحث</p>'; }
-        };
+        }
+    }catch(e){div.innerHTML='<p style="color:var(--accent);font-size:0.82rem;">خطأ في البحث</p>';}
+};
 
-        window.sendFriendRequest = async (toUid, toName) => {
-            const ex = await get(ref(db, `friendRequests/${toUid}/${currentUser.uid}`));
-            if (ex.exists()) { alert('تم الإرسال مسبقاً'); return; }
-            const al = await get(ref(db, `friends/${currentUser.uid}/${toUid}`));
-            if (al.exists()) { alert('صديق بالفعل'); return; }
-            await set(ref(db, `friendRequests/${toUid}/${currentUser.uid}`), { fromUid: currentUser.uid, name: myName,
-                email: currentUser.email, timestamp: Date.now() });
-            await set(ref(db, `sentRequests/${currentUser.uid}/${toUid}`), true);
-            alert(`✅ تم إرسال طلب الصداقة إلى ${toName}`);
-            document.getElementById('friend-search').value = '';
-            document.getElementById('search-results').innerHTML = '';
-        };
+window.sendFriendRequest=async(toUid,toName)=>{
+    const ex=await get(ref(db,`friendRequests/${toUid}/${currentUser.uid}`));
+    if(ex.exists()){alert('تم الإرسال مسبقاً');return;}
+    const al=await get(ref(db,`friends/${currentUser.uid}/${toUid}`));
+    if(al.exists()){alert('صديق بالفعل');return;}
+    await set(ref(db,`friendRequests/${toUid}/${currentUser.uid}`),{fromUid:currentUser.uid,name:myName,email:currentUser.email,timestamp:Date.now()});
+    await set(ref(db,`sentRequests/${currentUser.uid}/${toUid}`),true);
+    alert(`✅ تم إرسال طلب الصداقة إلى ${toName}`);
+    document.getElementById('friend-search').value='';
+    document.getElementById('search-results').innerHTML='';
+};
 
-        window.acceptFriendRequest = async fromUid => {
-            const req = (await get(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`))).val();
-            if (!req) { return; }
-            const myData = (await get(ref(db, `users/${currentUser.uid}`))).val() || {};
-            await set(ref(db, `friends/${currentUser.uid}/${fromUid}`), { uid: fromUid, name: req.name, email: req.email,
-                addedAt: Date.now() });
-            await set(ref(db, `friends/${fromUid}/${currentUser.uid}`), { uid: currentUser.uid, name: myData.name ||
-                    myName, email: currentUser.email, addedAt: Date.now() });
-            await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
-            await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
-        };
+window.acceptFriendRequest=async fromUid=>{
+    const req=(await get(ref(db,`friendRequests/${currentUser.uid}/${fromUid}`))).val();
+    if(!req){return;}
+    const myData=(await get(ref(db,`users/${currentUser.uid}`))).val()||{};
+    await set(ref(db,`friends/${currentUser.uid}/${fromUid}`),{uid:fromUid,name:req.name,email:req.email,addedAt:Date.now()});
+    await set(ref(db,`friends/${fromUid}/${currentUser.uid}`),{uid:currentUser.uid,name:myData.name||myName,email:currentUser.email,addedAt:Date.now()});
+    await remove(ref(db,`friendRequests/${currentUser.uid}/${fromUid}`));
+    await remove(ref(db,`sentRequests/${fromUid}/${currentUser.uid}`));
+};
 
-        window.rejectFriendRequest = async fromUid => {
-            await remove(ref(db, `friendRequests/${currentUser.uid}/${fromUid}`));
-            await remove(ref(db, `sentRequests/${fromUid}/${currentUser.uid}`));
-        };
+window.rejectFriendRequest=async fromUid=>{
+    await remove(ref(db,`friendRequests/${currentUser.uid}/${fromUid}`));
+    await remove(ref(db,`sentRequests/${fromUid}/${currentUser.uid}`));
+};
 
-        window.removeFriend = async fuid => {
-            if (!confirm('حذف هذا الصديق؟')) return;
-            await remove(ref(db, `friends/${currentUser.uid}/${fuid}`));
-            await remove(ref(db, `friends/${fuid}/${currentUser.uid}`));
-        };
+window.removeFriend=async fuid=>{
+    if(!confirm('حذف هذا الصديق؟'))return;
+    await remove(ref(db,`friends/${currentUser.uid}/${fuid}`));
+    await remove(ref(db,`friends/${fuid}/${currentUser.uid}`));
+};
 
-        async function renderFriendsTab() {
-            const fl = document.getElementById('friends-list');
-            const rl = document.getElementById('requests-list');
-            const fsnap = await get(ref(db, `friends/${currentUser.uid}`));
-            const friends = fsnap.val() || {};
-            if (!Object.keys(friends).length) {
-                fl.innerHTML =
-                    '<p style="color:var(--txt2);font-size:0.85rem;padding:10px 0;">لا يوجد أصدقاء بعد</p>';
-            } else {
-                fl.innerHTML = '';
-                for (const [uid, d] of Object.entries(friends)) {
-                    const stSnap = await get(ref(db, `users/${uid}/status`));
-                    const st = stSnap.val() || {};
-                    const status = st.status || 'offline';
-                    const stTxt = { online: '🟢 نشط', playing: '🎮 يلعب', offline: '⚫ غير نشط' } [status] || '⚫';
-                    const joinBtn = status === 'playing' && st.roomId ?
-                        `<button onclick="joinFriendRoom('${st.roomId}')" style="background:var(--blue);">انضمام</button>` :
-                        '';
-                    const col = strColor(d.name || uid);
-                    fl.innerHTML +=
-                        `<div class="friend-card" onclick="openDM('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">
+async function renderFriendsTab(){
+    const fl=document.getElementById('friends-list');
+    const rl=document.getElementById('requests-list');
+    const fsnap=await get(ref(db,`friends/${currentUser.uid}`));
+    const friends=fsnap.val()||{};
+    if(!Object.keys(friends).length){
+        fl.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;padding:10px 0;">لا يوجد أصدقاء بعد</p>';
+    } else {
+        fl.innerHTML='';
+        for(const[uid,d] of Object.entries(friends)){
+            const stSnap=await get(ref(db,`users/${uid}/status`));
+            const st=stSnap.val()||{};
+            const status=st.status||'offline';
+            const stTxt={online:'🟢 نشط',playing:'🎮 يلعب',offline:'⚫ غير نشط'}[status]||'⚫';
+            const joinBtn=status==='playing'&&st.roomId?`<button onclick="joinFriendRoom('${st.roomId}')" style="background:var(--blue);">انضمام</button>`:'';
+            const col=strColor(d.name||uid);
+            fl.innerHTML+=`<div class="friend-card" onclick="openDM('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">
                 <div class="avatar" style="background:${col};">${initials(d.name)}</div>
                 <div class="fc-info"><div class="fc-name">${d.name||'مجهول'}</div><div class="fc-status">${stTxt}</div></div>
                 <div class="fc-actions">${joinBtn}<button onclick="event.stopPropagation();removeFriend('${uid}')" style="background:var(--accent);">حذف</button></div>
             </div>`;
-                }
-            }
-            const rsnap = await get(ref(db, `friendRequests/${currentUser.uid}`));
-            const reqs = rsnap.val() || {};
-            if (!Object.keys(reqs).length) {
-                rl.innerHTML = '<p style="color:var(--txt2);font-size:0.85rem;">لا توجد طلبات</p>';
-            } else {
-                rl.innerHTML = '';
-                for (const [uid, d] of Object.entries(reqs)) {
-                    const col = strColor(d.name || uid);
-                    rl.innerHTML += `<div class="friend-card">
+        }
+    }
+    const rsnap=await get(ref(db,`friendRequests/${currentUser.uid}`));
+    const reqs=rsnap.val()||{};
+    if(!Object.keys(reqs).length){
+        rl.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;">لا توجد طلبات</p>';
+    } else {
+        rl.innerHTML='';
+        for(const[uid,d] of Object.entries(reqs)){
+            const col=strColor(d.name||uid);
+            rl.innerHTML+=`<div class="friend-card">
                 <div class="avatar" style="background:${col};">${initials(d.name)}</div>
                 <div class="fc-info"><div class="fc-name">${d.name||'مجهول'}</div><div class="fc-status">${d.email||''}</div></div>
                 <div class="fc-actions">
@@ -1356,871 +874,591 @@
                     <button class="danger"  onclick="rejectFriendRequest('${uid}')">❌</button>
                 </div>
             </div>`;
-                }
-            }
         }
+    }
+}
 
-        function listenRealtime() {
-            onValue(ref(db, `friends/${currentUser.uid}`), () => { renderFriendsTab();
-                renderConvosList(); });
-            onValue(ref(db, `friendRequests/${currentUser.uid}`), snap => {
-                const cnt = snap.exists() ? Object.keys(snap.val()).length : 0;
-                const b = document.getElementById('badge-req');
-                b.textContent = cnt;
-                b.classList.toggle('show', cnt > 0);
-                renderFriendsTab();
-            });
-            onValue(ref(db, `convos`), () => renderConvosList());
-        }
+function listenRealtime(){
+    onValue(ref(db,`friends/${currentUser.uid}`),()=>{ renderFriendsTab(); renderConvosList(); });
+    onValue(ref(db,`friendRequests/${currentUser.uid}`),snap=>{
+        const cnt=snap.exists()?Object.keys(snap.val()).length:0;
+        const b=document.getElementById('badge-req');
+        b.textContent=cnt; b.classList.toggle('show',cnt>0);
+        renderFriendsTab();
+    });
+    onValue(ref(db,`convos`),()=>renderConvosList());
+}
 
-        window.joinFriendRoom = roomId => { document.getElementById('room-input').value = roomId;
-            switchTab('home');
-            enterRoom('join'); };
+window.joinFriendRoom=roomId=>{ document.getElementById('room-input').value=roomId; switchTab('home'); enterRoom('join'); };
 
-        // ═══════════════════════════════════════════════════
-        //  الدردشة
-        // ═══════════════════════════════════════════════════
-        let activeChatId = null;
-        let activeChatType = null;
-        let chatUnsubscribe = null;
-        let currentGrpSettingsId = null;
+// ═══════════════════════════════════════════════════
+//  نظام الدردشة — محادثات خاصة وجروبات
+// ═══════════════════════════════════════════════════
+let activeChatId   = null;   // id المحادثة النشطة
+let activeChatType = null;   // 'dm' | 'group'
+let chatUnsubscribe= null;   // إلغاء الاستماع
 
-        window.openDM = async (friendUid, friendName) => {
-            const dmId = [currentUser.uid, friendUid].sort().join('_');
-            activeChatId = dmId;
-            activeChatType = 'dm';
-            const metaRef = ref(db, `convos/${dmId}`);
-            const snap = await get(metaRef);
-            if (!snap.exists()) {
-                await set(metaRef, {
-                    type: 'dm',
-                    members: { [currentUser.uid]: myName, [friendUid]: friendName },
-                    createdAt: Date.now(),
-                    lastMsg: '',
-                    lastTime: 0
-                });
-            }
-            showChatScreen(friendName, 'محادثة خاصة', strColor(friendName), initials(friendName));
-        };
+// فتح DM مع صديق
+window.openDM = async(friendUid, friendName)=>{
+    // id الـ DM = ترتيب أبجدي من UID-ين
+    const dmId = [currentUser.uid, friendUid].sort().join('_');
+    activeChatId   = dmId;
+    activeChatType = 'dm';
+    // تأكد من وجود سجل المحادثة
+    const metaRef = ref(db,`convos/${dmId}`);
+    const snap    = await get(metaRef);
+    if(!snap.exists()){
+        await set(metaRef,{
+            type:'dm',
+            members:{[currentUser.uid]:myName,[friendUid]:friendName},
+            createdAt:Date.now(), lastMsg:'', lastTime:0
+        });
+    }
+    showChatScreen(friendName,'محادثة خاصة',strColor(friendName),initials(friendName));
+};
 
-        window.openGroup = async gid => {
-            const snap = await get(ref(db, `convos/${gid}`));
-            if (!snap.exists()) return;
-            const g = snap.val();
-            activeChatId = gid;
-            activeChatType = 'group';
-            currentGrpSettingsId = gid;
-            const imgUrl = g.image || '';
-            const avContent = imgUrl ? `<img src="${imgUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` :
-                '👥';
-            showChatScreen(g.name || 'جروب', 'مجموعة', 'var(--orange)', avContent, true);
-            // إظهار زر الإعدادات في الهيدر
-            document.getElementById('chat-peer-sub').innerHTML =
-                `مجموعة · <span onclick="openGroupSettings('${gid}')" style="color:var(--blue);cursor:pointer;">⚙️ الإعدادات</span>`;
-        };
+// فتح جروب
+window.openGroup = async gid=>{
+    const snap=await get(ref(db,`convos/${gid}`));
+    if(!snap.exists()) return;
+    const g=snap.val();
+    activeChatId=gid; activeChatType='group';
+    showChatScreen(g.name||'جروب','مجموعة','var(--orange)','👥');
+};
 
-        function showChatScreen(name, sub, color, av, isHtml = false) {
-            document.getElementById('main-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('chat-screen').classList.remove('hidden');
-            document.getElementById('chat-peer-name').textContent = name;
-            if (!isHtml) document.getElementById('chat-peer-sub').textContent = sub;
-            const avEl = document.getElementById('chat-peer-avatar');
-            if (isHtml) {
-                avEl.innerHTML = av;
-            } else {
-                avEl.textContent = av;
-            }
-            avEl.style.background = color;
-            document.getElementById('chat-msgs-div').innerHTML = '';
-            document.getElementById('chat-text-input').value = '';
-            document.getElementById('emoji-picker-chat').style.display = 'none';
-            if (chatUnsubscribe) { chatUnsubscribe(); }
-            chatUnsubscribe = onValue(ref(db, `convos/${activeChatId}/msgs`), snap => {
-                const div = document.getElementById('chat-msgs-div');
-                div.innerHTML = '';
-                if (!snap.exists()) return;
-                Object.values(snap.val()).forEach(m => {
-                    const mine = m.uid === currentUser.uid;
-                    const t = m.time ? new Date(m.time).toLocaleTimeString('ar', { hour: '2-digit',
-                        minute: '2-digit' }) : '';
-                    div.innerHTML += `<div class="msg-row ${mine?'mine':''}">
+function showChatScreen(name,sub,color,av){
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('chat-screen').classList.remove('hidden');
+    document.getElementById('chat-peer-name').textContent=name;
+    document.getElementById('chat-peer-sub').textContent=sub;
+    const avEl=document.getElementById('chat-peer-avatar');
+    avEl.textContent=av; avEl.style.background=color;
+    document.getElementById('chat-msgs-div').innerHTML='';
+    document.getElementById('chat-text-input').value='';
+    document.getElementById('emoji-picker-chat').style.display='none';
+    if(chatUnsubscribe){chatUnsubscribe();}
+    chatUnsubscribe=onValue(ref(db,`convos/${activeChatId}/msgs`),snap=>{
+        const div=document.getElementById('chat-msgs-div'); div.innerHTML='';
+        if(!snap.exists()) return;
+        Object.values(snap.val()).forEach(m=>{
+            const mine=m.uid===currentUser.uid;
+            const t=m.time?new Date(m.time).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}):'';
+            div.innerHTML+=`<div class="msg-row ${mine?'mine':''}">
                 <span class="msg-time">${t}</span>
                 <div class="bubble ${mine?'bubble-mine':'bubble-them'}">${m.text}</div>
             </div>`;
-                });
-                div.scrollTop = div.scrollHeight;
-            });
+        });
+        div.scrollTop=div.scrollHeight;
+    });
+}
+
+window.backFromChat=()=>{
+    if(chatUnsubscribe){chatUnsubscribe(); chatUnsubscribe=null;}
+    activeChatId=null;
+    document.getElementById('chat-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    renderConvosList();
+};
+
+window.sendChatMsg=async()=>{
+    const input=document.getElementById('chat-text-input');
+    const text=input.value.trim(); if(!text||!activeChatId) return;
+    input.value='';
+    await push(ref(db,`convos/${activeChatId}/msgs`),{uid:currentUser.uid,name:myName,text,time:Date.now()});
+    await update(ref(db,`convos/${activeChatId}`),{lastMsg:text,lastTime:Date.now()});
+};
+
+// إيموجي سريعة — تُرسل للدردشة وتطير بحجم كبير
+window.sendQuickEmoji=(emoji,ctx)=>{
+    if(ctx==='chat' && activeChatId){
+        push(ref(db,`convos/${activeChatId}/msgs`),{uid:currentUser.uid,name:myName,text:emoji,time:Date.now()});
+        update(ref(db,`convos/${activeChatId}`),{lastMsg:emoji,lastTime:Date.now()});
+        // إيموجي للجميع في الدردشة الخاصة — محلياً فقط (لا يوجد listener مشترك)
+        blastEmoji(emoji);
+    } else if(ctx==='game' && myRoom){
+        // أرسل الإيموجي لقناة اللعبة ليراه الجميع
+        push(ref(db,`rooms/${myRoom}/emoji`),{e:emoji,uid:currentUser.uid,t:Date.now()});
+    }
+    document.getElementById(`emoji-picker-${ctx}`).style.display='none';
+};
+
+window.toggleEmojiPicker=ctx=>{
+    const p=document.getElementById(`emoji-picker-${ctx}`);
+    p.style.display=p.style.display==='none'?'flex':'none';
+};
+
+// إيموجي كبيرة طائرة
+function blastEmoji(emoji){
+    const blast=document.getElementById('emoji-blast');
+    blast.classList.remove('hidden');
+    blast.innerHTML=`<div class="emoji-big">${emoji}</div>`;
+    setTimeout(()=>{ blast.classList.add('hidden'); blast.innerHTML=''; },2700);
+}
+window.blastEmoji=blastEmoji;
+
+// قائمة المحادثات
+async function renderConvosList(){
+    if(!currentUser) return;
+    const div=document.getElementById('convos-list'); div.innerHTML='';
+    const snap=await get(ref(db,'convos'));
+    if(!snap.exists()){div.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;padding:20px 0;">لا توجد محادثات بعد</p>';return;}
+    const all=snap.val();
+    const mine=Object.entries(all).filter(([id,c])=>c.members&&c.members[currentUser.uid]);
+    if(!mine.length){div.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;padding:20px 0;">لا توجد محادثات بعد</p>';return;}
+    mine.sort((a,b)=>(b[1].lastTime||0)-(a[1].lastTime||0));
+    for(const[id,c] of mine){
+        const isGrp=c.type==='group';
+        let name='',sub='',col='var(--blue)',av='';
+        if(isGrp){
+            name=c.name||'جروب'; sub=`${Object.keys(c.members||{}).length} أعضاء`;
+            col='var(--orange)'; av='👥';
+        } else {
+            const other=Object.entries(c.members||{}).find(([uid])=>uid!==currentUser.uid);
+            name=other?other[1]:'محادثة'; sub='خاصة';
+            col=strColor(name); av=initials(name);
         }
-
-        window.backFromChat = () => {
-            if (chatUnsubscribe) { chatUnsubscribe();
-                chatUnsubscribe = null; }
-            activeChatId = null;
-            activeChatType = null;
-            currentGrpSettingsId = null;
-            document.getElementById('chat-screen').classList.add('hidden');
-            document.getElementById('main-screen').classList.remove('hidden');
-            renderConvosList();
-        };
-
-        window.sendChatMsg = async () => {
-            const input = document.getElementById('chat-text-input');
-            const text = input.value.trim();
-            if (!text || !activeChatId) return;
-            input.value = '';
-            await push(ref(db, `convos/${activeChatId}/msgs`), { uid: currentUser.uid, name: myName, text, time: Date
-                .now() });
-            await update(ref(db, `convos/${activeChatId}`), { lastMsg: text, lastTime: Date.now() });
-        };
-
-        window.sendQuickEmoji = (emoji, ctx) => {
-            if (ctx === 'chat' && activeChatId) {
-                push(ref(db, `convos/${activeChatId}/msgs`), { uid: currentUser.uid, name: myName, text: emoji,
-                    time: Date.now() });
-                update(ref(db, `convos/${activeChatId}`), { lastMsg: emoji, lastTime: Date.now() });
-                blastEmoji(emoji);
-            } else if (ctx === 'game' && myRoom) {
-                push(ref(db, `rooms/${myRoom}/emoji`), { e: emoji, uid: currentUser.uid, t: Date.now() });
-            }
-            document.getElementById(`emoji-picker-${ctx}`).style.display = 'none';
-        };
-
-        window.toggleEmojiPicker = ctx => {
-            const p = document.getElementById(`emoji-picker-${ctx}`);
-            p.style.display = p.style.display === 'none' ? 'flex' : 'none';
-        };
-
-        function blastEmoji(emoji) {
-            const blast = document.getElementById('emoji-blast');
-            blast.classList.remove('hidden');
-            blast.innerHTML = `<div class="emoji-big">${emoji}</div>`;
-            setTimeout(() => { blast.classList.add('hidden');
-                blast.innerHTML = ''; }, 2700);
-        }
-        window.blastEmoji = blastEmoji;
-
-        async function renderConvosList() {
-            if (!currentUser) return;
-            const div = document.getElementById('convos-list');
-            div.innerHTML = '';
-            const snap = await get(ref(db, 'convos'));
-            if (!snap.exists()) { div.innerHTML =
-                    '<p style="color:var(--txt2);font-size:0.85rem;padding:20px 0;">لا توجد محادثات بعد</p>'; return; }
-            const all = snap.val();
-            const mine = Object.entries(all).filter(([id, c]) => c.members && c.members[currentUser.uid]);
-            if (!mine.length) { div.innerHTML =
-                    '<p style="color:var(--txt2);font-size:0.85rem;padding:20px 0;">لا توجد محادثات بعد</p>'; return; }
-            mine.sort((a, b) => (b[1].lastTime || 0) - (a[1].lastTime || 0));
-            for (const [id, c] of mine) {
-                const isGrp = c.type === 'group';
-                let name = '',
-                    sub = '',
-                    col = 'var(--blue)',
-                    av = '';
-                if (isGrp) {
-                    name = c.name || 'جروب';
-                    sub = `${Object.keys(c.members||{}).length} أعضاء`;
-                    col = 'var(--orange)';
-                    av = '👥';
-                } else {
-                    const other = Object.entries(c.members || {}).find(([uid]) => uid !== currentUser.uid);
-                    name = other ? other[1] : 'محادثة';
-                    sub = 'خاصة';
-                    col = strColor(name);
-                    av = initials(name);
-                }
-                const lastMsg = c.lastMsg || '';
-                const lastTime = c.lastTime ? new Date(c.lastTime).toLocaleTimeString('ar', { hour: '2-digit',
-                    minute: '2-digit' }) : '';
-                const onclick = isGrp ? `openGroup('${id}')` :
-                    `openDM('${Object.keys(c.members).find(u=>u!==currentUser.uid)||''}','${name.replace(/'/g,"\\'")}')`;
-                div.innerHTML += `<div class="friend-card" onclick="${onclick}">
+        const lastMsg=c.lastMsg||''; const lastTime=c.lastTime?new Date(c.lastTime).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}):'';
+        const onclick=isGrp?`openGroup('${id}')`:`openDM('${Object.keys(c.members).find(u=>u!==currentUser.uid)||''}','${name.replace(/'/g,"\\'")}')`;
+        div.innerHTML+=`<div class="friend-card" onclick="${onclick}">
             <div class="avatar" style="background:${col};border-radius:${isGrp?'14px':'50%'};">${av}</div>
             <div class="fc-info"><div class="fc-name">${name}</div><div class="fc-status">${lastMsg?lastMsg.substring(0,28)+'…':sub}</div></div>
             <div style="font-size:0.7rem;color:var(--txt2);flex-shrink:0;">${lastTime}</div>
         </div>`;
-            }
-        }
+    }
+}
 
-        window.openNewChat = async () => {
-            document.getElementById('new-chat-modal').style.display = 'flex';
-            ncMode('dm');
-            const friends = (await get(ref(db, `friends/${currentUser.uid}`))).val() || {};
-            ['nc-friends-list', 'nc-grp-friends'].forEach(id => {
-                const div = document.getElementById(id);
-                div.innerHTML = '';
-                if (!Object.keys(friends).length) { div.innerHTML =
-                        '<p style="color:var(--txt2);font-size:0.85rem;">لا يوجد أصدقاء</p>'; return; }
-                for (const [uid, d] of Object.entries(friends)) {
-                    const col = strColor(d.name || uid);
-                    if (id === 'nc-friends-list') {
-                        div.innerHTML +=
-                            `<div class="friend-card" onclick="closeModal('new-chat-modal');openDM('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">
+// ── إنشاء محادثة جديدة (modal) ──
+window.openNewChat=async()=>{
+    document.getElementById('new-chat-modal').style.display='flex';
+    ncMode('dm');
+    // تحميل قائمة الأصدقاء
+    const friends=(await get(ref(db,`friends/${currentUser.uid}`))).val()||{};
+    ['nc-friends-list','nc-grp-friends'].forEach(id=>{
+        const div=document.getElementById(id); div.innerHTML='';
+        if(!Object.keys(friends).length){div.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;">لا يوجد أصدقاء</p>';return;}
+        for(const[uid,d] of Object.entries(friends)){
+            const col=strColor(d.name||uid);
+            if(id==='nc-friends-list'){
+                div.innerHTML+=`<div class="friend-card" onclick="closeModal('new-chat-modal');openDM('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">
                     <div class="avatar avatar-sm" style="background:${col};">${initials(d.name)}</div>
                     <div class="fc-info"><div class="fc-name">${d.name}</div></div>
                 </div>`;
-                    } else {
-                        div.innerHTML += `<div class="friend-card">
+            } else {
+                div.innerHTML+=`<div class="friend-card">
                     <input type="checkbox" value="${uid}" style="width:auto;margin:0 0 0 10px;">
                     <div class="avatar avatar-sm" style="background:${col};">${initials(d.name)}</div>
                     <div class="fc-info"><div class="fc-name">${d.name}</div></div>
                 </div>`;
-                    }
-                }
-            });
-        };
-
-        window.ncMode = mode => {
-            document.getElementById('nc-dm-btn').classList.toggle('secondary', mode !== 'dm');
-            document.getElementById('nc-grp-btn').classList.toggle('secondary', mode !== 'group');
-            document.getElementById('nc-dm-section').classList.toggle('hidden', mode !== 'dm');
-            document.getElementById('nc-grp-section').classList.toggle('hidden', mode !== 'group');
-        };
-
-        window.createGroup = async () => {
-            const name = document.getElementById('grp-name-input').value.trim();
-            if (!name) { alert('أدخل اسم الجروب'); return; }
-            const checked = [...document.querySelectorAll('#nc-grp-friends input:checked')].map(i => i.value);
-            if (!checked.length) { alert('اختر عضواً واحداً على الأقل'); return; }
-            const members = { [currentUser.uid]: myName };
-            for (const uid of checked) {
-                const d = (await get(ref(db, `friends/${currentUser.uid}/${uid}`))).val();
-                if (d) members[uid] = d.name || uid;
-            }
-            const gRef = push(ref(db, 'convos'));
-            await set(gRef, { type: 'group', name, members, createdAt: Date.now(), lastMsg: '', lastTime: 0,
-                owner: currentUser.uid, image: '' });
-            closeModal('new-chat-modal');
-            openGroup(gRef.key);
-        };
-
-        // ═══════════════════════════════════════════════════
-        //  إعدادات الجروب
-        // ═══════════════════════════════════════════════════
-        window.openGroupSettings = async (gid) => {
-            currentGrpSettingsId = gid;
-            const snap = await get(ref(db, `convos/${gid}`));
-            if (!snap.exists()) return;
-            const g = snap.val();
-            const isOwner = g.owner === currentUser.uid;
-            document.getElementById('grp-settings-name').value = g.name || '';
-            const preview = document.getElementById('grp-settings-preview');
-            if (g.image) {
-                preview.src = g.image;
-                preview.classList.remove('hidden');
-            } else {
-                preview.classList.add('hidden');
-            }
-            document.getElementById('grp-settings-img').value = '';
-            await renderGroupMembers(gid, g, isOwner);
-            document.getElementById('group-settings-modal').style.display = 'flex';
-        };
-
-        async function renderGroupMembers(gid, g, isOwner) {
-            const div = document.getElementById('grp-members-list');
-            div.innerHTML = '';
-            const members = g.members || {};
-            for (const [uid, name] of Object.entries(members)) {
-                const isMe = uid === currentUser.uid;
-                const canRemove = isOwner && !isMe;
-                const col = strColor(name || uid);
-                div.innerHTML += `<div class="friend-card">
-            <div class="avatar avatar-sm" style="background:${col};">${initials(name)}</div>
-            <div class="fc-info"><div class="fc-name">${name} ${uid===g.owner?'👑':''}</div></div>
-            <div class="fc-actions">
-                ${canRemove?`<button class="danger" onclick="removeGroupMember('${gid}','${uid}')">حذف</button>`:''}
-            </div>
-        </div>`;
             }
         }
+    });
+};
 
-        window.removeGroupMember = async (gid, uid) => {
-            if (!confirm('حذف هذا العضو من الجروب؟')) return;
-            const snap = await get(ref(db, `convos/${gid}/members`));
-            const members = snap.val() || {};
-            delete members[uid];
-            await set(ref(db, `convos/${gid}/members`), members);
-            await renderGroupMembers(gid, { members, owner: (await get(ref(db, `convos/${gid}/owner`))).val() },
-                (await get(ref(db, `convos/${gid}/owner`))).val() === currentUser.uid);
-        };
+window.ncMode=mode=>{
+    document.getElementById('nc-dm-btn').classList.toggle('secondary', mode!=='dm');
+    document.getElementById('nc-grp-btn').classList.toggle('secondary', mode!=='group');
+    document.getElementById('nc-dm-section').classList.toggle('hidden', mode!=='dm');
+    document.getElementById('nc-grp-section').classList.toggle('hidden', mode!=='group');
+};
 
-        window.searchForGroupMember = async () => {
-            const term = document.getElementById('grp-add-member-search').value.trim().toLowerCase();
-            const div = document.getElementById('grp-add-member-results');
-            if (term.length < 2) { div.innerHTML = ''; return; }
-            div.innerHTML = '<p style="font-size:0.8rem;color:var(--txt2);"><span class="spin">⏳</span></p>';
-            try {
-                const snap = await get(ref(db, 'users'));
-                if (!snap.exists()) { div.innerHTML = ''; return; }
-                const all = snap.val();
-                const gSnap = await get(ref(db, `convos/${currentGrpSettingsId}/members`));
-                const currentMembers = gSnap.val() || {};
-                const res = Object.entries(all).filter(([uid, d]) =>
-                    uid !== currentUser.uid &&
-                    !currentMembers[uid] &&
-                    ((d.name || '').toLowerCase().includes(term) || (d.email || '').toLowerCase().includes(term))
-                );
-                if (!res.length) { div.innerHTML =
-                        '<p style="color:var(--txt2);font-size:0.82rem;">لا نتائج</p>'; return; }
-                div.innerHTML = '';
-                for (const [uid, d] of res) {
-                    const col = strColor(d.name || uid);
-                    div.innerHTML += `<div class="search-item">
-                <div class="avatar avatar-sm" style="background:${col};">${initials(d.name)}</div>
-                <div class="fc-info"><div class="fc-name">${d.name||'مجهول'}</div></div>
-                <button onclick="addMemberToGroup('${currentGrpSettingsId}','${uid}','${(d.name||'').replace(/'/g,"\\'")}')">+ إضافة</button>
-            </div>`;
-                }
-            } catch (e) { div.innerHTML = '<p style="color:var(--accent);font-size:0.82rem;">خطأ</p>'; }
-        };
+window.createGroup=async()=>{
+    const name=document.getElementById('grp-name-input').value.trim();
+    if(!name){alert('أدخل اسم الجروب');return;}
+    const checked=[...document.querySelectorAll('#nc-grp-friends input:checked')].map(i=>i.value);
+    if(!checked.length){alert('اختر عضواً واحداً على الأقل');return;}
+    const members={[currentUser.uid]:myName};
+    for(const uid of checked){
+        const d=(await get(ref(db,`friends/${currentUser.uid}/${uid}`))).val();
+        if(d) members[uid]=d.name||uid;
+    }
+    const gRef=push(ref(db,'convos'));
+    await set(gRef,{type:'group',name,members,createdAt:Date.now(),lastMsg:'',lastTime:0,owner:currentUser.uid});
+    closeModal('new-chat-modal');
+    openGroup(gRef.key);
+};
 
-        window.addMemberToGroup = async (gid, uid, name) => {
-            const snap = await get(ref(db, `convos/${gid}/members`));
-            const members = snap.val() || {};
-            if (members[uid]) { alert('العضو موجود بالفعل'); return; }
-            members[uid] = name;
-            await set(ref(db, `convos/${gid}/members`), members);
-            document.getElementById('grp-add-member-search').value = '';
-            document.getElementById('grp-add-member-results').innerHTML = '';
-            const gSnap = await get(ref(db, `convos/${gid}`));
-            const g = gSnap.val();
-            await renderGroupMembers(gid, g, g.owner === currentUser.uid);
-            alert('✅ تمت إضافة العضو');
-        };
+// ═══════════════════════════════════════════════════
+//  الأصوات
+// ═══════════════════════════════════════════════════
+let audioCtx=null;
+const initAudio=()=>{ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); };
+function playTone(freq,dur,type='sine',vol=0.3,delay=0){
+    if(!audioCtx)return;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);o.type=type;
+    o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);
+    g.gain.setValueAtTime(vol,audioCtx.currentTime+delay);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+delay+dur);
+    o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+dur);
+}
+const sndPlay =()=>{initAudio();playTone(300,.06,'triangle',.5);playTone(500,.08,'triangle',.4,.05);playTone(700,.1,'triangle',.3,.1);};
+const sndDraw =()=>{initAudio();playTone(400,.08,'sawtooth',.3);playTone(250,.12,'sawtooth',.2,.07);};
+const sndUno  =()=>{initAudio();playTone(880,.1,'square',.4);playTone(1100,.1,'square',.5,.1);playTone(880,.15,'square',.35,.2);};
+const sndTurn =()=>{initAudio();playTone(523,.12,'sine',.4);playTone(659,.12,'sine',.4,.13);playTone(784,.18,'sine',.4,.26);};
+const sndPen  =()=>{initAudio();playTone(200,.15,'sawtooth',.5);playTone(150,.2,'sawtooth',.5,.15);};
+const sndRev  =()=>{initAudio();playTone(600,.08,'sine',.4);playTone(400,.08,'sine',.4,.09);};
+const sndWin  =()=>{initAudio();[523,659,784,1047].forEach((f,i)=>playTone(f,.2,'sine',.5,i*.18));};
+const sndStart=()=>{initAudio();[330,392,494,523].forEach((f,i)=>playTone(f,.15,'sine',.45,i*.15));};
 
-        window.previewGrpImage = (input) => {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById('grp-settings-preview').src = e.target.result;
-                document.getElementById('grp-settings-preview').classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-        };
+// ═══════════════════════════════════════════════════
+//  اللعبة
+// ═══════════════════════════════════════════════════
+const ICE_CONFIG={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun3.l.google.com:19302'}]};
+let myKey,myRoom,isAdmin=false,hasUno=false,picking=false,prevTurnKey=null;
+let pendingFriendTarget=null;
 
-        window.saveGroupSettings = async () => {
-            const gid = currentGrpSettingsId;
-            if (!gid) return;
-            const name = document.getElementById('grp-settings-name').value.trim();
-            if (!name) { alert('أدخل اسماً للجروب'); return; }
-            const updates = { name };
-            const imgFile = document.getElementById('grp-settings-img').files[0];
-            if (imgFile) {
-                const reader = new FileReader();
-                reader.onload = async e => {
-                    updates.image = e.target.result;
-                    await update(ref(db, `convos/${gid}`), updates);
-                    closeModal('group-settings-modal');
-                    if (activeChatId === gid) openGroup(gid);
-                };
-                reader.readAsDataURL(imgFile);
-            } else {
-                await update(ref(db, `convos/${gid}`), updates);
-                closeModal('group-settings-modal');
-                if (activeChatId === gid) openGroup(gid);
-            }
-        };
+function cardImg(c){
+    if(c.value==='+4')  return'cards/+4.png';
+    if(c.value==='Wild')return'cards/wild.png';
+    const cM={red:'r',blue:'b',green:'g',yellow:'y'},vM={Skip:'s','🔄':'r','+2':'+2'};
+    return`cards/${cM[c.color]||c.color}${vM[c.value]||c.value}.png`;
+}
 
-        window.deleteGroup = async () => {
-            const gid = currentGrpSettingsId;
-            if (!gid) return;
-            const snap = await get(ref(db, `convos/${gid}`));
-            const g = snap.val();
-            if (g.owner !== currentUser.uid) { alert('فقط مالك الجروب يمكنه حذفه'); return; }
-            if (!confirm('حذف الجروب نهائياً؟ لا يمكن التراجع.')) return;
-            await remove(ref(db, `convos/${gid}`));
-            closeModal('group-settings-modal');
-            if (activeChatId === gid) backFromChat();
-        };
+window.onload=()=>{
+    const hash=window.location.hash.substring(1);
+    if(hash&&hash.length===6&&!isNaN(hash)) document.getElementById('room-input').value=hash;
+};
 
-        // ═══════════════════════════════════════════════════
-        //  الأصوات
-        // ═══════════════════════════════════════════════════
-        let audioCtx = null;
-        const initAudio = () => { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); };
-        function playTone(freq, dur, type = 'sine', vol = 0.3, delay = 0) {
-            if (!audioCtx) return;
-            const o = audioCtx.createOscillator(),
-                g = audioCtx.createGain();
-            o.connect(g);
-            g.connect(audioCtx.destination);
-            o.type = type;
-            o.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
-            g.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + dur);
-            o.start(audioCtx.currentTime + delay);
-            o.stop(audioCtx.currentTime + delay + dur);
-        }
-        const sndPlay = () => { initAudio();
-            playTone(300, .06, 'triangle', .5);
-            playTone(500, .08, 'triangle', .4, .05);
-            playTone(700, .1, 'triangle', .3, .1); };
-        const sndDraw = () => { initAudio();
-            playTone(400, .08, 'sawtooth', .3);
-            playTone(250, .12, 'sawtooth', .2, .07); };
-        const sndUno = () => { initAudio();
-            playTone(880, .1, 'square', .4);
-            playTone(1100, .1, 'square', .5, .1);
-            playTone(880, .15, 'square', .35, .2); };
-        const sndTurn = () => { initAudio();
-            playTone(523, .12, 'sine', .4);
-            playTone(659, .12, 'sine', .4, .13);
-            playTone(784, .18, 'sine', .4, .26); };
-        const sndPen = () => { initAudio();
-            playTone(200, .15, 'sawtooth', .5);
-            playTone(150, .2, 'sawtooth', .5, .15); };
-        const sndRev = () => { initAudio();
-            playTone(600, .08, 'sine', .4);
-            playTone(400, .08, 'sine', .4, .09); };
-        const sndWin = () => { initAudio(); [523, 659, 784, 1047].forEach((f, i) => playTone(f, .2, 'sine', .5, i * .18)); };
-        const sndStart = () => { initAudio(); [330, 392, 494, 523].forEach((f, i) => playTone(f, .15, 'sine', .45, i * .15)); };
+window.enterRoom=async type=>{
+    if(!currentUser){alert('سجّل الدخول أولاً');return;}
+    initAudio();
+    myName=currentUser.displayName||currentUser.email.split('@')[0];
+    myRoom=type==='create'?Math.floor(100000+Math.random()*899999).toString():document.getElementById('room-input').value.trim();
+    if(!myRoom||myRoom.length!==6){alert('أدخل كود غرفة صحيح (6 أرقام)');return;}
+    window.location.hash=myRoom;
+    const roomRef=ref(db,`rooms/${myRoom}/players`);
+    const snap=await get(roomRef); const players=snap.val()||{};
+    let alreadyIn=false;
+    Object.entries(players).forEach(([k,p])=>{ if(p.uid===currentUser.uid){alreadyIn=true;myKey=k;} });
+    if(!alreadyIn){
+        const pRef=push(roomRef); myKey=pRef.key;
+        isAdmin=!Object.keys(players).length;
+        await set(pRef,{name:myName,uid:currentUser.uid,ready:false,isAdmin});
+        onDisconnect(ref(db,`rooms/${myRoom}/players/${myKey}`)).remove();
+    }
+    await updateUserStatus('playing',myRoom);
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('room-display').textContent=`${myRoom} ${isAdmin?'👑':''}`;
+    document.getElementById('game-board').classList.add('hidden');
+    document.getElementById('waiting-area').classList.remove('hidden');
+    listenGame();
+};
 
-        // ═══════════════════════════════════════════════════
-        //  اللعبة — 8 أرقام تصاعدي
-        // ═══════════════════════════════════════════════════
-        let myKey, myRoom, isAdmin = false,
-            hasUno = false,
-            picking = false,
-            prevTurnKey = null;
-        let pendingFriendTarget = null;
-        let lastUsedRoomNum = 0;
+window.copyRoomLink=()=>{
+    navigator.clipboard.writeText(window.location.href).catch(()=>{});
+    const btn=document.querySelector('.copy-btn');
+    btn.textContent='✅ تم'; setTimeout(()=>btn.textContent='📋 نسخ',2000);
+};
 
-        function cardImg(c) {
-            if (c.value === '+4') return 'cards/+4.png';
-            if (c.value === 'Wild') return 'cards/wild.png';
-            const cM = { red: 'r', blue: 'b', green: 'g', yellow: 'y' },
-                vM = { Skip: 's', '🔄': 'r', '+2': '+2' };
-            return `cards/${cM[c.color]||c.color}${vM[c.value]||c.value}.png`;
-        }
+function setupTags(players,turnKey){
+    const div=document.getElementById('players-tags'); div.innerHTML='';
+    Object.entries(players).forEach(([key,p])=>{
+        const sp=document.createElement('span');
+        sp.className='player-tag'+(key===turnKey?' active-turn':'');
+        sp.textContent=p.uid===currentUser?.uid?p.name+' (أنت)':p.name;
+        if(p.uid&&p.uid!==currentUser?.uid){ sp.title='إضافة كصديق'; sp.onclick=()=>addFriendFromGame(p.name,p.uid); }
+        div.appendChild(sp);
+    });
+}
 
-        window.onload = () => {
-            const hash = window.location.hash.substring(1);
-            if (hash && hash.length === 8 && !isNaN(hash)) document.getElementById('room-input').value = hash;
-        };
+function listenGame(){
+    onValue(ref(db,`rooms/${myRoom}`),s=>{
+        const data=s.val();
+        if(!data){ updateUserStatus('online'); document.getElementById('game-screen').classList.add('hidden'); document.getElementById('main-screen').classList.remove('hidden'); return; }
+        const players=data.players||{};
+        const turnKey=data.game?data.game.order[data.game.turn]:null;
+        setupTags(players,turnKey);
+        if(Object.values(players).length>=2&&Object.values(players).every(p=>p.ready)&&!data.game){ sndStart(); initGame(Object.keys(players)); }
+        if(data.game){ const cur=data.game.order[data.game.turn]; if(cur!==prevTurnKey){if(cur===myKey)sndTurn();prevTurnKey=cur;} render(data.game); }
+    });
+    onValue(ref(db,`rooms/${myRoom}/chat`),s=>{
+        const div=document.getElementById('game-chat-msgs'); div.innerHTML='';
+        if(s.exists()) Object.values(s.val()).forEach(m=>div.innerHTML+=`<div style="text-align:right;font-size:0.82rem;padding:2px 0;"><b>${m.u}:</b> ${m.t}</div>`);
+        div.scrollTop=div.scrollHeight;
+    });
+    // إيموجي مشتركة — يراها الجميع
+    let lastEmojiKey='';
+    onValue(ref(db,`rooms/${myRoom}/emoji`),s=>{
+        if(!s.exists()) return;
+        const entries=Object.entries(s.val());
+        const latest=entries[entries.length-1];
+        if(!latest) return;
+        const [key,data]=latest;
+        if(key===lastEmojiKey) return;
+        lastEmojiKey=key;
+        blastEmoji(data.e);
+    });
+}
 
-        // توليد رقم غرفة تصاعدي فريد (8 أرقام)
-        async function generateRoomCode() {
-            const snap = await get(ref(db, 'rooms'));
-            const rooms = snap.val() || {};
-            const usedNums = Object.keys(rooms).map(Number).filter(n => !isNaN(n));
-            let nextNum = usedNums.length ? Math.max(...usedNums) + 1 : 1;
-            if (nextNum > 99999999) nextNum = 1; // إعادة تدوير
-            // تأكد من عدم وجوده
-            while (rooms[String(nextNum).padStart(8, '0')]) {
-                nextNum++;
-                if (nextNum > 99999999) nextNum = 1;
-            }
-            return String(nextNum).padStart(8, '0');
-        }
+async function initGame(keys){
+    if(!isAdmin)return;
+    let deck=[];
+    ['red','blue','green','yellow'].forEach(c=>{for(let i=0;i<=9;i++)deck.push({color:c,value:i.toString()});['+2','Skip','🔄'].forEach(v=>deck.push({color:c,value:v}));});
+    for(let i=0;i<4;i++){deck.push({color:'black',value:'Wild'});deck.push({color:'black',value:'+4'});}
+    deck.sort(()=>Math.random()-.5);
+    let game={discard:[deck.find(c=>!isNaN(c.value))],turn:0,order:keys,deck,winner:null};
+    keys.forEach(k=>game[`hand_${k}`]=deck.splice(0,7));
+    await update(ref(db,`rooms/${myRoom}/game`),game);
+}
 
-        window.enterRoom = async type => {
-            if (!currentUser) { alert('سجّل الدخول أولاً'); return; }
-            initAudio();
-            myName = currentUser.displayName || currentUser.email.split('@')[0];
-            if (type === 'create') {
-                myRoom = await generateRoomCode();
-            } else {
-                myRoom = document.getElementById('room-input').value.trim();
-                if (!myRoom || myRoom.length !== 8 || isNaN(myRoom)) { alert(
-                        'أدخل كود غرفة صحيح (8 أرقام)'); return; }
-            }
-            window.location.hash = myRoom;
-            // إخفاء شاشة الشات إذا كانت مفتوحة
-            if (activeChatId) {
-                if (chatUnsubscribe) { chatUnsubscribe();
-                    chatUnsubscribe = null; }
-                activeChatId = null;
-                activeChatType = null;
-                document.getElementById('chat-screen').classList.add('hidden');
-            }
-            const roomRef = ref(db, `rooms/${myRoom}/players`);
-            const snap = await get(roomRef);
-            const players = snap.val() || {};
-            let alreadyIn = false;
-            Object.entries(players).forEach(([k, p]) => { if (p.uid === currentUser.uid) { alreadyIn = true;
-                    myKey = k; } });
-            if (!alreadyIn) {
-                const pRef = push(roomRef);
-                myKey = pRef.key;
-                isAdmin = !Object.keys(players).length;
-                await set(pRef, { name: myName, uid: currentUser.uid, ready: false, isAdmin });
-                onDisconnect(ref(db, `rooms/${myRoom}/players/${myKey}`)).remove();
-            }
-            await updateUserStatus('playing', myRoom);
-            document.getElementById('main-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('room-display').textContent = `${myRoom} ${isAdmin?'👑':''}`;
-            document.getElementById('game-board').classList.add('hidden');
-            document.getElementById('waiting-area').classList.remove('hidden');
-            document.getElementById('uno-btn').style.display = 'none';
-            listenGame();
-        };
-
-        window.copyRoomLink = () => {
-            navigator.clipboard.writeText(window.location.href).catch(() => {});
-            const btn = document.querySelector('.copy-btn');
-            btn.textContent = '✅ تم';
-            setTimeout(() => btn.textContent = '📋 نسخ', 2000);
-        };
-
-        function setupTags(players, turnKey) {
-            const div = document.getElementById('players-tags');
-            div.innerHTML = '';
-            Object.entries(players).forEach(([key, p]) => {
-                const sp = document.createElement('span');
-                sp.className = 'player-tag' + (key === turnKey ? ' active-turn' : '');
-                sp.textContent = p.uid === currentUser?.uid ? p.name + ' (أنت)' : p.name;
-                if (p.uid && p.uid !== currentUser?.uid) { sp.title = 'إضافة كصديق';
-                    sp.onclick = () => addFriendFromGame(p.name, p.uid); }
-                div.appendChild(sp);
-            });
-        }
-
-        function listenGame() {
-            onValue(ref(db, `rooms/${myRoom}`), s => {
-                const data = s.val();
-                if (!data) { updateUserStatus('online');
-                    document.getElementById('game-screen').classList.add('hidden');
-                    document.getElementById('main-screen').classList.remove('hidden'); return; }
-                const players = data.players || {};
-                const turnKey = data.game ? data.game.order[data.game.turn] : null;
-                setupTags(players, turnKey);
-                // بدء اللعبة فقط إذا كان هناك 2+ لاعبين والكل جاهز ولا توجد لعبة بعد
-                if (Object.values(players).length >= 2 && Object.values(players).every(p => p.ready) && !data
-                    .game) {
-                    sndStart();
-                    initGame(Object.keys(players));
-                }
-                if (data.game) { const cur = data.game.order[data.game.turn]; if (cur !== prevTurnKey) { if (cur ===
-                            myKey) sndTurn();
-                        prevTurnKey = cur; }
-                    render(data.game); }
-            });
-            onValue(ref(db, `rooms/${myRoom}/chat`), s => {
-                const div = document.getElementById('game-chat-msgs');
-                div.innerHTML = '';
-                if (s.exists()) Object.values(s.val()).forEach(m => div.innerHTML +=
-                    `<div style="text-align:right;font-size:0.82rem;padding:2px 0;"><b>${m.u}:</b> ${m.t}</div>`
-                    );
-                div.scrollTop = div.scrollHeight;
-            });
-            let lastEmojiKey = '';
-            onValue(ref(db, `rooms/${myRoom}/emoji`), s => {
-                if (!s.exists()) return;
-                const entries = Object.entries(s.val());
-                const latest = entries[entries.length - 1];
-                if (!latest) return;
-                const [key, data] = latest;
-                if (key === lastEmojiKey) return;
-                lastEmojiKey = key;
-                blastEmoji(data.e);
-            });
-        }
-
-        async function initGame(keys) {
-            if (!isAdmin) return;
-            // تأكد من أن اللعبة لم تبدأ بالفعل
-            const checkSnap = await get(ref(db, `rooms/${myRoom}/game`));
-            if (checkSnap.exists() && checkSnap.val() && !checkSnap.val().winner) return;
-            let deck = [];
-            ['red', 'blue', 'green', 'yellow'].forEach(c => { for (let i = 0; i <= 9; i++) deck.push({ color: c,
-                    value: i.toString() });
-                ['+2', 'Skip', '🔄'].forEach(v => deck.push({ color: c, value: v })); });
-            for (let i = 0; i < 4; i++) { deck.push({ color: 'black', value: 'Wild' });
-                deck.push({ color: 'black', value: '+4' }); }
-            deck.sort(() => Math.random() - .5);
-            let game = { discard: [deck.find(c => !isNaN(c.value))], turn: 0, order: keys, deck, winner: null };
-            keys.forEach(k => game[`hand_${k}`] = deck.splice(0, 7));
-            await update(ref(db, `rooms/${myRoom}/game`), game);
-        }
-
-        function showWinner(name) {
-            updateUserStatus('online');
-            const isMe = name === myName;
-            if (isMe) sndWin();
-            const board = document.getElementById('game-board');
-            board.innerHTML = `<div style="padding:30px 10px;text-align:center;">
+function showWinner(name){
+    updateUserStatus('online');
+    const isMe=name===myName;
+    if(isMe) sndWin();
+    const board=document.getElementById('game-board');
+    board.innerHTML=`<div style="padding:30px 10px;text-align:center;">
         <div style="font-size:3.5rem;margin-bottom:10px;">${isMe?'🏆':'😔'}</div>
         <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:8px;">${isMe?'أنت الفائز!':'انتهت اللعبة'}</h2>
         <p style="color:var(--txt2);margin-bottom:20px;">${isMe?'أحسنت! 🎉':'الفائز: <b>'+name+'</b>'}</p>
         <button class="success" onclick="returnToMain()" style="width:auto;padding:12px 30px;">🏠 الرئيسية</button>
     </div>`;
-            board.classList.remove('hidden');
-            document.getElementById('waiting-area').classList.add('hidden');
-            setTimeout(() => returnToMain(), 6000);
-        }
+    board.classList.remove('hidden');
+    document.getElementById('waiting-area').classList.add('hidden');
+    setTimeout(()=>returnToMain(),6000);
+}
 
-        window.returnToMain = () => {
-            myRoom = null;
-            myKey = null;
-            isAdmin = false;
-            hasUno = false;
-            picking = false;
-            prevTurnKey = null;
-            window.location.hash = '';
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('main-screen').classList.remove('hidden');
-        };
+window.returnToMain=()=>{
+    myRoom=null;myKey=null;isAdmin=false;hasUno=false;picking=false;prevTurnKey=null;
+    window.location.hash='';
+    document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+};
 
-        function canPlay(card, top) {
-            return card.color === top.color || card.value === top.value || card.color === 'black';
-        }
+function canPlay(card, top){
+    return card.color===top.color||card.value===top.value||card.color==='black';
+}
 
-        function render(game) {
-            if (game.winner) {
-                if (game.winner === myName) setTimeout(async () => { try { await remove(ref(db,
-                        `rooms/${myRoom}`)); } catch (e) {} }, 3500);
-                showWinner(game.winner);
-                return;
-            }
-            document.getElementById('waiting-area').classList.add('hidden');
-            document.getElementById('game-board').classList.remove('hidden');
-            const top = game.discard[game.discard.length - 1];
-            document.getElementById('top-card').src = cardImg(top);
-            const hand = game[`hand_${myKey}`] || [];
-            const isTurn = game.order[game.turn] === myKey;
-            const hDiv = document.getElementById('player-hand');
-            hDiv.innerHTML = '';
+function render(game){
+    if(game.winner){
+        if(game.winner===myName) setTimeout(async()=>{ try{await remove(ref(db,`rooms/${myRoom}`));}catch(e){} },3500);
+        showWinner(game.winner); return;
+    }
+    document.getElementById('waiting-area').classList.add('hidden');
+    document.getElementById('game-board').classList.remove('hidden');
+    const top=game.discard[game.discard.length-1];
+    document.getElementById('top-card').src=cardImg(top);
+    const hand=game[`hand_${myKey}`]||[];
+    const isTurn=game.order[game.turn]===myKey;
+    const hDiv=document.getElementById('player-hand'); hDiv.innerHTML='';
 
-            let hasAnyPlayable = false;
-            hand.forEach((card, i) => {
-                const img = document.createElement('img');
-                img.src = cardImg(card);
-                const playable = isTurn && canPlay(card, top);
-                if (playable) hasAnyPlayable = true;
-                img.className = 'uno-card' + (playable ? ' playable' : isTurn ? ' not-playable' : '');
-                img.onclick = () => { if (isTurn) play(i, game); };
-                hDiv.appendChild(img);
-            });
+    let hasAnyPlayable=false;
+    hand.forEach((card,i)=>{
+        const img=document.createElement('img');
+        img.src=cardImg(card);
+        const playable=isTurn&&canPlay(card,top);
+        if(playable) hasAnyPlayable=true;
+        img.className='uno-card'+(playable?' playable':isTurn?' not-playable':'');
+        img.onclick=()=>{ if(isTurn) play(i,game); };
+        hDiv.appendChild(img);
+    });
 
-            document.getElementById('turn-display').textContent = isTurn ? '🔥 دورك!' : '⏳ انتظر...';
-            document.getElementById('uno-btn').style.display = hand.length === 2 && isTurn ? 'block' : 'none';
+    document.getElementById('turn-display').textContent=isTurn?'🔥 دورك!':'⏳ انتظر...';
+    document.getElementById('uno-btn').style.display=hand.length===2&&isTurn?'block':'none';
 
-            if (isTurn && !hasAnyPlayable && !picking && hand.length > 0) {
-                setTimeout(() => drawCardAction(true), 800);
-            }
-        }
+    // سحب تلقائي إذا دور اللاعب ولا يوجد ما يمكن لعبه
+    if(isTurn && !hasAnyPlayable && !picking && hand.length>0){
+        setTimeout(()=>drawCardAction(true),800);
+    }
+}
 
-        async function play(idx, game) {
-            if (game.order[game.turn] !== myKey || picking) return;
-            const card = game[`hand_${myKey}`][idx],
-                top = game.discard[game.discard.length - 1];
-            if (card.color === top.color || card.value === top.value || card.color === 'black') {
-                if (game[`hand_${myKey}`].length === 2 && !hasUno) {
-                    sndPen();
-                    game[`hand_${myKey}`].push(game.deck.pop());
-                    game[`hand_${myKey}`].push(game.deck.pop());
-                    await update(ref(db, `rooms/${myRoom}/game`), game);
-                    return;
-                }
-                sndPlay();
-                game[`hand_${myKey}`].splice(idx, 1);
-                game.discard.push(card);
-                if (!game[`hand_${myKey}`].length) { game.winner = myName;
-                    await update(ref(db, `rooms/${myRoom}/game`), game); return; }
-                let ni = (game.turn + 1) % game.order.length,
-                    victim = game.order[ni];
-                if (card.value === '+2') { sndPen(); for (let i = 0; i < 2; i++) game[`hand_${victim}`].push(game
-                        .deck.pop());
-                    game.turn = (ni + 1) % game.order.length; } else if (card.value === 'Skip') { game.turn = (ni +
-                        1) % game.order.length; } else if (card.value === '🔄') { sndRev();
-                    game.order.reverse();
-                    game.turn = (game.order.indexOf(myKey) + 1) % game.order.length; } else if (card.color ===
-                    'black') { if (card.value === '+4') { sndPen(); for (let i = 0; i < 4; i++) game[
-                            `hand_${victim}`].push(game.deck.pop()); }
-                    picking = true;
-                    document.getElementById('color-modal').style.display = 'flex'; } else { game.turn = ni; }
-                hasUno = false;
-                await update(ref(db, `rooms/${myRoom}/game`), game);
-            }
-        }
-
-        window.pickColor = async color => {
-            const s = await get(ref(db, `rooms/${myRoom}/game`));
-            const game = s.val();
-            const last = game.discard[game.discard.length - 1];
-            game.discard[game.discard.length - 1].color = color;
-            game.turn = (last.value === '+4') ? (game.turn + 2) % game.order.length : (game.turn + 1) % game.order
-                .length;
-            picking = false;
-            document.getElementById('color-modal').style.display = 'none';
-            await update(ref(db, `rooms/${myRoom}/game`), game);
-        };
-
-        window.drawCardAction = async (auto = false) => {
-            initAudio();
-            sndDraw();
-            const s = await get(ref(db, `rooms/${myRoom}/game`));
-            const game = s.val();
-            if (!game || game.order[game.turn] !== myKey) return;
-            if (!game.deck || !game.deck.length) return;
+async function play(idx,game){
+    if(game.order[game.turn]!==myKey||picking)return;
+    const card=game[`hand_${myKey}`][idx],top=game.discard[game.discard.length-1];
+    if(card.color===top.color||card.value===top.value||card.color==='black'){
+        // إذا الكرت قبل الأخير ولم يضغط UNO — يُسحب منه بطاقتان كعقوبة
+        if(game[`hand_${myKey}`].length===2&&!hasUno){
+            sndPen();
             game[`hand_${myKey}`].push(game.deck.pop());
-            game.turn = (game.turn + 1) % game.order.length;
-            hasUno = false;
-            await update(ref(db, `rooms/${myRoom}/game`), game);
-        };
+            game[`hand_${myKey}`].push(game.deck.pop());
+            await update(ref(db,`rooms/${myRoom}/game`),game);
+            return;
+        }
+        sndPlay(); game[`hand_${myKey}`].splice(idx,1); game.discard.push(card);
+        if(!game[`hand_${myKey}`].length){game.winner=myName;await update(ref(db,`rooms/${myRoom}/game`),game);return;}
+        let ni=(game.turn+1)%game.order.length,victim=game.order[ni];
+        if(card.value==='+2'){sndPen();for(let i=0;i<2;i++)game[`hand_${victim}`].push(game.deck.pop());game.turn=(ni+1)%game.order.length;}
+        else if(card.value==='Skip'){game.turn=(ni+1)%game.order.length;}
+        else if(card.value==='🔄'){sndRev();game.order.reverse();game.turn=(game.order.indexOf(myKey)+1)%game.order.length;}
+        else if(card.color==='black'){if(card.value==='+4'){sndPen();for(let i=0;i<4;i++)game[`hand_${victim}`].push(game.deck.pop());}picking=true;document.getElementById('color-modal').style.display='flex';}
+        else{game.turn=ni;}
+        hasUno=false; await update(ref(db,`rooms/${myRoom}/game`),game);
+    }
+}
 
-        window.quitGame = async () => {
-            if (isAdmin) {
-                if (confirm('إغلاق الغرفة للجميع؟')) {
-                    await remove(ref(db, `rooms/${myRoom}`));
-                    await updateUserStatus('online');
-                    returnToMain();
-                }
-            } else {
-                await remove(ref(db, `rooms/${myRoom}/players/${myKey}`));
-                await updateUserStatus('online');
-                returnToMain();
-            }
-        };
+window.pickColor=async color=>{
+    const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
+    const last=game.discard[game.discard.length-1];
+    game.discard[game.discard.length-1].color=color;
+    game.turn=(last.value==='+4')?(game.turn+2)%game.order.length:(game.turn+1)%game.order.length;
+    picking=false; document.getElementById('color-modal').style.display='none';
+    await update(ref(db,`rooms/${myRoom}/game`),game);
+};
 
-        window.sayUno = () => { initAudio();
-            sndUno();
-            hasUno = true;
-            sendGameMsg('⚠️ UNO!'); };
+window.drawCardAction=async(auto=false)=>{
+    initAudio();sndDraw();
+    const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
+    if(!game||game.order[game.turn]!==myKey)return;
+    if(!game.deck||!game.deck.length) return;
+    game[`hand_${myKey}`].push(game.deck.pop());
+    game.turn=(game.turn+1)%game.order.length;
+    hasUno=false;await update(ref(db,`rooms/${myRoom}/game`),game);
+};
 
-        window.sendGameMsg = (txt) => {
-            const i = document.getElementById('game-chat-input');
-            const msg = txt || i.value.trim();
-            if (!msg || !myRoom) return;
-            push(ref(db, `rooms/${myRoom}/chat`), { u: myName, t: msg });
-            i.value = '';
-        };
+window.quitGame=async()=>{
+    if(isAdmin){
+        if(confirm('إغلاق الغرفة للجميع؟')){
+            await remove(ref(db,`rooms/${myRoom}`));
+            await updateUserStatus('online');
+            returnToMain();
+        }
+    } else {
+        await remove(ref(db,`rooms/${myRoom}/players/${myKey}`));
+        await updateUserStatus('online');
+        returnToMain();
+    }
+};
 
-        window.setReady = () => { initAudio();
-            update(ref(db, `rooms/${myRoom}/players/${myKey}`), { ready: true }); };
+window.sayUno=()=>{ initAudio();sndUno();hasUno=true;sendGameMsg('⚠️ UNO!'); };
 
-        window.addFriendFromGame = (name, uid) => {
-            if (!currentUser || uid === currentUser.uid) return;
-            pendingFriendTarget = { uid, name };
-            document.getElementById('add-friend-msg').innerHTML = `إضافة <b>${name}</b> كصديق؟`;
-            document.getElementById('add-friend-modal').style.display = 'flex';
-        };
-        window.confirmAddFriend = async () => {
-            if (!pendingFriendTarget) return;
-            await sendFriendRequest(pendingFriendTarget.uid, pendingFriendTarget.name);
-            closeModal('add-friend-modal');
-            pendingFriendTarget = null;
-        };
+window.sendGameMsg=(txt)=>{
+    const i=document.getElementById('game-chat-input');
+    const msg=txt||i.value.trim(); if(!msg||!myRoom)return;
+    push(ref(db,`rooms/${myRoom}/chat`),{u:myName,t:msg});
+    i.value='';
+};
 
-        window.openModal = id => document.getElementById(id).style.display = 'flex';
-        window.closeModal = id => { document.getElementById(id).style.display = 'none'; };
+window.setReady=()=>{ initAudio();update(ref(db,`rooms/${myRoom}/players/${myKey}`),{ready:true}); };
 
-        // ═══ ثيمات ═══
-        window.updateTheme = () => {
-            const theme = document.getElementById('theme-select').value;
-            const body = document.getElementById('body-tag');
-            const cpPicker = document.getElementById('custom-color-picker');
-            const bgUpload = document.getElementById('bg-image-upload');
-            const bgLayer = document.getElementById('bg-image-layer');
-            body.className = '';
-            cpPicker.classList.remove('show');
-            bgUpload.style.display = 'none';
-            bgLayer.style.backgroundImage = '';
-            if (theme === 'dark') { body.className = 'dark-mode'; } else if (theme === 'custom') {
-                body.className = 'custom-color-mode';
-                cpPicker.classList.add('show');
-                applyCustomColors();
-            } else if (theme === 'bgimage') {
-                bgUpload.style.display = 'block';
-                const saved = localStorage.getItem('uno_bg_image');
-                if (saved) { bgLayer.style.backgroundImage = `url(${saved})`;
-                    body.className = 'bg-image-mode'; }
-            }
-            localStorage.setItem('uno_theme', theme);
-        };
+// إضافة صديق من اللعبة
+window.addFriendFromGame=(name,uid)=>{
+    if(!currentUser||uid===currentUser.uid)return;
+    pendingFriendTarget={uid,name};
+    document.getElementById('add-friend-msg').innerHTML=`إضافة <b>${name}</b> كصديق؟`;
+    document.getElementById('add-friend-modal').style.display='flex';
+};
+window.confirmAddFriend=async()=>{
+    if(!pendingFriendTarget)return;
+    await sendFriendRequest(pendingFriendTarget.uid,pendingFriendTarget.name);
+    closeModal('add-friend-modal');pendingFriendTarget=null;
+};
 
-        window.applyCustomColors = () => {
-            const root = document.documentElement;
-            root.style.setProperty('--custom-bg', document.getElementById('cp-bg').value);
-            root.style.setProperty('--custom-surface', document.getElementById('cp-surface').value);
-            root.style.setProperty('--custom-txt', document.getElementById('cp-txt').value);
-        };
+window.openModal =id=>document.getElementById(id).style.display='flex';
+window.closeModal=id=>{ document.getElementById(id).style.display='none'; };
 
-        window.applyBgImage = (input) => {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                const url = e.target.result;
-                localStorage.setItem('uno_bg_image', url);
-                document.getElementById('bg-image-layer').style.backgroundImage = `url(${url})`;
-                document.getElementById('body-tag').className = 'bg-image-mode';
-            };
-            reader.readAsDataURL(file);
-        };
+// ═══ ثيمات المظهر ═══
+window.updateTheme=()=>{
+    const theme=document.getElementById('theme-select').value;
+    const body=document.getElementById('body-tag');
+    const cpPicker=document.getElementById('custom-color-picker');
+    const bgUpload=document.getElementById('bg-image-upload');
+    const bgLayer =document.getElementById('bg-image-layer');
 
-        window.clearBgImage = () => {
-            localStorage.removeItem('uno_bg_image');
-            document.getElementById('bg-image-layer').style.backgroundImage = '';
-            document.getElementById('body-tag').className = '';
-            document.getElementById('theme-select').value = 'light';
-        };
+    body.className='';
+    cpPicker.classList.remove('show');
+    bgUpload.style.display='none';
+    bgLayer.style.backgroundImage='';
 
-        (() => {
-            const saved = localStorage.getItem('uno_theme');
-            if (saved) { document.getElementById('theme-select') && (document.getElementById('theme-select')
-                    .value = saved);
-                updateTheme(); }
-        })();
+    if(theme==='dark')    { body.className='dark-mode'; }
+    else if(theme==='custom') {
+        body.className='custom-color-mode';
+        cpPicker.classList.add('show');
+        applyCustomColors();
+    } else if(theme==='bgimage') {
+        bgUpload.style.display='block';
+        const saved=localStorage.getItem('uno_bg_image');
+        if(saved){ bgLayer.style.backgroundImage=`url(${saved})`; body.className='bg-image-mode'; }
+    }
+    localStorage.setItem('uno_theme', theme);
+};
 
-        window.changeName = async () => {
-            const newName = document.getElementById('new-name-input').value.trim();
-            const err = document.getElementById('name-change-err');
-            err.textContent = '';
-            if (!newName || newName.length < 2) { err.textContent = 'الاسم قصير جداً'; return; }
-            try {
-                await updateProfile(currentUser, { displayName: newName });
-                await update(ref(db, `users/${currentUser.uid}`), { name: newName, nameLower: newName.toLowerCase() });
-                myName = newName;
-                document.getElementById('display-name').textContent = newName;
-                document.getElementById('settings-username').textContent = newName;
-                const av = document.getElementById('main-avatar');
-                av.textContent = initials(newName);
-                av.style.background = strColor(newName);
-                closeModal('change-name-modal');
-                document.getElementById('new-name-input').value = '';
-            } catch (e) { err.textContent = 'خطأ: ' + e.message; }
-        };
+window.applyCustomColors=()=>{
+    const root=document.documentElement;
+    root.style.setProperty('--custom-bg',     document.getElementById('cp-bg').value);
+    root.style.setProperty('--custom-surface', document.getElementById('cp-surface').value);
+    root.style.setProperty('--custom-txt',    document.getElementById('cp-txt').value);
+};
 
-        window.changePassword = async () => {
-            const curr = document.getElementById('curr-pass-input').value;
-            const np = document.getElementById('new-pass-input').value;
-            const np2 = document.getElementById('new-pass2-input').value;
-            const err = document.getElementById('pass-change-err');
-            err.textContent = '';
-            if (!curr || !np) { err.textContent = 'يرجى ملء جميع الحقول'; return; }
-            if (np.length < 6) { err.textContent = 'كلمة المرور الجديدة 6 أحرف على الأقل'; return; }
-            if (np !== np2) { err.textContent = 'كلمتا المرور غير متطابقتين'; return; }
-            try {
-                const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import(
-                    'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-                const cred = EmailAuthProvider.credential(currentUser.email, curr);
-                await reauthenticateWithCredential(currentUser, cred);
-                await updatePassword(currentUser, np);
-                closeModal('change-pass-modal');
-                ['curr-pass-input', 'new-pass-input', 'new-pass2-input'].forEach(id => document.getElementById(id)
-                    .value = '');
-                alert('✅ تم تغيير كلمة المرور');
-            } catch (e) {
-                const m = { 'auth/wrong-password': 'كلمة المرور الحالية غاطئة',
-                    'auth/invalid-credential': 'كلمة المرور الحالية غاطئة' };
-                err.textContent = m[e.code] || e.message;
-            }
-        };
+window.applyBgImage=(input)=>{
+    const file=input.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        const url=e.target.result;
+        localStorage.setItem('uno_bg_image', url);
+        document.getElementById('bg-image-layer').style.backgroundImage=`url(${url})`;
+        document.getElementById('body-tag').className='bg-image-mode';
+    };
+    reader.readAsDataURL(file);
+};
 
-        const origSwitchTab = window.switchTab;
-        window.switchTab = tab => {
-            origSwitchTab(tab);
-            if (tab === 'settings' && currentUser) {
-                const el = document.getElementById('settings-username');
-                if (el) el.textContent = ' — ' + (currentUser.displayName || currentUser.email.split('@')[0]);
-            }
-        };
+window.clearBgImage=()=>{
+    localStorage.removeItem('uno_bg_image');
+    document.getElementById('bg-image-layer').style.backgroundImage='';
+    document.getElementById('body-tag').className='';
+    document.getElementById('theme-select').value='light';
+};
 
-        window.updateGameUI = () => {};
-    </script>
+// استعادة الثيم عند التحميل
+(()=>{
+    const saved=localStorage.getItem('uno_theme');
+    if(saved){ document.getElementById('theme-select') && (document.getElementById('theme-select').value=saved); updateTheme(); }
+})();
+
+// ═══ تغيير الاسم ═══
+window.changeName=async()=>{
+    const newName=document.getElementById('new-name-input').value.trim();
+    const err=document.getElementById('name-change-err');
+    err.textContent='';
+    if(!newName||newName.length<2){ err.textContent='الاسم قصير جداً'; return; }
+    try{
+        await updateProfile(currentUser,{displayName:newName});
+        await update(ref(db,`users/${currentUser.uid}`),{name:newName,nameLower:newName.toLowerCase()});
+        myName=newName;
+        document.getElementById('display-name').textContent=newName;
+        document.getElementById('settings-username').textContent=newName;
+        const av=document.getElementById('main-avatar');
+        av.textContent=initials(newName); av.style.background=strColor(newName);
+        closeModal('change-name-modal');
+        document.getElementById('new-name-input').value='';
+    }catch(e){ err.textContent='خطأ: '+e.message; }
+};
+
+// ═══ تغيير كلمة المرور ═══
+window.changePassword=async()=>{
+    const curr =document.getElementById('curr-pass-input').value;
+    const np   =document.getElementById('new-pass-input').value;
+    const np2  =document.getElementById('new-pass2-input').value;
+    const err  =document.getElementById('pass-change-err');
+    err.textContent='';
+    if(!curr||!np){ err.textContent='يرجى ملء جميع الحقول'; return; }
+    if(np.length<6){ err.textContent='كلمة المرور الجديدة 6 أحرف على الأقل'; return; }
+    if(np!==np2){ err.textContent='كلمتا المرور غير متطابقتين'; return; }
+    try{
+        // إعادة مصادقة ثم تغيير
+        const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const cred=EmailAuthProvider.credential(currentUser.email, curr);
+        await reauthenticateWithCredential(currentUser, cred);
+        await updatePassword(currentUser, np);
+        closeModal('change-pass-modal');
+        ['curr-pass-input','new-pass-input','new-pass2-input'].forEach(id=>document.getElementById(id).value='');
+        alert('✅ تم تغيير كلمة المرور');
+    }catch(e){
+        const m={'auth/wrong-password':'كلمة المرور الحالية غاطئة','auth/invalid-credential':'كلمة المرور الحالية غاطئة'};
+        err.textContent=m[e.code]||e.message;
+    }
+};
+
+// تحديث اسم المستخدم في الإعدادات عند فتحها
+const origSwitchTab=window.switchTab;
+window.switchTab=tab=>{
+    origSwitchTab(tab);
+    if(tab==='settings' && currentUser){
+        const el=document.getElementById('settings-username');
+        if(el) el.textContent=' — '+(currentUser.displayName||currentUser.email.split('@')[0]);
+    }
+};
+
+window.updateGameUI=()=>{};
+</script>
 </body>
 </html>
