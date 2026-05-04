@@ -849,7 +849,7 @@ async function renderFriendsTab(){
             const st=stSnap.val()||{};
             const status=st.status||'offline';
             const stTxt={online:'🟢 نشط',playing:'🎮 يلعب',offline:'⚫ غير نشط'}[status]||'⚫';
-            const joinBtn=status==='playing'&&st.roomId?`<button onclick="joinFriendRoom('${st.roomId}')" style="background:var(--blue);">انضمام</button>`:'';
+            const joinBtn=status==='playing'&&st.roomId?`<button onclick="event.stopPropagation();joinFriendRoom('${st.roomId}')" style="background:var(--blue);">🎮 انضمام</button>`:'';
             const col=strColor(d.name||uid);
             fl.innerHTML+=`<div class="friend-card" onclick="openDM('${uid}','${(d.name||'').replace(/'/g,"\\'")}')">
                 <div class="avatar" style="background:${col};">${initials(d.name)}</div>
@@ -889,7 +889,16 @@ function listenRealtime(){
     onValue(ref(db,`convos`),()=>renderConvosList());
 }
 
-window.joinFriendRoom=roomId=>{ document.getElementById('room-input').value=roomId; switchTab('home'); enterRoom('join'); };
+window.joinFriendRoom=async roomId=>{
+    // أغلق أي شاشة مفتوحة (شات أو غير ذلك)
+    document.getElementById('chat-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    // تأكد أننا في تبويب اللعبة
+    switchTab('home');
+    // ضع الكود وادخل
+    document.getElementById('room-input').value=roomId;
+    await enterRoom('join');
+};
 
 // ═══════════════════════════════════════════════════
 //  نظام الدردشة — محادثات خاصة وجروبات
