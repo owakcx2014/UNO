@@ -1114,6 +1114,9 @@ const sndStart=()=>{initAudio();[330,392,494,523].forEach((f,i)=>playTone(f,.15,
 // ═══════════════════════════════════════════════════
 const ICE_CONFIG={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun3.l.google.com:19302'}]};
 let myKey,myRoom,isAdmin=false,hasUno=false,picking=false,prevTurnKey=null;
+let gameListenerActive=false;  // منع تشغيل listenGame مرتين
+let gameUnsubscribers=[];      // لإلغاء كل listeners عند الخروج
+let localGameStarted=false;    // هل بدأت اللعبة فعلاً في هذه الجلسة
 let pendingFriendTarget=null;
 
 function cardImg(c){
@@ -1145,6 +1148,9 @@ async function generateRoomCode(){
 window.enterRoom=async type=>{
     if(!currentUser){alert('سجّل الدخول أولاً');return;}
     initAudio();
+    // تنظيف أي listeners قديمة قبل الدخول
+    cleanupGameListeners();
+    localGameStarted=false;
     myName=currentUser.displayName||currentUser.email.split('@')[0];
 
     if(type==='create'){
@@ -1173,7 +1179,7 @@ window.enterRoom=async type=>{
     Object.entries(players).forEach(([k,p])=>{ if(p.uid===currentUser.uid){alreadyIn=true;myKey=k;} });
     if(!alreadyIn){
         const pRef=push(roomRef); myKey=pRef.key;
-        isAdmin=!Object.keys(players).length;
+        isAdmin = Object.keys(players).length === 0;
         await set(pRef,{name:myName,uid:currentUser.uid,ready:false,isAdmin});
         onDisconnect(ref(db,`rooms/${myRoom}/players/${myKey}`)).remove();
     }
@@ -1204,33 +1210,110 @@ function setupTags(players,turnKey){
     });
 }
 
+// إلغاء كل listeners اللعبة
+function cleanupGameListeners(){
+    gameUnsubscribers.forEach(unsub=>{ try{unsub();}catch(e){} });
+    gameUnsubscribers=[];
+    gameListenerActive=false;
+}
+
 function listenGame(){
-    onValue(ref(db,`rooms/${myRoom}`),s=>{
+    // حماية من الاستدعاء المزدوج
+    if(gameListenerActive) return;
+    gameListenerActive=true;
+
+    const capturedRoom = myRoom; // نحفظ myRoom الحالي
+
+    // isAdmin من Firebase
+    const u1=onValue(ref(db,`rooms/${capturedRoom}/players/${myKey}/isAdmin`), snap=>{
+        if(snap.exists()) isAdmin=snap.val();
+    });
+    gameUnsubscribers.push(u1);
+
+    // الـ listener الرئيسي
+    const u2=onValue(ref(db,`rooms/${capturedRoom}`),s=>{
+        // تجاهل إذا تغير myRoom (دخلنا غرفة جديدة)
+        if(capturedRoom!==myRoom) return;
+
         const data=s.val();
-        if(!data){ updateUserStatus('online'); document.getElementById('game-screen').classList.add('hidden'); document.getElementById('main-screen').classList.remove('hidden'); return; }
+
+        if(!data){
+            // الغرفة حُذفت
+            // إذا كانت اللعبة بدأت → اللاعبون سيرون شاشة الفائز
+            // إذا لم تبدأ → ارجع للرئيسية بهدوء
+            if(!localGameStarted){
+                cleanupGameListeners();
+                updateUserStatus('online');
+                document.getElementById('game-screen').classList.add('hidden');
+                document.getElementById('main-screen').classList.remove('hidden');
+            }
+            return;
+        }
+
         const players=data.players||{};
         const turnKey=data.game?data.game.order[data.game.turn]:null;
         setupTags(players,turnKey);
-        if(Object.values(players).length>=2&&Object.values(players).every(p=>p.ready)&&!data.game){ sndStart(); initGame(Object.keys(players)); }
-        if(data.game){ const cur=data.game.order[data.game.turn]; if(cur!==prevTurnKey){if(cur===myKey)sndTurn();prevTurnKey=cur;} render(data.game); }
+
+        // كل اللاعبون جاهزون ولا توجد لعبة ولا يوجد قفل بدء؟
+        if(Object.values(players).length>=2 &&
+           Object.values(players).every(p=>p.ready) &&
+           !data.game &&
+           !data.starting){
+            tryStartGame(Object.keys(players));
+        }
+
+        if(data.game){
+            localGameStarted=true;
+            const cur=data.game.order[data.game.turn];
+            if(cur!==prevTurnKey){if(cur===myKey)sndTurn();prevTurnKey=cur;}
+            render(data.game);
+        }
     });
-    onValue(ref(db,`rooms/${myRoom}/chat`),s=>{
+    gameUnsubscribers.push(u2);
+
+    // شات اللعبة
+    const u3=onValue(ref(db,`rooms/${capturedRoom}/chat`),s=>{
+        if(capturedRoom!==myRoom) return;
         const div=document.getElementById('game-chat-msgs'); div.innerHTML='';
         if(s.exists()) Object.values(s.val()).forEach(m=>div.innerHTML+=`<div style="text-align:right;font-size:0.82rem;padding:2px 0;"><b>${m.u}:</b> ${m.t}</div>`);
         div.scrollTop=div.scrollHeight;
     });
-    // إيموجي مشتركة — يراها الجميع
+    gameUnsubscribers.push(u3);
+
+    // إيموجي مشتركة
     let lastEmojiKey='';
-    onValue(ref(db,`rooms/${myRoom}/emoji`),s=>{
-        if(!s.exists()) return;
+    const u4=onValue(ref(db,`rooms/${capturedRoom}/emoji`),s=>{
+        if(capturedRoom!==myRoom||!s.exists()) return;
         const entries=Object.entries(s.val());
         const latest=entries[entries.length-1];
         if(!latest) return;
-        const [key,data]=latest;
+        const [key,val]=latest;
         if(key===lastEmojiKey) return;
         lastEmojiKey=key;
-        blastEmoji(data.e);
+        blastEmoji(val.e);
     });
+    gameUnsubscribers.push(u4);
+}
+
+// قفل atomic — فقط لاعب واحد يبدأ اللعبة مهما حدث
+async function tryStartGame(keys){
+    const { runTransaction } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+    const startRef = ref(db, `rooms/${myRoom}/starting`);
+    let iWon = false;
+    try{
+        await runTransaction(startRef, current => {
+            if(current === null || current === false){
+                iWon = true;
+                return true; // أنا من يبدأ
+            }
+            return; // شخص آخر سبق — لا تغيّر شيئاً
+        });
+    } catch(e){ return; }
+
+    if(!iWon) return; // شخص آخر فاز بالقفل
+
+    sndStart();
+    await initGame(keys);
 }
 
 async function initGame(keys){
@@ -1245,6 +1328,7 @@ async function initGame(keys){
 }
 
 function showWinner(name){
+    cleanupGameListeners();
     updateUserStatus('online');
     const isMe=name===myName;
     if(isMe) sndWin();
@@ -1261,7 +1345,9 @@ function showWinner(name){
 }
 
 window.returnToMain=()=>{
+    cleanupGameListeners();
     myRoom=null;myKey=null;isAdmin=false;hasUno=false;picking=false;prevTurnKey=null;
+    localGameStarted=false;
     window.location.hash='';
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
@@ -1353,11 +1439,16 @@ window.drawCardAction=async(auto=false)=>{
 };
 
 window.quitGame=async()=>{
+    cleanupGameListeners();
     if(isAdmin){
         if(confirm('إغلاق الغرفة للجميع؟')){
             await remove(ref(db,`rooms/${myRoom}`));
             await updateUserStatus('online');
             returnToMain();
+        } else {
+            // أعد تشغيل listener إذا ألغى
+            gameListenerActive=false;
+            listenGame();
         }
     } else {
         await remove(ref(db,`rooms/${myRoom}/players/${myKey}`));
