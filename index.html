@@ -1341,7 +1341,7 @@ function showWinner(name){
     </div>`;
     board.classList.remove('hidden');
     document.getElementById('waiting-area').classList.add('hidden');
-    setTimeout(()=>returnToMain(),6000);
+    setTimeout(()=>location.reload(), 3500);
 }
 
 window.returnToMain=()=>{
