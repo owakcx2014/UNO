@@ -1402,18 +1402,18 @@ async function play(idx,game){
         // إذا الكرت قبل الأخير ولم يضغط UNO — يُسحب منه بطاقتان كعقوبة
         if(game[`hand_${myKey}`].length===2&&!hasUno){
             sndPen();
-            game[`hand_${myKey}`].push(game.deck.pop());
-            game[`hand_${myKey}`].push(game.deck.pop());
+            const p1=safeDrawCard(game); if(p1) game[`hand_${myKey}`].push(p1);
+            const p2=safeDrawCard(game); if(p2) game[`hand_${myKey}`].push(p2);
             await update(ref(db,`rooms/${myRoom}/game`),game);
             return;
         }
         sndPlay(); game[`hand_${myKey}`].splice(idx,1); game.discard.push(card);
         if(!game[`hand_${myKey}`].length){game.winner=myName;await update(ref(db,`rooms/${myRoom}/game`),game);return;}
         let ni=(game.turn+1)%game.order.length,victim=game.order[ni];
-        if(card.value==='+2'){sndPen();for(let i=0;i<2;i++)game[`hand_${victim}`].push(game.deck.pop());game.turn=(ni+1)%game.order.length;}
+        if(card.value==='+2'){sndPen();for(let i=0;i<2;i++){const c=safeDrawCard(game);if(c)game[`hand_${victim}`].push(c);}game.turn=(ni+1)%game.order.length;}
         else if(card.value==='Skip'){game.turn=(ni+1)%game.order.length;}
         else if(card.value==='🔄'){sndRev();game.order.reverse();game.turn=(game.order.indexOf(myKey)+1)%game.order.length;}
-        else if(card.color==='black'){if(card.value==='+4'){sndPen();for(let i=0;i<4;i++)game[`hand_${victim}`].push(game.deck.pop());}picking=true;document.getElementById('color-modal').style.display='flex';}
+        else if(card.color==='black'){if(card.value==='+4'){sndPen();for(let i=0;i<4;i++){const c=safeDrawCard(game);if(c)game[`hand_${victim}`].push(c);}}picking=true;document.getElementById('color-modal').style.display='flex';}
         else{game.turn=ni;}
         hasUno=false; await update(ref(db,`rooms/${myRoom}/game`),game);
     }
@@ -1428,12 +1428,31 @@ window.pickColor=async color=>{
     await update(ref(db,`rooms/${myRoom}/game`),game);
 };
 
+
+function reshuffleDeck(game){
+    if(!game.discard||game.discard.length<=1) return;
+    const top=game.discard[game.discard.length-1];
+    const rest=game.discard.splice(0,game.discard.length-1);
+    rest.sort(()=>Math.random()-.5);
+    game.deck=(game.deck||[]).concat(rest);
+    push(ref(db,`rooms/${myRoom}/chat`),{u:'🔄 النظام',t:'تم خلط كروت التجاهل وإعادتها للدرج!'});
+}
+function safeDrawCard(game){
+    if(!game.deck||!game.deck.length) reshuffleDeck(game);
+    if(!game.deck||!game.deck.length) return null;
+    return game.deck.pop();
+}
+
 window.drawCardAction=async(auto=false)=>{
     initAudio();sndDraw();
     const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
     if(!game||game.order[game.turn]!==myKey)return;
-    if(!game.deck||!game.deck.length) return;
-    game[`hand_${myKey}`].push(game.deck.pop());
+    if(!game.deck||!game.deck.length){
+        reshuffleDeck(game);
+        if(!game.deck||!game.deck.length) return;
+    }
+    const drawnCard=safeDrawCard(game);
+    if(drawnCard) game[`hand_${myKey}`].push(drawnCard);
     game.turn=(game.turn+1)%game.order.length;
     hasUno=false;await update(ref(db,`rooms/${myRoom}/game`),game);
 };
