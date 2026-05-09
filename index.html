@@ -597,6 +597,20 @@ select {
     </div>
 </div>
 
+<!-- ══ مودال لعب البطاقة المسحوبة ══ -->
+<div id="play-drawn-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>🃏 سحبت بطاقة قابلة للعب!</h3>
+        <img id="drawn-card-img" style="width:72px;margin:14px auto;display:block;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.25);" src="">
+        <p style="font-size:0.9rem;color:var(--txt2);margin-bottom:16px;">هل تريد لعبها الآن؟</p>
+        <div style="display:flex;gap:10px;">
+            <button class="success" onclick="confirmPlayDrawn()">✅ نعم، العبها</button>
+            <button class="secondary" onclick="skipPlayDrawn()">❌ لا، تخطَّ دوري</button>
+        </div>
+    </div>
+</div>
+
 <!-- ══ مودال قواعد ══ -->
 <div id="rules-modal" class="modal center">
     <div class="modal-sheet">
@@ -1431,8 +1445,9 @@ window.pickColor=async color=>{
 
 function reshuffleDeck(game){
     if(!game.discard||game.discard.length<=1) return;
-    const top=game.discard[game.discard.length-1];
     const rest=game.discard.splice(0,game.discard.length-1);
+    // إعادة بطاقات Wild و+4 إلى لونها الأصلي الأسود قبل وضعها في الدرج
+    rest.forEach(c=>{ if(c.value==='Wild'||c.value==='+4') c.color='black'; });
     rest.sort(()=>Math.random()-.5);
     game.deck=(game.deck||[]).concat(rest);
     push(ref(db,`rooms/${myRoom}/chat`),{u:'🔄 النظام',t:'تم خلط كروت التجاهل وإعادتها للدرج!'});
@@ -1443,6 +1458,8 @@ function safeDrawCard(game){
     return game.deck.pop();
 }
 
+let pendingDrawnCardGame=null, pendingDrawnCardIdx=null;
+
 window.drawCardAction=async(auto=false)=>{
     initAudio();sndDraw();
     const s=await get(ref(db,`rooms/${myRoom}/game`));const game=s.val();
@@ -1452,9 +1469,53 @@ window.drawCardAction=async(auto=false)=>{
         if(!game.deck||!game.deck.length) return;
     }
     const drawnCard=safeDrawCard(game);
-    if(drawnCard) game[`hand_${myKey}`].push(drawnCard);
+    if(!drawnCard) return;
+    game[`hand_${myKey}`].push(drawnCard);
+    hasUno=false;
+
+    // إذا كانت البطاقة المسحوبة قابلة للعب وكان السحب يدوياً → اسأل اللاعب
+    const top=game.discard[game.discard.length-1];
+    if(!auto && canPlay(drawnCard, top)){
+        pendingDrawnCardGame=game;
+        pendingDrawnCardIdx=game[`hand_${myKey}`].length-1;
+        document.getElementById('drawn-card-img').src=cardImg(drawnCard);
+        document.getElementById('play-drawn-modal').style.display='flex';
+        // نحفظ الحالة بدون تغيير الدور (ننتظر قرار اللاعب)
+        await update(ref(db,`rooms/${myRoom}/game`),game);
+        return;
+    }
+
     game.turn=(game.turn+1)%game.order.length;
-    hasUno=false;await update(ref(db,`rooms/${myRoom}/game`),game);
+    await update(ref(db,`rooms/${myRoom}/game`),game);
+};
+
+window.confirmPlayDrawn=async()=>{
+    document.getElementById('play-drawn-modal').style.display='none';
+    if(!pendingDrawnCardGame||pendingDrawnCardIdx===null) return;
+    const game=pendingDrawnCardGame;
+    pendingDrawnCardGame=null; pendingDrawnCardIdx=null;
+    // أعد قراءة آخر حالة من Firebase لتجنب أي تعارض
+    const s=await get(ref(db,`rooms/${myRoom}/game`)); const fresh=s.val();
+    if(!fresh||fresh.order[fresh.turn]!==myKey) return;
+    const hand=fresh[`hand_${myKey}`];
+    const card=hand[hand.length-1]; // البطاقة المسحوبة دائماً الأخيرة
+    const top=fresh.discard[fresh.discard.length-1];
+    if(!canPlay(card,top)) return;
+    // العب البطاقة (نفس منطق play لكن مباشر)
+    await play(hand.length-1, fresh);
+};
+
+window.skipPlayDrawn=async()=>{
+    document.getElementById('play-drawn-modal').style.display='none';
+    if(!pendingDrawnCardGame) return;
+    const game=pendingDrawnCardGame;
+    pendingDrawnCardGame=null; pendingDrawnCardIdx=null;
+    // أعد قراءة آخر حالة وانتقل للدور التالي
+    const s=await get(ref(db,`rooms/${myRoom}/game`)); const fresh=s.val();
+    if(!fresh||fresh.order[fresh.turn]!==myKey) return;
+    fresh.turn=(fresh.turn+1)%fresh.order.length;
+    hasUno=false;
+    await update(ref(db,`rooms/${myRoom}/game`),fresh);
 };
 
 window.quitGame=async()=>{
