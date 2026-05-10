@@ -317,6 +317,23 @@ select {
 .color-pick-row { display:flex; align-items:center; gap:10px; margin:6px 0; }
 .color-pick-row label { font-size:0.85rem; flex:1; text-align:right; color:var(--txt2); }
 .color-pick-row input[type=color] { width:44px; height:36px; padding:2px; border-radius:8px; border:1.5px solid var(--gray); cursor:pointer; }
+
+/* ── أفاتار صورة ── */
+.avatar { position:relative; overflow:hidden; cursor:default; }
+.avatar img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.avatar-cam { position:absolute;bottom:0;right:0;left:0;background:rgba(0,0,0,0.45);color:#fff;font-size:0.55rem;padding:2px 0;text-align:center;cursor:pointer; }
+
+/* ── شاشة اختيار الحساب ── */
+.acct-card {
+    display:flex;align-items:center;gap:12px;
+    background:var(--bg);border-radius:var(--radius-sm);
+    padding:11px 14px;margin:6px 0;text-align:right;cursor:pointer;transition:.15s;
+}
+.acct-card:active{transform:scale(.98);}
+.acct-info{flex:1;}
+.acct-name{font-weight:700;font-size:.93rem;}
+.acct-email{font-size:.75rem;color:var(--txt2);}
+
 </style>
 </head>
 <body id="body-tag">
@@ -330,13 +347,24 @@ select {
     <div class="auth-title">UNO Online</div>
     <div class="auth-sub">العب مع أصدقائك في أي مكان</div>
 
-    <div id="login-form">
+    <!-- اختيار الحساب -->
+    <div id="account-picker">
+        <p class="section-title">اختر حسابك</p>
+        <div id="saved-accounts-list"></div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+            <button onclick="showLogin()">➕ إضافة حساب / تسجيل دخول</button>
+            <button class="secondary" onclick="showRegister()">📝 إنشاء حساب جديد</button>
+            <button class="ghost" onclick="showGuestForm()">👻 الدخول كضيف</button>
+        </div>
+    </div>
+
+    <div id="login-form" class="hidden">
         <p class="section-title">تسجيل الدخول</p>
         <input type="email" id="login-email" placeholder="البريد الإلكتروني">
         <input type="password" id="login-password" placeholder="كلمة المرور">
         <div id="login-error" class="auth-err"></div>
         <button onclick="login()">دخول</button>
-        <button class="secondary" onclick="showRegister()">إنشاء حساب جديد</button>
+        <button class="ghost" onclick="showAccountPicker()">← رجوع</button>
     </div>
 
     <div id="register-form" class="hidden">
@@ -346,7 +374,15 @@ select {
         <input type="password" id="reg-password" placeholder="كلمة المرور (6 أحرف+)">
         <div id="reg-error" class="auth-err"></div>
         <button onclick="register()">إنشاء الحساب</button>
-        <button class="ghost" onclick="showLogin()">العودة لتسجيل الدخول</button>
+        <button class="ghost" onclick="showAccountPicker()">← رجوع</button>
+    </div>
+
+    <div id="guest-form" class="hidden">
+        <p class="section-title">👻 الدخول كضيف</p>
+        <input type="text" id="guest-name-input" placeholder="اختر اسماً مستعاراً" maxlength="20">
+        <div id="guest-error" class="auth-err"></div>
+        <button onclick="loginAsGuest()">دخول كضيف</button>
+        <button class="ghost" onclick="showAccountPicker()">← رجوع</button>
     </div>
 </div>
 
@@ -363,7 +399,9 @@ select {
                 <div style="font-weight:700;font-size:0.93rem;text-align:right;" id="display-name"></div>
                 <div style="font-size:0.72rem;color:var(--txt2);text-align:right;">مرحباً 👋</div>
             </div>
-            <div class="avatar" id="main-avatar" style="background:var(--blue);">؟</div>
+            <div class="avatar" id="main-avatar" style="background:var(--blue);cursor:pointer;" onclick="openAvatarChange()" title="تغيير الصورة">؟
+            <span class="avatar-cam" id="main-avatar-cam">📷</span>
+        </div>
         </div>
     </div>
 
@@ -419,11 +457,16 @@ select {
 
         <!-- الحساب -->
         <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:10px 0 4px;">الحساب</p>
-        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-name-modal')">
+        <div id="guest-badge-row" class="hidden" style="background:var(--yellow);color:#000;border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:8px;font-size:0.82rem;font-weight:600;text-align:right;">👻 أنت تلعب كضيف — البيانات لن تُحفظ</div>
+        <div class="setting-row" style="cursor:pointer;" onclick="openAvatarChange()" id="avatar-setting-row">
+            <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
+            <span class="setting-label">صورة الحساب</span>
+        </div>
+        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-name-modal')" id="name-setting-row">
             <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
             <span class="setting-label">اسم المستخدم<small id="settings-username"></small></span>
         </div>
-        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-pass-modal')">
+        <div class="setting-row" style="cursor:pointer;" onclick="openModal('change-pass-modal')" id="pass-setting-row">
             <span style="color:var(--blue);font-size:0.85rem;">تغيير ←</span>
             <span class="setting-label">كلمة المرور</span>
         </div>
@@ -479,8 +522,9 @@ select {
             <div class="chat-header-info">
                 <div class="chat-header-name" id="chat-peer-name"></div>
                 <div class="chat-header-sub"  id="chat-peer-sub"></div>
+                <button id="group-avatar-btn" onclick="" style="display:none;width:auto;padding:4px 10px;font-size:0.72rem;border-radius:14px;margin:4px 0 0;background:var(--bg);color:var(--blue);">📷 تغيير الصورة</button>
             </div>
-            <div class="avatar avatar-sm" id="chat-peer-avatar" style="background:var(--blue);">؟</div>
+            <div class="avatar avatar-sm" id="chat-peer-avatar" style="background:var(--blue);position:relative;overflow:hidden;">؟</div>
         </div>
     </div>
     <div class="chat-msgs" id="chat-msgs-div"></div>
@@ -576,6 +620,41 @@ select {
         <div style="display:flex;gap:8px;margin-top:8px;">
             <button class="success" onclick="changePassword()">حفظ</button>
             <button class="secondary" onclick="closeModal('change-pass-modal')">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ مودال اختيار الحساب عند الخروج ══ -->
+<div id="account-picker-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>👤 اختر حساباً</h3>
+        <div id="modal-saved-accounts"></div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
+            <button onclick="closeModal('account-picker-modal');showLogin()">➕ إضافة / تسجيل دخول</button>
+            <button class="secondary" onclick="closeModal('account-picker-modal');showRegister()">📝 إنشاء حساب جديد</button>
+            <button class="ghost" onclick="closeModal('account-picker-modal');showGuestForm()">👻 الدخول كضيف</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ مودال تغيير صورة الحساب ══ -->
+<div id="avatar-change-modal" class="modal center">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <h3>📷 تغيير الصورة</h3>
+        <div id="avatar-preview-wrap" style="width:80px;height:80px;border-radius:50%;overflow:hidden;margin:14px auto;position:relative;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:#fff;">
+            <span id="avatar-preview-initials"></span>
+            <img id="avatar-preview-img" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;" alt="">
+        </div>
+        <label style="display:block;background:var(--bg);border-radius:var(--radius-sm);padding:12px;cursor:pointer;font-size:0.88rem;text-align:center;color:var(--blue);margin-bottom:8px;">
+            📂 اختر صورة من جهازك
+            <input type="file" accept="image/*" onchange="previewAvatarChange(this)" style="display:none;">
+        </label>
+        <button id="avatar-remove-btn" class="secondary" style="margin-bottom:6px;font-size:0.82rem;padding:8px;" onclick="removeAvatar()">🗑️ إزالة الصورة</button>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="success" onclick="saveAvatar()">حفظ</button>
+            <button class="secondary" onclick="closeModal('avatar-change-modal')">إلغاء</button>
         </div>
     </div>
 </div>
@@ -696,32 +775,152 @@ function strColor(s){ let h=0; for(let c of s) h=(h<<5)-h+c.charCodeAt(0); retur
 function initials(s){ return (s||'?').substring(0,2).toUpperCase(); }
 
 // ═══════════════════════════════════════════════════
-//  حالة المصادقة
+//  حالة المصادقة + ضيف
 // ═══════════════════════════════════════════════════
-let currentUser = null, myName = '';
+let currentUser = null, myName = '', isGuest = false;
+let pendingAvatarDataUrl = null;  // لمعاينة الصورة قبل الحفظ
+
+// ─── مساعدات الأفاتار ───
+function setAvatarEl(el, name, avatarUrl){
+    if(!el) return;
+    el.style.background = avatarUrl ? 'transparent' : strColor(name);
+    let img = el.querySelector('img');
+    let cam = el.querySelector('.avatar-cam');
+    if(avatarUrl){
+        if(!img){ img=document.createElement('img'); el.appendChild(img); }
+        img.src = avatarUrl; img.style.display='block';
+        el.childNodes[0].textContent='';
+    } else {
+        if(img) img.style.display='none';
+        el.childNodes[0].textContent = initials(name);
+    }
+}
+
+// ─── حفظ الحسابات محلياً ───
+function getSavedAccounts(){ return JSON.parse(localStorage.getItem('uno_accounts')||'[]'); }
+function saveAccount(email, name){
+    const list = getSavedAccounts().filter(a=>a.email!==email);
+    list.unshift({email, name, time:Date.now()});
+    localStorage.setItem('uno_accounts', JSON.stringify(list.slice(0,5)));
+}
+function removeSavedAccount(email){
+    const list = getSavedAccounts().filter(a=>a.email!==email);
+    localStorage.setItem('uno_accounts', JSON.stringify(list));
+}
+
+function renderSavedAccounts(containerId){
+    const div = document.getElementById(containerId);
+    if(!div) return;
+    const list = getSavedAccounts();
+    if(!list.length){ div.innerHTML='<p style="color:var(--txt2);font-size:0.85rem;padding:8px 0;">لا توجد حسابات محفوظة</p>'; return; }
+    div.innerHTML='';
+    list.forEach(a=>{
+        const col=strColor(a.name||a.email);
+        div.innerHTML+=`<div class="acct-card" onclick="quickLogin('${a.email}')">
+            <div class="avatar avatar-sm" style="background:${col};">${initials(a.name||a.email)}</div>
+            <div class="acct-info"><div class="acct-name">${a.name||a.email}</div><div class="acct-email">${a.email}</div></div>
+            <button onclick="event.stopPropagation();removeSavedAccount('${a.email}');renderSavedAccounts('${containerId}');renderSavedAccounts('modal-saved-accounts');" style="width:auto;background:var(--accent);padding:5px 10px;border-radius:20px;font-size:0.75rem;margin:0;">✕</button>
+        </div>`;
+    });
+}
+
+window.quickLogin=(email)=>{
+    showLogin();
+    document.getElementById('login-email').value=email;
+    document.getElementById('login-password').focus();
+};
+
+// ─── عرض أقسام الشاشة ───
+window.showAccountPicker=()=>{
+    ['login-form','register-form','guest-form'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    document.getElementById('account-picker').classList.remove('hidden');
+    renderSavedAccounts('saved-accounts-list');
+};
+window.showLogin=()=>{
+    ['account-picker','register-form','guest-form'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    document.getElementById('login-form').classList.remove('hidden');
+};
+window.showRegister=()=>{
+    ['account-picker','login-form','guest-form'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    document.getElementById('register-form').classList.remove('hidden');
+};
+window.showGuestForm=()=>{
+    ['account-picker','login-form','register-form'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    document.getElementById('guest-form').classList.remove('hidden');
+};
+
+// ─── دخول الضيف ───
+window.loginAsGuest=()=>{
+    const name=document.getElementById('guest-name-input').value.trim();
+    const err=document.getElementById('guest-error');
+    err.textContent='';
+    if(!name||name.length<2){err.textContent='اسم مستعار يتكون من حرفين على الأقل';return;}
+    isGuest=true; currentUser=null; myName=name;
+    enterMainAsGuest();
+};
+
+function enterMainAsGuest(){
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    document.getElementById('display-name').textContent=myName+' 👻';
+    const av=document.getElementById('main-avatar');
+    av.childNodes[0].textContent=initials(myName);
+    av.style.background=strColor(myName);
+    av.onclick=null;
+    const cam=document.getElementById('main-avatar-cam');
+    if(cam) cam.style.display='none';
+    // إخفاء تبويبات غير متاحة
+    document.getElementById('tab-msgs').style.opacity='0.35';
+    document.getElementById('tab-msgs').style.pointerEvents='none';
+    document.getElementById('tab-friends').style.opacity='0.35';
+    document.getElementById('tab-friends').style.pointerEvents='none';
+    // إعدادات الضيف
+    document.getElementById('guest-badge-row').classList.remove('hidden');
+    document.getElementById('avatar-setting-row').style.display='none';
+    document.getElementById('name-setting-row').style.display='none';
+    document.getElementById('pass-setting-row').style.display='none';
+}
 
 onAuthStateChanged(auth, async user => {
+    if(isGuest) return; // الضيف لا يمر عبر Firebase Auth
     if(user){
         currentUser = user;
         myName = user.displayName || user.email.split('@')[0];
+        isGuest = false;
+        saveAccount(user.email, myName);
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
         document.getElementById('display-name').textContent = myName;
         const av = document.getElementById('main-avatar');
-        av.textContent = initials(myName);
+        av.childNodes[0].textContent = initials(myName);
         av.style.background = strColor(myName);
+        av.onclick = openAvatarChange;
+        // تحميل صورة الحساب إن وجدت
+        const avatarSnap = await get(ref(db,`users/${user.uid}/avatar`));
+        if(avatarSnap.exists()) setAvatarEl(av, myName, avatarSnap.val());
         await updateUserStatus('online');
         listenRealtime();
     } else {
-        currentUser = null; myName = '';
-        document.getElementById('auth-screen').classList.remove('hidden');
-        document.getElementById('main-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.add('hidden');
-        document.getElementById('chat-screen').classList.add('hidden');
+        if(!isGuest){
+            currentUser = null; myName = '';
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+            showAccountPicker();
+        }
     }
 });
 
+// عرض شاشة اختيار الحساب عند التحميل الأول
+(()=>{
+    // سيتم الاستدعاء من onAuthStateChanged أو showAccountPicker
+    const list=getSavedAccounts();
+    if(list.length>0) renderSavedAccounts('saved-accounts-list');
+})();
+
 async function updateUserStatus(status, roomId=null){
+    if(isGuest) return;
     if(!currentUser) return;
     const r = ref(db,`users/${currentUser.uid}/status`);
     await set(r,{status,lastSeen:Date.now(),roomId:roomId||null});
@@ -755,7 +954,7 @@ window.login = async()=>{
           err=document.getElementById('login-error');
     err.textContent='';
     if(!email||!pass){err.textContent='يرجى إدخال البريد وكلمة المرور';return;}
-    try{ await signInWithEmailAndPassword(auth,email,pass); }
+    try{ const uc=await signInWithEmailAndPassword(auth,email,pass); saveAccount(email, uc.user.displayName||email.split('@')[0]); }
     catch(e){
         const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/invalid-email':'بريد غير صالح','auth/user-not-found':'المستخدم غير موجود','auth/wrong-password':'كلمة المرور خاطئة'};
         err.textContent=m[e.code]||e.message;
@@ -763,12 +962,33 @@ window.login = async()=>{
 };
 
 window.logout = async()=>{
+    if(isGuest){
+        isGuest=false; currentUser=null; myName='';
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('auth-screen').classList.remove('hidden');
+        // إعادة تعيين تبويبات الضيف
+        document.getElementById('tab-msgs').style.opacity='';
+        document.getElementById('tab-msgs').style.pointerEvents='';
+        document.getElementById('tab-friends').style.opacity='';
+        document.getElementById('tab-friends').style.pointerEvents='';
+        document.getElementById('guest-badge-row').classList.add('hidden');
+        document.getElementById('avatar-setting-row').style.display='';
+        document.getElementById('name-setting-row').style.display='';
+        document.getElementById('pass-setting-row').style.display='';
+        document.getElementById('guest-name-input').value='';
+        showAccountPicker();
+        return;
+    }
     await updateUserStatus('offline');
     await signOut(auth);
+    // إظهار مودال اختيار الحساب
+    renderSavedAccounts('modal-saved-accounts');
+    document.getElementById('account-picker-modal').style.display='flex';
 };
 
-window.showRegister=()=>{ document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); };
-window.showLogin   =()=>{ document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); };
+// showRegister / showLogin defined above
 
 // ═══════════════════════════════════════════════════
 //  تبويبات التنقل
@@ -787,6 +1007,7 @@ window.switchTab = tab=>{
 //  الأصدقاء — بحث وطلبات
 // ═══════════════════════════════════════════════════
 window.searchFriend = async()=>{
+    if(isGuest){alert('الضيوف لا يمكنهم إضافة أصدقاء');return;}
     const term=document.getElementById('friend-search').value.trim().toLowerCase();
     const div=document.getElementById('search-results');
     if(term.length<2){div.innerHTML='';return;}
@@ -817,6 +1038,7 @@ window.searchFriend = async()=>{
 };
 
 window.sendFriendRequest=async(toUid,toName)=>{
+    if(isGuest){alert('الضيوف لا يمكنهم إضافة أصدقاء');return;}
     const ex=await get(ref(db,`friendRequests/${toUid}/${currentUser.uid}`));
     if(ex.exists()){alert('تم الإرسال مسبقاً');return;}
     const al=await get(ref(db,`friends/${currentUser.uid}/${toUid}`));
@@ -893,6 +1115,7 @@ async function renderFriendsTab(){
 }
 
 function listenRealtime(){
+    if(isGuest) return;
     onValue(ref(db,`friends/${currentUser.uid}`),()=>{ renderFriendsTab(); renderConvosList(); });
     onValue(ref(db,`friendRequests/${currentUser.uid}`),snap=>{
         const cnt=snap.exists()?Object.keys(snap.val()).length:0;
@@ -923,6 +1146,7 @@ let chatUnsubscribe= null;   // إلغاء الاستماع
 
 // فتح DM مع صديق
 window.openDM = async(friendUid, friendName)=>{
+    if(isGuest){alert('الضيوف لا يمكنهم فتح المحادثات');return;}
     // id الـ DM = ترتيب أبجدي من UID-ين
     const dmId = [currentUser.uid, friendUid].sort().join('_');
     activeChatId   = dmId;
@@ -942,20 +1166,42 @@ window.openDM = async(friendUid, friendName)=>{
 
 // فتح جروب
 window.openGroup = async gid=>{
+    if(isGuest){alert('الضيوف لا يمكنهم فتح الجروبات');return;}
     const snap=await get(ref(db,`convos/${gid}`));
     if(!snap.exists()) return;
     const g=snap.val();
     activeChatId=gid; activeChatType='group';
-    showChatScreen(g.name||'جروب','مجموعة','var(--orange)','👥');
+    showChatScreen(g.name||'جروب','مجموعة','var(--orange)','👥',gid);
 };
 
-function showChatScreen(name,sub,color,av){
+function showChatScreen(name,sub,color,av,gid=null){
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('chat-screen').classList.remove('hidden');
     document.getElementById('chat-peer-name').textContent=name;
     document.getElementById('chat-peer-sub').textContent=sub;
     const avEl=document.getElementById('chat-peer-avatar');
-    avEl.textContent=av; avEl.style.background=color;
+    avEl.childNodes[0] && (avEl.childNodes[0].textContent=av);
+    if(!avEl.childNodes[0]) avEl.textContent=av;
+    avEl.style.background=color;
+    // زر تغيير صورة الجروب للمالك
+    const chgBtn=document.getElementById('group-avatar-btn');
+    if(gid){
+        get(ref(db,`convos/${gid}`)).then(s=>{
+            if(s.exists()&&s.val().owner===currentUser?.uid&&chgBtn){
+                chgBtn.style.display='block';
+                chgBtn.onclick=()=>openGroupAvatarChange(gid);
+            } else if(chgBtn){ chgBtn.style.display='none'; }
+        });
+        // تحميل صورة الجروب
+        get(ref(db,`convos/${gid}/avatar`)).then(s=>{
+            if(s.exists()){
+                avEl.style.background='transparent';
+                let img=avEl.querySelector('img');
+                if(!img){img=document.createElement('img');img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;';avEl.appendChild(img);}
+                img.src=s.val();
+            }
+        });
+    } else if(chgBtn){ chgBtn.style.display='none'; }
     document.getElementById('chat-msgs-div').innerHTML='';
     document.getElementById('chat-text-input').value='';
     document.getElementById('emoji-picker-chat').style.display='none';
@@ -1052,6 +1298,7 @@ async function renderConvosList(){
 
 // ── إنشاء محادثة جديدة (modal) ──
 window.openNewChat=async()=>{
+    if(isGuest){alert('الضيوف لا يمكنهم فتح المحادثات');return;}
     document.getElementById('new-chat-modal').style.display='flex';
     ncMode('dm');
     // تحميل قائمة الأصدقاء
@@ -1550,6 +1797,7 @@ window.setReady=()=>{ initAudio();update(ref(db,`rooms/${myRoom}/players/${myKey
 
 // إضافة صديق من اللعبة
 window.addFriendFromGame=(name,uid)=>{
+    if(isGuest){alert('الضيوف لا يمكنهم إضافة أصدقاء');return;}
     if(!currentUser||uid===currentUser.uid)return;
     pendingFriendTarget={uid,name};
     document.getElementById('add-friend-msg').innerHTML=`إضافة <b>${name}</b> كصديق؟`;
@@ -1675,6 +1923,122 @@ window.switchTab=tab=>{
         if(el) el.textContent=' — '+(currentUser.displayName||currentUser.email.split('@')[0]);
     }
 };
+
+
+// ══════════════════════════════════════
+//  تغيير صورة الحساب
+// ══════════════════════════════════════
+window.openAvatarChange=async()=>{
+    if(isGuest){alert('الضيوف لا يمكنهم تغيير الصورة');return;}
+    const av=document.getElementById('main-avatar');
+    const initEl=document.getElementById('avatar-preview-initials');
+    const prevImg=document.getElementById('avatar-preview-img');
+    const wrap=document.getElementById('avatar-preview-wrap');
+    initEl.textContent=initials(myName);
+    wrap.style.background=strColor(myName);
+    // عرض الصورة الحالية إن وجدت
+    const snap=await get(ref(db,`users/${currentUser.uid}/avatar`));
+    if(snap.exists()){
+        prevImg.src=snap.val(); prevImg.style.display='block';
+        wrap.style.background='transparent';
+        document.getElementById('avatar-remove-btn').style.display='block';
+    } else {
+        prevImg.style.display='none';
+        document.getElementById('avatar-remove-btn').style.display='none';
+    }
+    pendingAvatarDataUrl=null;
+    document.getElementById('avatar-change-modal').style.display='flex';
+};
+
+window.previewAvatarChange=(input)=>{
+    const file=input.files[0]; if(!file) return;
+    if(file.size>1024*512){alert('الصورة كبيرة جداً (الحد 512 كيلوبايت)');return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+        pendingAvatarDataUrl=e.target.result;
+        const prevImg=document.getElementById('avatar-preview-img');
+        const wrap=document.getElementById('avatar-preview-wrap');
+        prevImg.src=pendingAvatarDataUrl; prevImg.style.display='block';
+        wrap.style.background='transparent';
+        document.getElementById('avatar-remove-btn').style.display='block';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.saveAvatar=async()=>{
+    if(!pendingAvatarDataUrl){closeModal('avatar-change-modal');return;}
+    await set(ref(db,`users/${currentUser.uid}/avatar`), pendingAvatarDataUrl);
+    setAvatarEl(document.getElementById('main-avatar'), myName, pendingAvatarDataUrl);
+    pendingAvatarDataUrl=null;
+    closeModal('avatar-change-modal');
+};
+
+window.removeAvatar=async()=>{
+    await remove(ref(db,`users/${currentUser.uid}/avatar`));
+    const av=document.getElementById('main-avatar');
+    setAvatarEl(av, myName, null);
+    document.getElementById('avatar-preview-img').style.display='none';
+    document.getElementById('avatar-preview-wrap').style.background=strColor(myName);
+    document.getElementById('avatar-remove-btn').style.display='none';
+    pendingAvatarDataUrl=null;
+    closeModal('avatar-change-modal');
+};
+
+// ══════════════════════════════════════
+//  صورة الجروب
+// ══════════════════════════════════════
+window.openGroupAvatarChange=async(gid)=>{
+    if(isGuest){alert('الضيوف لا يمكنهم تغيير الصورة');return;}
+    const snap=await get(ref(db,`convos/${gid}/avatar`));
+    const prevImg=document.getElementById('avatar-preview-img');
+    const wrap=document.getElementById('avatar-preview-wrap');
+    document.getElementById('avatar-preview-initials').textContent='👥';
+    wrap.style.background='var(--orange)';
+    if(snap.exists()){
+        prevImg.src=snap.val(); prevImg.style.display='block';
+        wrap.style.background='transparent';
+        document.getElementById('avatar-remove-btn').style.display='block';
+    } else {
+        prevImg.style.display='none';
+        document.getElementById('avatar-remove-btn').style.display='none';
+    }
+    pendingAvatarDataUrl=null;
+    // احفظ الـ gid في مكان مؤقت
+    window._editingGroupAvatar=gid;
+    // بدّل وظيفة saveAvatar مؤقتاً
+    document.getElementById('avatar-change-modal').style.display='flex';
+};
+
+const _origSaveAvatar=window.saveAvatar;
+window.saveAvatar=async()=>{
+    if(window._editingGroupAvatar){
+        if(pendingAvatarDataUrl){
+            await set(ref(db,`convos/${window._editingGroupAvatar}/avatar`), pendingAvatarDataUrl);
+        }
+        window._editingGroupAvatar=null;
+        pendingAvatarDataUrl=null;
+        closeModal('avatar-change-modal');
+        return;
+    }
+    await _origSaveAvatar();
+};
+window.removeAvatar=async()=>{
+    if(window._editingGroupAvatar){
+        await remove(ref(db,`convos/${window._editingGroupAvatar}/avatar`));
+        window._editingGroupAvatar=null;
+        pendingAvatarDataUrl=null;
+        closeModal('avatar-change-modal');
+        return;
+    }
+    await remove(ref(db,`users/${currentUser.uid}/avatar`));
+    setAvatarEl(document.getElementById('main-avatar'), myName, null);
+    document.getElementById('avatar-preview-img').style.display='none';
+    document.getElementById('avatar-preview-wrap').style.background=strColor(myName);
+    document.getElementById('avatar-remove-btn').style.display='none';
+    pendingAvatarDataUrl=null;
+    closeModal('avatar-change-modal');
+};
+
 
 window.updateGameUI=()=>{};
 </script>
