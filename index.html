@@ -20,53 +20,6 @@
 .dark-mode {
     --bg: #000000; --surface: #1c1c1e; --txt: #ffffff; --txt2: #8e8e93;
 }
-/* ── 🌌 ثيم المجرة Galaxy Theme ── */
-.galaxy-mode {
-    --bg: #0a0420; --surface: #1a0b3d; --txt: #ffffff; --txt2: #c4b5fd;
-    --accent: #ec4899; --blue: #60a5fa; --green: #34d399;
-    --yellow: #fbbf24; --orange: #fb923c; --gray: #6b7280;
-    --shadow: 0 20px 60px rgba(124,58,237,0.4);
-}
-.galaxy-mode body {
-    background:
-      radial-gradient(ellipse at 15% 0%, rgba(124,58,237,0.7) 0%, transparent 45%),
-      radial-gradient(ellipse at 85% 100%, rgba(236,72,153,0.55) 0%, transparent 50%),
-      radial-gradient(ellipse at 60% 50%, rgba(59,130,246,0.45) 0%, transparent 55%),
-      #07021a !important;
-    background-attachment: fixed;
-}
-.galaxy-mode .screen {
-    background: linear-gradient(135deg, rgba(76,29,149,0.55), rgba(190,24,93,0.30) 60%, rgba(30,58,138,0.55));
-    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-    border: 1px solid rgba(255,255,255,0.14);
-    box-shadow: 0 20px 60px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
-}
-.galaxy-mode button {
-    background: linear-gradient(135deg,#7c3aed 0%,#ec4899 100%);
-    color:#fff; box-shadow: 0 6px 20px rgba(236,72,153,0.4);
-}
-.galaxy-mode button.secondary { background: rgba(255,255,255,0.10); color:#e9d5ff; box-shadow:none; }
-.galaxy-mode button.success   { background: linear-gradient(135deg,#10b981,#3b82f6); }
-.galaxy-mode button.danger    { background: linear-gradient(135deg,#ef4444,#ec4899); }
-.galaxy-mode button.ghost     { background: transparent; color:#c4b5fd; box-shadow:none; }
-.galaxy-mode input, .galaxy-mode select, .galaxy-mode textarea {
-    background: rgba(255,255,255,0.08); color:#fff;
-    border:1px solid rgba(255,255,255,0.18);
-}
-.galaxy-mode input::placeholder { color: rgba(255,255,255,0.5); }
-.galaxy-mode .room-info { background: linear-gradient(135deg,#1e1b4b,#581c87); color:#fbbf24; }
-.galaxy-mode .group-card, .galaxy-mode .setting-row { background: rgba(255,255,255,0.05); }
-.galaxy-mode .setting-row { border-bottom: 1px solid rgba(255,255,255,0.08); }
-.galaxy-mode .player-tag { background: rgba(255,255,255,0.12); color:#fff; }
-.galaxy-mode .modal-sheet { background: linear-gradient(135deg, #1a0b3d, #2d1b69); color:#fff; }
-.galaxy-mode .tab-btn.active { color:#ec4899 !important; }
-
-/* ── دعم اتجاه LTR للإنجليزية ── */
-html[dir="ltr"] body { direction: ltr; }
-html[dir="ltr"] input, html[dir="ltr"] .setting-label,
-html[dir="ltr"] .section-title, html[dir="ltr"] #game-chat-msgs { text-align: left; }
-html[dir="ltr"] .chat-header-info, html[dir="ltr"] .chat-header-name, html[dir="ltr"] .chat-header-sub { text-align: left; }
-
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
     background: var(--bg); color: var(--txt);
@@ -466,16 +419,12 @@ select {
             <img src="cards/r7.png" style="width:58px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transform:rotate(-8deg);" alt="">
             <img src="cards/+4.png" style="width:58px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transform:rotate(8deg);"  alt="">
         </div>
-        <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:18px;" data-i18n="أونو أونلاين 🎮">أونو أونلاين 🎮</h1>
-        <button onclick="enterRoom('create')" data-i18n="🎯 إنشاء غرفة جديدة">🎯 إنشاء غرفة جديدة</button>
+        <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:18px;">أونو أونلاين 🎮</h1>
+        <button onclick="enterRoom('create')">🎯 إنشاء غرفة جديدة</button>
         <div style="display:flex;gap:8px;margin-top:4px;">
-            <input type="text" id="room-input" maxlength="8" placeholder="كود الغرفة (8 أرقام)" data-i18n-ph="كود الغرفة (8 أرقام)" style="text-align:center;">
-            <button onclick="enterRoom('join')" style="width:auto;padding:0 18px;margin:4px 0;" data-i18n="دخول">دخول</button>
+            <input type="text" id="room-input" maxlength="8" placeholder="كود الغرفة (8 أرقام)" style="text-align:center;">
+            <button onclick="enterRoom('join')" style="width:auto;padding:0 18px;margin:4px 0;">دخول</button>
         </div>
-        <div style="margin-top:14px;border-top:1px solid var(--bg);padding-top:14px;">
-            <button onclick="openTrainingMenu()" style="background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-weight:700;" data-i18n="🤖 تدريب ضد البوت">🤖 تدريب ضد البوت</button>
-        </div>
-
     </div>
 
     <!-- ── تبويب الرسائل ── -->
@@ -529,21 +478,13 @@ select {
         <!-- المظهر -->
         <p style="font-size:0.75rem;font-weight:600;color:var(--txt2);text-align:right;margin:16px 0 4px;">المظهر</p>
         <div class="setting-row">
-            <select id="lang-select" onchange="applyLang(this.value)" style="width:auto;margin:0;">
-                <option value="ar">العربية 🇸🇦</option>
-                <option value="en">English 🇬🇧</option>
-            </select>
-            <span class="setting-label" data-i18n="اللغة">اللغة</span>
-        </div>
-        <div class="setting-row">
             <select id="theme-select" onchange="updateTheme()" style="width:auto;margin:0;">
-                <option value="light" data-i18n="فاتح ☀️">فاتح ☀️</option>
-                <option value="dark"  data-i18n="داكن 🌙">داكن 🌙</option>
-                <option value="galaxy" data-i18n="مجرة 🌌">مجرة 🌌</option>
-                <option value="custom" data-i18n="لون مخصص 🎨">لون مخصص 🎨</option>
-                <option value="bgimage" data-i18n="صورة خلفية 🖼️">صورة خلفية 🖼️</option>
+                <option value="light">فاتح ☀️</option>
+                <option value="dark">داكن 🌙</option>
+                <option value="custom">لون مخصص 🎨</option>
+                <option value="bgimage">صورة خلفية 🖼️</option>
             </select>
-            <span class="setting-label" data-i18n="المظهر">المظهر</span>
+            <span class="setting-label">المظهر</span>
         </div>
         <!-- منتقي اللون المخصص -->
         <div id="custom-color-picker">
@@ -804,56 +745,7 @@ select {
     </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     🤖 شاشة التدريب ضد البوت Training
-══════════════════════════════════════ -->
-<div class="screen hidden" id="training-screen">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <button onclick="exitTraining()" class="danger" style="width:auto;padding:8px 14px;font-size:0.85rem;" data-i18n="🚪 خروج">🚪 خروج</button>
-        <div style="font-weight:800;font-size:1.05rem;" id="training-title">🤖</div>
-    </div>
-    <div id="training-menu">
-        <div style="text-align:center;padding:14px 0;">
-            <div style="font-size:3rem;margin-bottom:8px;">🤖</div>
-            <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:6px;" data-i18n="اختر مستوى البوت">اختر مستوى البوت</h2>
-            <p style="color:var(--txt2);font-size:0.85rem;margin-bottom:18px;" data-i18n="العب جولة سريعة لتحسين مهاراتك">العب جولة سريعة لتحسين مهاراتك</p>
-        </div>
-        <button onclick="startTraining('dumb')" style="background:linear-gradient(135deg,#10b981,#34d399);"><span data-i18n="🟢 غبي — يلعب عشوائيًا">🟢 غبي — يلعب عشوائيًا</span></button>
-        <button onclick="startTraining('smart')" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);margin-top:8px;"><span data-i18n="🔵 ذكي — يلعب بشكل عادي">🔵 ذكي — يلعب بشكل عادي</span></button>
-        <button onclick="startTraining('master')" style="background:linear-gradient(135deg,#7c3aed,#ec4899);margin-top:8px;"><span data-i18n="🟣 معلم — يلعب باحترافية">🟣 معلم — يلعب باحترافية</span></button>
-    </div>
-    <div id="training-board" class="hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:10px;">
-            <div><span style="font-weight:700;" data-i18n="البوت">البوت</span>: <span id="t-bot-cards">7</span> 🃏</div>
-            <div id="t-bot-level-tag" style="font-size:0.78rem;background:var(--blue);color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;"></div>
-        </div>
-        <p id="t-turn" style="font-weight:700;font-size:1.05rem;margin:8px 0;text-align:center;"></p>
-        <img id="t-top-card" class="uno-card" style="margin:6px auto;cursor:default;transform:scale(1.25);display:block;" src="cards/r0.png">
-        <div id="t-current-color" style="text-align:center;font-size:0.82rem;margin:4px 0;color:var(--txt2);"></div>
-        <div id="t-player-hand" style="overflow-x:auto;white-space:nowrap;padding:18px 4px;min-height:110px;margin:10px 0;"></div>
-        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button onclick="tDrawCard()" style="width:auto;" data-i18n="🃏 سحب">🃏 سحب</button>
-            <button id="t-uno-btn" onclick="tSayUno()" style="background:var(--yellow);color:#000;width:auto;display:none;font-weight:800;">⚠️ UNO!</button>
-        </div>
-        <div id="t-log" style="height:80px;overflow-y:auto;font-size:0.78rem;background:var(--bg);padding:8px 10px;border-radius:var(--radius-sm);margin-top:10px;text-align:right;"></div>
-    </div>
-    <!-- مودال اختيار اللون للتدريب -->
-    <div id="t-color-modal" class="modal center" style="display:none;">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <h3 data-i18n="اختر اللون">اختر اللون</h3>
-            <div class="color-grid">
-                <div class="color-swatch" style="background:#ff3b30" onclick="tPickColor('red')"></div>
-                <div class="color-swatch" style="background:#007aff" onclick="tPickColor('blue')"></div>
-                <div class="color-swatch" style="background:#34c759" onclick="tPickColor('green')"></div>
-                <div class="color-swatch" style="background:#ffd60a" onclick="tPickColor('yellow')"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script type="module">
-
 import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, remove, serverTimestamp }
                                from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -1965,7 +1857,6 @@ window.updateTheme=()=>{
     bgLayer.style.backgroundImage='';
 
     if(theme==='dark')    { body.className='dark-mode'; }
-    else if(theme==='galaxy') { body.className='galaxy-mode'; }
     else if(theme==='custom') {
         body.className='custom-color-mode';
         cpPicker.classList.add('show');
@@ -2187,364 +2078,6 @@ window.removeAvatar=async()=>{
 
 
 window.updateGameUI=()=>{};
-
-/* ═════════════════════════════════════════════════════════
-   🌍 نظام اللغة (i18n) — Arabic ⇄ English
-═════════════════════════════════════════════════════════ */
-const I18N = {
-  // عام
-  "العب مع أصدقائك في أي مكان":"Play with friends anywhere",
-  "اختر حسابك":"Choose your account",
-  "📝 إنشاء حساب جديد":"📝 Create new account",
-  "👻 الدخول كضيف":"👻 Continue as guest",
-  "تسجيل الدخول":"Sign in",
-  "البريد الإلكتروني":"Email",
-  "كلمة المرور":"Password",
-  "كلمة المرور (6 أحرف+)":"Password (6+ chars)",
-  "← رجوع":"← Back",
-  "إنشاء حساب":"Create account",
-  "اسم المستخدم":"Username",
-  "👻 الدخول كضيف":"👻 Continue as guest",
-  "اختر اساماً مستعاراً":"Choose a nickname",
-  "اختر اسماً مستعاراً":"Choose a nickname",
-  "أونو أونلاين 🎮":"UNO Online 🎮",
-  "🎯 إنشاء غرفة جديدة":"🎯 Create new room",
-  "كود الغرفة (8 أرقام)":"Room code (8 digits)",
-  "دخول":"Join",
-  "🤖 تدريب ضد البوت":"🤖 Train vs Bot",
-  // تبويبات
-  "اللعبة":"Game","الرسائل":"Messages","الأصدقاء":"Friends","الإعدادات":"Settings",
-  "الرئيسية":"Home",
-  // إعدادات
-  "اللغة":"Language","المظهر":"Theme","فاتح ☀️":"Light ☀️","داكن 🌙":"Dark 🌙",
-  "مجرة 🌌":"Galaxy 🌌","لون مخصص 🎨":"Custom color 🎨","صورة خلفية 🖼️":"Background image 🖼️",
-  "صورة الحساب":"Profile picture","تسجيل الخروج":"Sign out",
-  "👻 أنت تلعب كضيف — البيانات لن تُحفظ":"👻 Guest mode — data won't be saved",
-  "📂 اختر صورة من جهازك":"📂 Pick image from device",
-  "🗑️ إزالة الصورة":"🗑️ Remove image",
-  "لون الخلفية":"Background color","لون البطاقات":"Card color","لون النص":"Text color",
-  // اللعبة
-  "🃏 سحب":"🃏 Draw","🚪 خروج من الغرفة":"🚪 Leave room","🚪 خروج":"🚪 Exit",
-  "👍 أنا جاهز!":"👍 I'm ready!",
-  "⏳ بانتظار اللاعبين...":"⏳ Waiting for players...",
-  "🔥 دورك!":"🔥 Your turn!","⏳ انتظر...":"⏳ Wait...",
-  "💬 رسالة...":"💬 Message...","رسالة...":"Message...",
-  "📋 نسخ":"📋 Copy",
-  "أحسنت! 🎉":"Well done! 🎉","أنت الفائز!":"You win!","انتهت اللعبة":"Game over",
-  "🏠 الرئيسية":"🏠 Home",
-  "اختر اللون":"Pick a color",
-  // التدريب
-  "اختر مستوى البوت":"Choose bot level",
-  "العب جولة سريعة لتحسين مهاراتك":"Play a quick round to improve your skills",
-  "🟢 غبي — يلعب عشوائيًا":"🟢 Dumb — plays randomly",
-  "🔵 ذكي — يلعب بشكل عادي":"🔵 Smart — plays normally",
-  "🟣 معلم — يلعب باحترافية":"🟣 Master — plays professionally",
-  "البوت":"Bot",
-  "دورك":"Your turn","دور البوت...":"Bot's turn...",
-  "اللون الحالي":"Current color",
-  "🏆 فزت!":"🏆 You won!","😔 فاز البوت":"😔 Bot wins",
-  "🔁 إعادة":"🔁 Replay","🏠 العودة":"🏠 Home",
-  "لعبت":"You played","البوت لعب":"Bot played","سحبت بطاقة":"You drew a card","البوت سحب بطاقة":"Bot drew a card",
-  "بدأت اللعبة! 🎮":"Game started! 🎮",
-  // ترجمات سريعة إضافية
-  "إلغاء":"Cancel","حفظ":"Save","تم":"Done","حذف":"Delete","نعم":"Yes","لا":"No"
-};
-let _curLang = localStorage.getItem('uno_lang') || 'ar';
-function _tr(s){ if(!s) return s; const k=s.trim(); return I18N[k] || s; }
-function _walkText(node,fn){
-  if(node.nodeType===3){ fn(node); return; }
-  if(node.nodeType!==1) return;
-  if(['SCRIPT','STYLE'].includes(node.tagName)) return;
-  for(const c of Array.from(node.childNodes)) _walkText(c,fn);
-}
-window.applyLang = (lang)=>{
-  _curLang = lang;
-  localStorage.setItem('uno_lang', lang);
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang==='ar' ? 'rtl' : 'ltr';
-  // عناصر مع data-i18n: استبدال نصي مباشر
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const ar = el.getAttribute('data-i18n');
-    if(!el.dataset.i18nOrig) el.dataset.i18nOrig = ar;
-    el.textContent = lang==='ar' ? el.dataset.i18nOrig : (I18N[el.dataset.i18nOrig] || el.dataset.i18nOrig);
-  });
-  // placeholders
-  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
-    const ar = el.getAttribute('data-i18n-ph');
-    if(!el.dataset.i18nPhOrig) el.dataset.i18nPhOrig = ar;
-    el.placeholder = lang==='ar' ? el.dataset.i18nPhOrig : (I18N[el.dataset.i18nPhOrig] || el.dataset.i18nPhOrig);
-  });
-  // ترجمة عامة لكل النصوص الظاهرة (نصوص أوراق فقط، استبدال إذا موجود في القاموس)
-  document.querySelectorAll('button, h1, h2, h3, h4, p, span, label, option, .setting-label, .auth-title, .auth-sub, .section-title, .tab-btn').forEach(el=>{
-    if(el.hasAttribute('data-i18n')) return;
-    if(el.children.length) return; // فقط leaf
-    const txt = el.textContent;
-    if(!txt) return;
-    if(!el.dataset.langOrig) el.dataset.langOrig = txt;
-    const orig = el.dataset.langOrig;
-    el.textContent = lang==='ar' ? orig : (I18N[orig.trim()] || orig);
-  });
-  // placeholders عامة
-  document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el=>{
-    if(el.hasAttribute('data-i18n-ph')) return;
-    if(!el.dataset.phOrig) el.dataset.phOrig = el.placeholder;
-    const orig = el.dataset.phOrig;
-    el.placeholder = lang==='ar' ? orig : (I18N[orig.trim()] || orig);
-  });
-  const sel=document.getElementById('lang-select'); if(sel) sel.value=lang;
-};
-// تطبيق اللغة عند التحميل (بعد الرسم الأولي)
-setTimeout(()=>{ try{ window.applyLang(_curLang); }catch(e){console.warn(e);} }, 400);
-
-/* ═════════════════════════════════════════════════════════
-   🤖 وضع التدريب — Training Mode (Local, vs Bot)
-═════════════════════════════════════════════════════════ */
-let TG = null; // training game state
-const T_COLORS = ['red','blue','green','yellow'];
-
-function tBuildDeck(){
-  const d=[];
-  T_COLORS.forEach(c=>{
-    d.push({color:c,value:'0'});
-    for(let i=1;i<=9;i++){ d.push({color:c,value:i.toString()}); d.push({color:c,value:i.toString()}); }
-    ['+2','Skip','🔄'].forEach(v=>{ d.push({color:c,value:v}); d.push({color:c,value:v}); });
-  });
-  for(let i=0;i<4;i++){ d.push({color:'black',value:'Wild'}); d.push({color:'black',value:'+4'}); }
-  return d.sort(()=>Math.random()-0.5);
-}
-function tCanPlay(card, top, curColor){
-  if(card.color==='black') return true;
-  return card.color===curColor || card.value===top.value;
-}
-function tDraw(){
-  if(!TG.deck.length){
-    if(TG.discard.length<=1) return null;
-    const rest = TG.discard.splice(0, TG.discard.length-1);
-    rest.forEach(c=>{ if(c.value==='Wild'||c.value==='+4') c.color='black'; });
-    TG.deck = rest.sort(()=>Math.random()-0.5);
-  }
-  return TG.deck.pop();
-}
-function tLog(msg){
-  const el=document.getElementById('t-log');
-  el.innerHTML = `<div>${msg}</div>` + el.innerHTML;
-}
-window.openTrainingMenu = ()=>{
-  document.getElementById('main-screen').classList.add('hidden');
-  document.getElementById('training-screen').classList.remove('hidden');
-  document.getElementById('training-menu').classList.remove('hidden');
-  document.getElementById('training-board').classList.add('hidden');
-  document.getElementById('training-title').textContent = '🤖';
-  setTimeout(()=>window.applyLang(_curLang),50);
-};
-window.exitTraining = ()=>{
-  TG=null;
-  document.getElementById('training-screen').classList.add('hidden');
-  document.getElementById('main-screen').classList.remove('hidden');
-};
-window.startTraining = (level)=>{
-  const deck = tBuildDeck();
-  let first;
-  // first card must be a number (no wild/action)
-  for(let i=0;i<deck.length;i++){ if(!isNaN(deck[i].value)){ first=deck.splice(i,1)[0]; break; } }
-  TG = {
-    deck, discard:[first],
-    player: deck.splice(0,7),
-    bot:    deck.splice(0,7),
-    turn:'player', // 'player' or 'bot'
-    curColor: first.color,
-    direction: 1, // not really used in 1v1 but kept
-    level, hasUnoP:false, hasUnoB:false, picking:false, gameOver:false
-  };
-  document.getElementById('training-menu').classList.add('hidden');
-  document.getElementById('training-board').classList.remove('hidden');
-  const tag=document.getElementById('t-bot-level-tag');
-  tag.textContent = level==='dumb'?(_curLang==='ar'?'🟢 غبي':'🟢 Dumb')
-                   :level==='smart'?(_curLang==='ar'?'🔵 ذكي':'🔵 Smart')
-                   :(_curLang==='ar'?'🟣 معلم':'🟣 Master');
-  document.getElementById('t-log').innerHTML='';
-  tLog(_tr('بدأت اللعبة! 🎮'));
-  tRender();
-};
-function tRender(){
-  if(!TG) return;
-  const top = TG.discard[TG.discard.length-1];
-  document.getElementById('t-top-card').src = cardImg({color: TG.curColor==='black'?'black':TG.curColor, value: top.value});
-  document.getElementById('t-bot-cards').textContent = TG.bot.length;
-  const colorNames = {red:'🔴',blue:'🔵',green:'🟢',yellow:'🟡',black:'⚫'};
-  document.getElementById('t-current-color').textContent = _tr('اللون الحالي') + ': ' + (colorNames[TG.curColor]||'');
-  document.getElementById('t-turn').textContent = TG.turn==='player' ? _tr('دورك') : _tr('دور البوت...');
-  const hand = TG.player;
-  const hDiv = document.getElementById('t-player-hand'); hDiv.innerHTML='';
-  let anyPlay=false;
-  hand.forEach((card,i)=>{
-    const img=document.createElement('img');
-    img.src=cardImg(card);
-    const playable = TG.turn==='player' && !TG.picking && tCanPlay(card, top, TG.curColor);
-    if(playable) anyPlay=true;
-    img.className='uno-card'+(playable?' playable':TG.turn==='player'?' not-playable':'');
-    img.onclick=()=>{ if(playable) tPlayPlayer(i); };
-    hDiv.appendChild(img);
-  });
-  document.getElementById('t-uno-btn').style.display = (TG.turn==='player' && hand.length===2) ? 'inline-block':'none';
-}
-window.tDrawCard = ()=>{
-  if(!TG||TG.turn!=='player'||TG.picking||TG.gameOver) return;
-  const c=tDraw(); if(!c) return;
-  TG.player.push(c);
-  tLog('🃏 ' + _tr('سحبت بطاقة'));
-  // إذا قابل للعب يستطيع لعبه — هنا سنبسّط: يمر الدور
-  TG.turn='bot'; tRender();
-  setTimeout(tBotMove, 900);
-};
-window.tSayUno = ()=>{ TG.hasUnoP=true; tLog('⚠️ UNO!'); };
-function tPlayPlayer(idx){
-  if(!TG||TG.gameOver) return;
-  const card = TG.player[idx];
-  const top = TG.discard[TG.discard.length-1];
-  if(!tCanPlay(card, top, TG.curColor)) return;
-  // عقوبة UNO
-  if(TG.player.length===2 && !TG.hasUnoP){
-    tLog('⚠️ ' + (_curLang==='ar'?'لم تقل UNO! +2 بطاقات':"You didn't say UNO! +2 cards"));
-    const a=tDraw(),b=tDraw(); if(a)TG.player.push(a); if(b)TG.player.push(b);
-    tRender(); return;
-  }
-  TG.player.splice(idx,1); TG.discard.push(card);
-  tLog(_tr('لعبت') + ': ' + cardLabel(card));
-  if(!TG.player.length){ tEnd(true); return; }
-  applyCardEffect(card, 'player');
-}
-function cardLabel(c){ const cm={red:'🔴',blue:'🔵',green:'🟢',yellow:'🟡',black:'⚫'}; return (cm[c.color]||'') + ' ' + c.value; }
-function applyCardEffect(card, who){
-  // who is who played it; victim is the other player
-  const victim = who==='player' ? 'bot' : 'player';
-  if(card.color==='black'){
-    if(card.value==='+4'){
-      for(let i=0;i<4;i++){ const c=tDraw(); if(c) TG[victim].push(c); }
-    }
-    if(who==='player'){
-      TG.picking=true; document.getElementById('t-color-modal').style.display='flex'; tRender(); return;
-    } else {
-      // bot picks color
-      TG.curColor = botPickColor();
-      tLog('🤖 ' + (_curLang==='ar'?'البوت اختار':'Bot chose') + ' ' + TG.curColor);
-      // After +4, victim (player) loses turn → bot plays again? In our 1v1: skip victim's turn
-      if(card.value==='+4'){ TG.turn='bot'; tRender(); setTimeout(tBotMove,900); return; }
-      TG.turn='player'; tRender(); return;
-    }
-  }
-  if(card.value==='+2'){
-    for(let i=0;i<2;i++){ const c=tDraw(); if(c) TG[victim].push(c); }
-    // victim skipped → same player goes again
-    TG.turn = who; tRender();
-    if(who==='bot'){ setTimeout(tBotMove,900); }
-    return;
-  }
-  if(card.value==='Skip' || card.value==='🔄'){
-    // 1v1: same player goes again
-    TG.curColor = card.color;
-    TG.turn = who; tRender();
-    if(who==='bot'){ setTimeout(tBotMove,900); }
-    return;
-  }
-  // normal number card
-  TG.curColor = card.color;
-  TG.turn = victim; tRender();
-  if(victim==='bot'){ setTimeout(tBotMove,900); }
-}
-window.tPickColor = (color)=>{
-  TG.curColor = color; TG.picking=false;
-  document.getElementById('t-color-modal').style.display='none';
-  const last = TG.discard[TG.discard.length-1];
-  // wild +4 already drew cards; player loses next turn
-  if(last.value==='+4'){
-    TG.turn='player'; tRender();
-    setTimeout(()=>{ TG.turn='bot'; tRender(); setTimeout(tBotMove,900); }, 200);
-    return;
-  }
-  TG.turn='bot'; tRender();
-  setTimeout(tBotMove, 900);
-};
-function botPickColor(){
-  // pick the color the bot has most of
-  const cnt={red:0,blue:0,green:0,yellow:0};
-  TG.bot.forEach(c=>{ if(cnt[c.color]!==undefined) cnt[c.color]++; });
-  let best='red',mx=-1;
-  for(const c of T_COLORS){ if(cnt[c]>mx){mx=cnt[c]; best=c;} }
-  if(mx===0) return T_COLORS[Math.floor(Math.random()*4)];
-  return best;
-}
-function tBotMove(){
-  if(!TG||TG.gameOver||TG.turn!=='bot') return;
-  const top = TG.discard[TG.discard.length-1];
-  const playable = TG.bot.map((c,i)=>({c,i})).filter(x=>tCanPlay(x.c, top, TG.curColor));
-  if(!playable.length){
-    const c=tDraw();
-    if(c){ TG.bot.push(c); tLog('🤖 ' + _tr('البوت سحب بطاقة')); }
-    // try to play it
-    const top2=TG.discard[TG.discard.length-1];
-    if(c && tCanPlay(c, top2, TG.curColor) && TG.level!=='dumb'){
-      // smart/master plays it
-      const idx=TG.bot.length-1;
-      TG.bot.splice(idx,1); TG.discard.push(c);
-      tLog('🤖 ' + _tr('البوت لعب') + ': ' + cardLabel(c));
-      if(!TG.bot.length){ tEnd(false); return; }
-      applyCardEffect(c,'bot'); return;
-    }
-    TG.turn='player'; tRender(); return;
-  }
-  let pick;
-  if(TG.level==='dumb'){
-    pick = playable[Math.floor(Math.random()*playable.length)];
-  } else if(TG.level==='smart'){
-    // prefer non-wild, prefer matching color
-    const nonWild = playable.filter(x=>x.c.color!=='black');
-    const sameColor = nonWild.filter(x=>x.c.color===TG.curColor);
-    pick = sameColor[0] || nonWild[0] || playable[0];
-  } else { // master
-    // strategy:
-    // - if player has ≤2 cards: play attack (+4,+2,Skip) if possible
-    // - prefer high-number / actions to dump points
-    // - save wild/+4 for emergencies
-    const nonWild = playable.filter(x=>x.c.color!=='black');
-    const wilds   = playable.filter(x=>x.c.color==='black');
-    const attacks = playable.filter(x=>['+2','Skip','🔄','+4'].includes(x.c.value));
-    if(TG.player.length<=2 && attacks.length){
-      // pick strongest attack: +4 > +2 > Skip > 🔄
-      const order=['+4','+2','Skip','🔄'];
-      attacks.sort((a,b)=>order.indexOf(a.c.value)-order.indexOf(b.c.value));
-      pick = attacks[0];
-    } else if(nonWild.length){
-      // play highest-value (number) first, then matching-color action
-      nonWild.sort((a,b)=>{
-        const va = isNaN(a.c.value)? -1 : parseInt(a.c.value);
-        const vb = isNaN(b.c.value)? -1 : parseInt(b.c.value);
-        return vb - va;
-      });
-      pick = nonWild[0];
-    } else {
-      pick = wilds[0];
-    }
-  }
-  // UNO call for bot
-  if(TG.bot.length===2){ TG.hasUnoB=true; tLog('🤖 ⚠️ UNO!'); }
-  const card = pick.c;
-  TG.bot.splice(pick.i,1); TG.discard.push(card);
-  tLog('🤖 ' + _tr('البوت لعب') + ': ' + cardLabel(card));
-  if(!TG.bot.length){ tEnd(false); return; }
-  applyCardEffect(card, 'bot');
-}
-function tEnd(playerWon){
-  TG.gameOver=true;
-  const board=document.getElementById('training-board');
-  board.innerHTML = `<div style="text-align:center;padding:30px 10px;">
-    <div style="font-size:3.5rem;margin-bottom:10px;">${playerWon?'🏆':'😔'}</div>
-    <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:18px;">${playerWon?_tr('🏆 فزت!'):_tr('😔 فاز البوت')}</h2>
-    <button onclick="startTraining('${TG.level}')" class="success" style="width:auto;padding:12px 24px;margin:4px;">${_tr('🔁 إعادة')}</button>
-    <button onclick="exitTraining()" style="width:auto;padding:12px 24px;margin:4px;">${_tr('🏠 العودة')}</button>
-  </div>`;
-}
-
 </script>
 </body>
 </html>
